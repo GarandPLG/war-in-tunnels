@@ -1,6 +1,9 @@
 [package]
-name = "rust-flake-template" # change the default name to your project name
+name = "war_in_tunnels"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+clap = { version = "4.5.53", features = ["derive"] }
+crossterm = "0.29.0"
+ratatui = "0.30.0"

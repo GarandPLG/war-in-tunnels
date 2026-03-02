@@ -1,14 +1,24 @@
 {
   lib,
   rustPlatform,
-  packageName,
   pkg-config,
-# add nixpkgs if your dependencies requires system libraries
 }:
 rustPlatform.buildRustPackage {
-  name = "${packageName}";
+  name = "war-in-tunnels";
+  pname = "war-in-tunnels";
+  version = "0.1.0";
+
   src = ./.;
-  # buildInputs = [ ];  <-- add nixpkgs if your dependencies requires system libraries
-  nativeBuildInputs = [ pkg-config ];
-  cargoHash = lib.fakeHash; # <-- Put your real hash here after failed nix build
+  # buildInputs = [ ];
+  nativeBuildInputs = [pkg-config];
+  cargoHash = lib.fakeHash;
+
+  meta = {
+    description = "TUI underground game";
+    homepage = "https://gitea.garandplg.com/GarandPLG/war-in-tunnels";
+    license = lib.licenses.mit;
+    maintainers = [
+      "Garand_PLG"
+    ];
+  };
 }
