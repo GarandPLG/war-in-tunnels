@@ -33,7 +33,7 @@
       rustc = rustToolchain;
     };
 
-    cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+    cargoToml = fromTOML (builtins.readFile ./Cargo.toml);
     packageVersion = cargoToml.package.version;
   in {
     packages.${system} = {
@@ -56,7 +56,6 @@
 
       shellHook = ''
         echo "War in Tunnels    v${packageVersion}"
-        echo "[you can list your other dependencies here]"
         echo ""
         echo "Commands:"
         echo "    nix build            - Build production version"
