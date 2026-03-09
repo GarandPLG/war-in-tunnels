@@ -12,7 +12,20 @@ use war_in_tunnels::{
 fn main() -> Result<()> {
     let args: Cli = get_args();
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
-    let mut app: App = App { exit: false };
+    let mut app: App = App {
+        exit: false,
+        default_window: args.default_window,
+        username: args.username,
+        game_mode: args.game_mode,
+        map_width: args.map_width,
+        map_height: args.map_height,
+        perk_deck: args.perk_deck,
+        starting_wood: args.starting_wood,
+        starting_iron: args.starting_iron,
+        supply_limit: args.supply_limit,
+        xp_modifier: args.xp_modifier,
+        skill_points_limit: args.skill_points_limit,
+    };
 
     let (event_tx, event_rx) = mpsc::channel::<Event>();
 
@@ -23,5 +36,6 @@ fn main() -> Result<()> {
 
     let app_result: Result<()> = app.run(&mut terminal, event_rx);
     ratatui::restore();
+
     app_result
 }

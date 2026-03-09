@@ -1,5 +1,7 @@
-use crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::{DefaultTerminal, Frame, buffer::Buffer, layout::Rect, widgets::Widget};
+use ratatui::{
+    DefaultTerminal, Frame,
+    crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind},
+};
 use std::{
     io::Result,
     sync::mpsc::{self, Receiver},
@@ -7,16 +9,17 @@ use std::{
 
 pub struct App {
     pub exit: bool,
-    // pub username: String,
-    // pub game_mode: String,
-    // pub map_width: u8,
-    // pub map_height: u8,
-    // pub perk_deck: String,
-    // pub starting_wood: u8,
-    // pub starting_iron: u8,
-    // pub supply_limit: u8,
-    // pub xp_modifier: f32,
-    // pub skill_points_limit: u16,
+    pub default_window: String,
+    pub username: String,
+    pub game_mode: String,
+    pub map_width: u8,
+    pub map_height: u8,
+    pub perk_deck: String,
+    pub starting_wood: u8,
+    pub starting_iron: u8,
+    pub supply_limit: u8,
+    pub xp_modifier: f32,
+    pub skill_points_limit: u16,
 }
 
 pub enum Event {
@@ -50,14 +53,6 @@ impl App {
         }
 
         Ok(())
-    }
-}
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer)
-    where
-        Self: Sized,
-    {
     }
 }
 
