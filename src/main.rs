@@ -6,11 +6,11 @@ use std::{
 };
 use war_in_tunnels::{
     app::{App, Event, handle_input_events},
-    // cli::{Cli, get_args},
+    cli::{Cli, get_args},
 };
 
 fn main() -> Result<()> {
-    // let args: Cli = get_args();
+    let args: Cli = get_args();
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
     let mut app: App = App { exit: false };
 

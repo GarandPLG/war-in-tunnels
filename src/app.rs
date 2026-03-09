@@ -7,6 +7,16 @@ use std::{
 
 pub struct App {
     pub exit: bool,
+    // pub username: String,
+    // pub game_mode: String,
+    // pub map_width: u8,
+    // pub map_height: u8,
+    // pub perk_deck: String,
+    // pub starting_wood: u8,
+    // pub starting_iron: u8,
+    // pub supply_limit: u8,
+    // pub xp_modifier: f32,
+    // pub skill_points_limit: u16,
 }
 
 pub enum Event {
