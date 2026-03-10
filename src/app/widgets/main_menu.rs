@@ -1,3 +1,4 @@
+use crate::app::{View, widgets::keybindings_widget};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
@@ -5,11 +6,9 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use crate::app::{View, widgets::keybindings_widget};
-
 pub fn main_menu_widget(area: Rect, buf: &mut Buffer) {
     let vertical_layout: Layout =
-        Layout::vertical([Constraint::Percentage(90), Constraint::Percentage(10)]);
+        Layout::vertical([Constraint::Percentage(87), Constraint::Percentage(13)]);
 
     let [main_menu_area, keybindings_area] = vertical_layout.areas(area);
 

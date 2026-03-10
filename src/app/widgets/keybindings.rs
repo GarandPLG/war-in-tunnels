@@ -1,3 +1,4 @@
+use crate::app::{View, keybindings::binding_for_view};
 use ratatui::{
     crossterm::event::KeyCode,
     layout::Alignment,
@@ -6,13 +7,14 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
 };
 
-use crate::app::{View, binding_for_view};
-
 pub fn keybindings_widget(view: View) -> Paragraph<'static> {
     let lines: Vec<Line> = binding_for_view(view)
         .iter()
         .map(|b| {
             let key_span = match b.code {
+                KeyCode::Up => Span::raw("↑".to_string()),
+                KeyCode::Down => Span::raw("↓".to_string()),
+                KeyCode::Char(' ') => Span::raw("Space".to_string()),
                 KeyCode::Char(c) => Span::raw(c.to_string()),
                 other => Span::raw(format!("{:?}", other)),
             }

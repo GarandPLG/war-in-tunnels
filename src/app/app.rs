@@ -1,4 +1,4 @@
-use crate::app::{Action, event_to_action};
+use crate::app::keybindings::{Action, event_to_action, main_menu_keybindings};
 use clap::ValueEnum;
 use ratatui::{
     DefaultTerminal, Frame,
@@ -59,13 +59,15 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        // if key_event.kind == KeyEventKind::Press && key_event.code == KeyCode::Char('q') {
-        //     self.exit = true;
-        // }
-
-        if let Some(action) = event_to_action(&key_event) {
-            match action {
-                Action::Quit => self.exit = true,
+        match self.window {
+            View::MainMenu => main_menu_keybindings(self, &key_event),
+            _ => {
+                if let Some(action) = event_to_action(&key_event) {
+                    match action {
+                        Action::Quit => self.exit = true,
+                        _ => (),
+                    }
+                }
             }
         }
 

@@ -1,6 +1,5 @@
-use clap::Parser;
-
 use crate::app::View;
+use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "War in Tunnels", long_about = "War in Tunnels")]
