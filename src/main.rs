@@ -14,7 +14,7 @@ fn main() -> Result<()> {
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
     let mut app: App = App {
         exit: false,
-        default_window: args.default_window,
+        window: args.window,
         username: args.username,
         game_mode: args.game_mode,
         map_width: args.map_width,

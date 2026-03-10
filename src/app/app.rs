@@ -1,6 +1,8 @@
+use crate::app::{Action, event_to_action};
+use clap::ValueEnum;
 use ratatui::{
     DefaultTerminal, Frame,
-    crossterm::event::{self, KeyCode, KeyEvent, KeyEventKind},
+    crossterm::event::{self, KeyEvent},
 };
 use std::{
     io::Result,
@@ -9,7 +11,7 @@ use std::{
 
 pub struct App {
     pub exit: bool,
-    pub default_window: String,
+    pub window: View,
     pub username: String,
     pub game_mode: String,
     pub map_width: u8,
@@ -20,6 +22,15 @@ pub struct App {
     pub supply_limit: u8,
     pub xp_modifier: f32,
     pub skill_points_limit: u16,
+}
+
+#[derive(Debug, Clone, ValueEnum)]
+pub enum View {
+    MainMenu,
+    Skirmish,
+    PerkDecks,
+    SkillsConfig,
+    Settings,
 }
 
 pub enum Event {
@@ -48,8 +59,14 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        if key_event.kind == KeyEventKind::Press && key_event.code == KeyCode::Char('q') {
-            self.exit = true;
+        // if key_event.kind == KeyEventKind::Press && key_event.code == KeyCode::Char('q') {
+        //     self.exit = true;
+        // }
+
+        if let Some(action) = event_to_action(&key_event) {
+            match action {
+                Action::Quit => self.exit = true,
+            }
         }
 
         Ok(())

@@ -1,15 +1,18 @@
 use clap::Parser;
 
+use crate::app::View;
+
 #[derive(Parser, Debug)]
 #[command(version, about = "War in Tunnels", long_about = "War in Tunnels")]
 pub struct Cli {
     #[arg(
         long,
         help = "Default window",
-        value_name = "main_menu | skirmish | skills_config | perk_decks | settings",
-        default_value = "main_menu"
+        value_name = "...",
+        default_value_t = View::MainMenu,
+        value_enum
     )]
-    pub default_window: String,
+    pub window: View,
 
     #[arg(
         long,
