@@ -1,4 +1,4 @@
-use crate::app::View;
+use crate::app::{GameMode, PerkDecks, View};
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -11,7 +11,7 @@ pub struct Cli {
         default_value_t = View::MainMenu,
         value_enum
     )]
-    pub window: View,
+    pub view: View,
 
     #[arg(
         long,
@@ -24,10 +24,11 @@ pub struct Cli {
     #[arg(
         long,
         help = "Game mode",
-        value_name = "LastManStanding or FrontLines",
-        default_value = "LastManStanding"
+        value_name = "...",
+        default_value_t = GameMode::LastManStanding,
+        value_enum
     )]
-    pub game_mode: String,
+    pub game_mode: GameMode,
 
     #[arg(
         long,
@@ -48,10 +49,11 @@ pub struct Cli {
     #[arg(
         long,
         help = "Perk Deck",
-        value_name = "String (check Perk Deck tab)",
-        default_value = "Silesian"
+        value_name = "...",
+        default_value_t = PerkDecks::Silesian,
+        value_enum
     )]
-    pub perk_deck: String,
+    pub perk_deck: PerkDecks,
 
     #[arg(
         long,

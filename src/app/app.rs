@@ -1,4 +1,10 @@
-use crate::app::keybindings::{Action, event_to_action, main_menu_keybindings};
+use crate::{
+    app::{
+        GameStates,
+        keybindings::{Action, event_to_action, main_menu_keybindings},
+    },
+    cli::Cli,
+};
 use clap::ValueEnum;
 use ratatui::{
     DefaultTerminal, Frame,
@@ -9,14 +15,19 @@ use std::{
     sync::mpsc::{self, Receiver},
 };
 
+pub enum Event {
+    Input(KeyEvent),
+}
+
 pub struct App {
     pub exit: bool,
-    pub window: View,
+    pub view: View,
+    pub game_states: GameStates,
     pub username: String,
-    pub game_mode: String,
+    pub game_mode: GameMode,
     pub map_width: u8,
     pub map_height: u8,
-    pub perk_deck: String,
+    pub perk_deck: PerkDecks,
     pub starting_wood: u8,
     pub starting_iron: u8,
     pub supply_limit: u8,
@@ -24,7 +35,7 @@ pub struct App {
     pub skill_points_limit: u16,
 }
 
-#[derive(Debug, Clone, ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum View {
     MainMenu,
     Skirmish,
@@ -33,11 +44,38 @@ pub enum View {
     Settings,
 }
 
-pub enum Event {
-    Input(KeyEvent),
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
+pub enum GameMode {
+    LastManStanding,
+    Frontlines,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
+pub enum PerkDecks {
+    Silesian,
+    BogeyMan,
+    Anteater,
 }
 
 impl App {
+    pub fn new(args: Cli) -> Self {
+        Self {
+            exit: false,
+            game_states: GameStates::new(),
+            view: args.view,
+            username: args.username,
+            game_mode: args.game_mode,
+            map_width: args.map_width,
+            map_height: args.map_height,
+            perk_deck: args.perk_deck,
+            starting_wood: args.starting_wood,
+            starting_iron: args.starting_iron,
+            supply_limit: args.supply_limit,
+            xp_modifier: args.xp_modifier,
+            skill_points_limit: args.skill_points_limit,
+        }
+    }
+
     pub fn run(&mut self, terminal: &mut DefaultTerminal, rx: Receiver<Event>) -> Result<()> {
         while !self.exit {
             terminal.draw(|frame: &mut Frame<'_>| self.draw(frame))?;
@@ -59,7 +97,7 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        match self.window {
+        match self.view {
             View::MainMenu => main_menu_keybindings(self, &key_event),
             _ => {
                 if let Some(action) = event_to_action(&key_event) {

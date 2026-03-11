@@ -6,9 +6,9 @@ impl Widget for &App {
     where
         Self: Sized,
     {
-        match self.window {
-            View::MainMenu => main_menu_widget(area, buf),
-            _ => panic!("This window doesn't have widget."),
+        match self.view {
+            View::MainMenu => main_menu_widget(self, area, buf),
+            _ => (),
         }
     }
 }
