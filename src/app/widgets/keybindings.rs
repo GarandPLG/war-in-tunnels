@@ -1,33 +1,72 @@
-use crate::app::{View, keybindings::binding_for_view};
+use crate::app::{
+    View,
+    keybindings::{Group, KeyBinding, binding_for_view},
+};
 use ratatui::{
-    crossterm::event::KeyCode,
-    layout::Alignment,
+    buffer::Buffer,
+    layout::{Alignment, Constraint, Layout, Rect},
     style::Stylize,
-    text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    text::Line,
+    widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
 
-pub fn keybindings_widget(view: View) -> Paragraph<'static> {
-    let lines: Vec<Line> = binding_for_view(view)
-        .iter()
-        .map(|b| {
-            let key_span = match b.code {
-                KeyCode::Up => Span::raw("↑".to_string()),
-                KeyCode::Down => Span::raw("↓".to_string()),
-                KeyCode::Char(' ') => Span::raw("Space".to_string()),
-                KeyCode::Char(c) => Span::raw(c.to_string()),
-                other => Span::raw(format!("{:?}", other)),
-            }
-            .bold()
-            .red();
+pub struct KeybindingsWidget {
+    grouped: Vec<Paragraph<'static>>,
+}
 
-            Line::from_iter([key_span, "\t - ".into(), b.description.into()])
-        })
-        .collect();
+impl Widget for KeybindingsWidget {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let count: u16 = self.grouped.len() as u16;
 
-    Paragraph::new(lines).alignment(Alignment::Left).block(
-        Block::default()
+        if count == 0 {
+            return;
+        }
+
+        let block: Block<'_> = Block::default()
             .borders(Borders::ALL)
-            .title("[ Keybindings ]"),
-    )
+            .title("[ Keybindings ]");
+
+        let inner: Rect = block.inner(area);
+
+        block.render(area, buf);
+
+        let base: u16 = if count == 0 { 0 } else { 10 };
+
+        let constraints: Vec<Constraint> = vec![Constraint::Percentage(base); count as usize];
+
+        let chunks: Vec<Rect> = Layout::horizontal(constraints).split(inner).to_vec();
+
+        for (paragraph, chunk) in self.grouped.into_iter().zip(chunks.into_iter()) {
+            paragraph.render(chunk, buf);
+        }
+    }
+}
+
+pub fn keybindings_widget(view: View) -> KeybindingsWidget {
+    let keybindings: Vec<&'static KeyBinding> = binding_for_view(view);
+
+    let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
+    for (i, group) in Group::iter().enumerate() {
+        let grouped_lines: Vec<Line<'_>> = keybindings
+            .iter()
+            .filter(|b| b.group == group)
+            .map(|b| Line::from_iter([b.symbol.red().bold(), " - ".into(), b.description.into()]))
+            .collect();
+
+        let mut block: Block<'_> = Block::default().padding(Padding::new(1, 1, 0, 0));
+
+        if i != Group::len() - 1 {
+            block = block.borders(Borders::RIGHT);
+        }
+
+        grouped_keybindings.push(
+            Paragraph::new(grouped_lines)
+                .alignment(Alignment::Center)
+                .block(block),
+        );
+    }
+
+    KeybindingsWidget {
+        grouped: grouped_keybindings,
+    }
 }

@@ -8,7 +8,7 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
     if let Some(action) = event_to_action(&event) {
         match action {
             Action::Quit => app.exit = true,
-            Action::ScrollUp => {
+            Action::Up => {
                 app.game_states.main_menu_state.selected_view = app
                     .game_states
                     .main_menu_state
@@ -16,7 +16,7 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
                     .saturating_sub(1)
                     .max(1);
             }
-            Action::ScrollDown => {
+            Action::Down => {
                 app.game_states.main_menu_state.selected_view = app
                     .game_states
                     .main_menu_state
@@ -24,7 +24,7 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
                     .saturating_add(1)
                     .min(4);
             }
-            Action::Select => {
+            Action::Space => {
                 let selected_view: usize = app.game_states.main_menu_state.selected_view;
 
                 if selected_view == 1 {
@@ -36,7 +36,8 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
                 } else if selected_view == 4 {
                     app.view = View::Settings;
                 }
-            } // _ => (),
+            }
+            _ => (),
         }
     }
 }
