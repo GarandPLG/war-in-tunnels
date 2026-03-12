@@ -4,6 +4,7 @@ use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Action {
     Quit,
+    Quit2,
     Up,
     Down,
     Space,
@@ -48,6 +49,15 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         modifiers: KeyModifiers::NONE,
         group: Group::Quit,
         symbol: "q",
+        description: "Quit",
+    },
+    KeyBinding {
+        action: Action::Quit2,
+        code: KeyCode::Char('c'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::CONTROL,
+        group: Group::Quit,
+        symbol: "Ctrl + c",
         description: "Quit",
     },
     KeyBinding {
@@ -106,9 +116,11 @@ pub fn binding_for_view(view: View) -> Vec<&'static KeyBinding> {
             binding_for(Action::Down).unwrap(),
             binding_for(Action::Space).unwrap(),
             binding_for(Action::Quit).unwrap(),
+            binding_for(Action::Quit2).unwrap(),
         ],
         _ => vec![
             binding_for(Action::Quit).unwrap(),
+            binding_for(Action::Quit2).unwrap(),
             binding_for(Action::Esc).unwrap(),
         ],
     }

@@ -109,6 +109,7 @@ impl App {
                 if let Some(action) = event_to_action(&key_event) {
                     match action {
                         Action::Quit => self.exit = true,
+                        Action::Quit2 => self.exit = true,
                         Action::Esc => self.view = View::MainMenu,
                         _ => (),
                     }

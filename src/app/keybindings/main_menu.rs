@@ -8,6 +8,7 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
     if let Some(action) = event_to_action(&event) {
         match action {
             Action::Quit => app.exit = true,
+            Action::Quit2 => app.exit = true,
             Action::Up => {
                 app.game_states.main_menu_state.selected_view = app
                     .game_states
