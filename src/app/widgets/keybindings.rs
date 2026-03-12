@@ -1,6 +1,6 @@
 use crate::app::{
     View,
-    keybindings::{Group, KeyBinding, binding_for_view},
+    keybindings::{Group, binding_for_view},
 };
 use ratatui::{
     buffer::Buffer,
@@ -43,10 +43,14 @@ impl Widget for KeybindingsWidget {
 }
 
 pub fn keybindings_widget(view: View) -> KeybindingsWidget {
-    let keybindings: Vec<&'static KeyBinding> = binding_for_view(view);
+    let (used_groups, keybindings) = binding_for_view(view);
 
     let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
     for (i, group) in Group::iter().enumerate() {
+        if !used_groups.contains(&group) {
+            continue;
+        }
+
         let grouped_lines: Vec<Line<'_>> = keybindings
             .iter()
             .filter(|b| b.group == group)
@@ -55,8 +59,8 @@ pub fn keybindings_widget(view: View) -> KeybindingsWidget {
 
         let mut block: Block<'_> = Block::default().padding(Padding::new(1, 1, 0, 0));
 
-        if i != Group::len() - 1 {
-            block = block.borders(Borders::RIGHT);
+        if i != 0 {
+            block = block.borders(Borders::LEFT);
         }
 
         grouped_keybindings.push(

@@ -1,5 +1,6 @@
 use crate::app::View;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Action {
@@ -23,10 +24,6 @@ impl Group {
         [Group::Quit, Group::Movement, Group::Select]
             .iter()
             .copied()
-    }
-
-    pub fn len() -> usize {
-        Self::iter().count()
     }
 }
 
@@ -109,19 +106,33 @@ pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
         .map(|b| b.action)
 }
 
-pub fn binding_for_view(view: View) -> Vec<&'static KeyBinding> {
+fn used_groups_in_view(keybindings: &Vec<&'static KeyBinding>) -> HashSet<Group> {
+    keybindings.iter().map(|b| b.group).collect()
+}
+
+pub fn binding_for_view(view: View) -> (HashSet<Group>, Vec<&'static KeyBinding>) {
+    let main_menu_keybindings: Vec<&'static KeyBinding> = vec![
+        binding_for(Action::Up).unwrap(),
+        binding_for(Action::Down).unwrap(),
+        binding_for(Action::Space).unwrap(),
+        binding_for(Action::Quit).unwrap(),
+        binding_for(Action::Quit2).unwrap(),
+    ];
+
+    let default_keybindings: Vec<&'static KeyBinding> = vec![
+        binding_for(Action::Quit).unwrap(),
+        binding_for(Action::Quit2).unwrap(),
+        binding_for(Action::Esc).unwrap(),
+    ];
+
     match view {
-        View::MainMenu => vec![
-            binding_for(Action::Up).unwrap(),
-            binding_for(Action::Down).unwrap(),
-            binding_for(Action::Space).unwrap(),
-            binding_for(Action::Quit).unwrap(),
-            binding_for(Action::Quit2).unwrap(),
-        ],
-        _ => vec![
-            binding_for(Action::Quit).unwrap(),
-            binding_for(Action::Quit2).unwrap(),
-            binding_for(Action::Esc).unwrap(),
-        ],
+        View::MainMenu => (
+            used_groups_in_view(&main_menu_keybindings),
+            main_menu_keybindings,
+        ),
+        _ => (
+            used_groups_in_view(&default_keybindings),
+            default_keybindings,
+        ),
     }
 }
