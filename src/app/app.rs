@@ -12,11 +12,13 @@ use ratatui::{
 };
 use std::{
     io::Result,
-    sync::mpsc::{self, Receiver},
+    sync::mpsc::{self, Receiver, RecvTimeoutError},
+    time::Duration,
 };
 
 pub enum Event {
     Input(KeyEvent),
+    Resize(u16, u16),
 }
 
 pub struct App {
@@ -80,12 +82,16 @@ impl App {
         while !self.exit {
             terminal.draw(|frame: &mut Frame<'_>| self.draw(frame))?;
 
-            let event: Event = match rx.recv() {
+            let event = match rx.recv_timeout(Duration::from_millis(100)) {
                 Ok(ev) => ev,
+                Err(RecvTimeoutError::Timeout) => {
+                    continue;
+                }
                 Err(_) => break,
             };
             match event {
                 Event::Input(key_event) => self.handle_key_event(key_event)?,
+                Event::Resize(_, _) => {}
             }
         }
 
@@ -117,13 +123,19 @@ impl App {
 pub fn handle_input_events(tx: mpsc::Sender<Event>) {
     loop {
         match event::read() {
-            Ok(ev) => {
-                if let event::Event::Key(key_event) = ev {
+            Ok(ev) => match ev {
+                event::Event::Key(key_event) => {
                     if tx.send(Event::Input(key_event)).is_err() {
                         break;
                     }
                 }
-            }
+                event::Event::Resize(cols, rows) => {
+                    if tx.send(Event::Resize(cols, rows)).is_err() {
+                        break;
+                    }
+                }
+                _ => {}
+            },
             Err(_) => {
                 continue;
             }

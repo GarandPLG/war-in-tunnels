@@ -27,8 +27,7 @@ fn view_options() -> Vec<(usize, String)> {
 }
 
 pub fn main_menu_widget(app: &App, area: Rect, buf: &mut Buffer) {
-    let vertical_layout: Layout =
-        Layout::vertical([Constraint::Percentage(92), Constraint::Percentage(8)]);
+    let vertical_layout: Layout = Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]);
 
     let [main_menu_area, keybindings_area] = vertical_layout.areas(area);
 

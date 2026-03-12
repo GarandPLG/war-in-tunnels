@@ -30,7 +30,7 @@ impl Widget for KeybindingsWidget {
 
         block.render(area, buf);
 
-        let base: u16 = if count == 0 { 0 } else { 10 };
+        let base: u16 = if count == 0 { 0 } else { 100u16 / count };
 
         let constraints: Vec<Constraint> = vec![Constraint::Percentage(base); count as usize];
 
