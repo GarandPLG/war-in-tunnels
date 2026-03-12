@@ -14,14 +14,14 @@ pub enum Action {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Group {
-    Quit,
     Movement,
     Select,
+    Quit,
 }
 
 impl Group {
     pub fn iter() -> impl Iterator<Item = Group> {
-        [Group::Quit, Group::Movement, Group::Select]
+        [Group::Movement, Group::Select, Group::Quit]
             .iter()
             .copied()
     }

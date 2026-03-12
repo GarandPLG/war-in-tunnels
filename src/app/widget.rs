@@ -1,6 +1,6 @@
 use crate::app::{
     App, View,
-    widgets::{keybindings_widget, main_menu_widget},
+    widgets::{KeybindingsWidget, main_menu_widget},
 };
 use ratatui::{
     buffer::Buffer,
@@ -32,7 +32,7 @@ impl Widget for &App {
                     )
                     .render(main_area, buf);
 
-                keybindings_widget(self.view).render(keybindings_area, buf);
+                KeybindingsWidget::new(self.view).render(keybindings_area, buf);
             }
         }
     }

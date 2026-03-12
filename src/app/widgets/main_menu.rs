@@ -1,4 +1,4 @@
-use crate::app::{App, View, widgets::keybindings_widget};
+use crate::app::{App, View, widgets::KeybindingsWidget};
 use clap::ValueEnum;
 use ratatui::{
     buffer::Buffer,
@@ -81,5 +81,5 @@ pub fn main_menu_widget(app: &App, area: Rect, buf: &mut Buffer) {
             .render(options_area, buf);
     }
 
-    keybindings_widget(View::MainMenu).render(keybindings_area, buf);
+    KeybindingsWidget::new(View::MainMenu).render(keybindings_area, buf);
 }
