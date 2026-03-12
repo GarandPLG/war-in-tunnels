@@ -1,8 +1,5 @@
 use crate::{
-    app::{
-        GameStates,
-        keybindings::{Action, event_to_action, main_menu_keybindings},
-    },
+    app::{GameStates, handle_keybindings},
     cli::Cli,
 };
 use clap::ValueEnum;
@@ -103,21 +100,7 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        match self.view {
-            View::MainMenu => main_menu_keybindings(self, &key_event),
-            _ => {
-                if let Some(action) = event_to_action(&key_event) {
-                    match action {
-                        Action::Quit => self.exit = true,
-                        Action::Quit2 => self.exit = true,
-                        Action::Esc => self.view = View::MainMenu,
-                        _ => (),
-                    }
-                }
-            }
-        }
-
-        Ok(())
+        handle_keybindings(self, key_event)
     }
 }
 
