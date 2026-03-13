@@ -1,6 +1,6 @@
 use crate::app::{
     App, View,
-    widgets::{default_view_widget, main_menu_widget},
+    widgets::{default_view_widget, main_menu_widget, settings_widget},
 };
 use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 
@@ -11,6 +11,7 @@ impl Widget for &App {
     {
         match self.view {
             View::MainMenu => main_menu_widget(self, area, buf),
+            View::Settings => settings_widget(self, area, buf),
             _ => default_view_widget(self, area, buf),
         }
     }

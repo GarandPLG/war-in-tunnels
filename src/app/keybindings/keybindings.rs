@@ -9,6 +9,7 @@ pub enum Action {
     Up,
     Down,
     Space,
+    Enter,
     Esc,
 }
 
@@ -85,6 +86,15 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         description: "Select",
     },
     KeyBinding {
+        action: Action::Enter,
+        code: KeyCode::Enter,
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Select,
+        symbol: "Enter",
+        description: "Submit",
+    },
+    KeyBinding {
         action: Action::Esc,
         code: KeyCode::Esc,
         kind: KeyEventKind::Press,
@@ -106,29 +116,46 @@ pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
         .map(|b| b.action)
 }
 
-fn used_groups_in_view(keybindings: &Vec<&'static KeyBinding>) -> HashSet<Group> {
-    keybindings.iter().map(|b| b.group).collect()
+fn used_groups_in_view(keybindings: &Vec<Option<&'static KeyBinding>>) -> HashSet<Group> {
+    keybindings
+        .iter()
+        .filter_map(|b| b.map(|binding| binding.group))
+        .collect()
 }
 
-pub fn binding_for_view(view: View) -> (HashSet<Group>, Vec<&'static KeyBinding>) {
-    let main_menu_keybindings: Vec<&'static KeyBinding> = vec![
-        binding_for(Action::Up).unwrap(),
-        binding_for(Action::Down).unwrap(),
-        binding_for(Action::Space).unwrap(),
-        binding_for(Action::Quit).unwrap(),
-        binding_for(Action::Quit2).unwrap(),
+pub fn binding_for_view(view: View) -> (HashSet<Group>, Vec<Option<&'static KeyBinding>>) {
+    let main_menu_keybindings: Vec<Option<&'static KeyBinding>> = vec![
+        binding_for(Action::Up),
+        binding_for(Action::Down),
+        binding_for(Action::Space),
+        binding_for(Action::Quit),
+        binding_for(Action::Quit2),
     ];
 
-    let default_keybindings: Vec<&'static KeyBinding> = vec![
-        binding_for(Action::Quit).unwrap(),
-        binding_for(Action::Quit2).unwrap(),
-        binding_for(Action::Esc).unwrap(),
+    let settings_keybinding: Vec<Option<&'static KeyBinding>> = vec![
+        binding_for(Action::Up),
+        binding_for(Action::Down),
+        binding_for(Action::Space),
+        binding_for(Action::Enter),
+        binding_for(Action::Quit),
+        binding_for(Action::Quit2),
+        binding_for(Action::Esc),
+    ];
+
+    let default_keybindings: Vec<Option<&'static KeyBinding>> = vec![
+        binding_for(Action::Quit),
+        binding_for(Action::Quit2),
+        binding_for(Action::Esc),
     ];
 
     match view {
         View::MainMenu => (
             used_groups_in_view(&main_menu_keybindings),
             main_menu_keybindings,
+        ),
+        View::Settings => (
+            used_groups_in_view(&settings_keybinding),
+            settings_keybinding,
         ),
         _ => (
             used_groups_in_view(&default_keybindings),

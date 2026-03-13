@@ -26,9 +26,15 @@ impl KeybindingsWidget {
 
             let grouped_lines: Vec<Line<'_>> = keybindings
                 .iter()
-                .filter(|b| b.group == group)
-                .map(|b| {
-                    Line::from_iter([b.symbol.red().bold(), " - ".into(), b.description.into()])
+                .filter(|b| b.as_ref().map_or(false, |kb| kb.group == group))
+                .filter_map(|b| {
+                    b.as_ref().map(|kb| {
+                        Line::from_iter([
+                            kb.symbol.red().bold(),
+                            " - ".into(),
+                            kb.description.into(),
+                        ])
+                    })
                 })
                 .collect();
 

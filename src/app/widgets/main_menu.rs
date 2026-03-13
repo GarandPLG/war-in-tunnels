@@ -12,15 +12,15 @@ fn view_options() -> Vec<(usize, String)> {
     View::value_variants()
         .iter()
         .enumerate()
-        .map(|(i, v)| {
-            let name = v
-                .to_possible_value()
-                .unwrap()
-                .get_name()
-                .replace('-', " ")
-                .to_uppercase()
-                .to_string();
-            (i, name)
+        .filter_map(|(i, v)| {
+            v.to_possible_value().map(|possible_value| {
+                let name = possible_value
+                    .get_name()
+                    .replace('-', " ")
+                    .to_uppercase()
+                    .to_string();
+                (i, name)
+            })
         })
         .filter(|(_, v)| v != "MAIN MENU")
         .collect()
