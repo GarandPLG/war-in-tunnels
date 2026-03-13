@@ -4,7 +4,7 @@ use crate::app::{
 };
 use ratatui::crossterm::event::KeyEvent;
 
-pub fn default_view_keybindings(app: &mut App, key_event: &KeyEvent) {
+pub fn default_keybindings(app: &mut App, key_event: &KeyEvent) {
     if let Some(action) = event_to_action(&key_event) {
         match action {
             Action::Quit => app.exit = true,

@@ -1,4 +1,8 @@
-use crate::app::{App, widgets::KeybindingsWidget};
+use crate::app::{
+    App,
+    keybindings::{Action, KeyBinding, binding_for},
+    widgets::KeybindingsWidget,
+};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
@@ -6,7 +10,7 @@ use ratatui::{
     widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
 
-pub fn settings_widget(app: &App, area: Rect, buf: &mut Buffer) {
+pub fn settings_view(app: &App, area: Rect, buf: &mut Buffer) {
     let vertical_layout: Layout = Layout::vertical([
         Constraint::Length(10),
         Constraint::Fill(1),
@@ -37,5 +41,17 @@ pub fn settings_widget(app: &App, area: Rect, buf: &mut Buffer) {
         )
         .render(main_area, buf);
 
-    KeybindingsWidget::new(app.view).render(keybindings_area, buf);
+    {
+        let keybindings: Vec<Option<&'static KeyBinding>> = vec![
+            binding_for(Action::Up),
+            binding_for(Action::Down),
+            binding_for(Action::Space),
+            binding_for(Action::Enter),
+            binding_for(Action::Quit),
+            binding_for(Action::Quit2),
+            binding_for(Action::Esc),
+        ];
+
+        KeybindingsWidget::new(keybindings).render(keybindings_area, buf);
+    }
 }

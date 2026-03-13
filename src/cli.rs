@@ -1,4 +1,4 @@
-use crate::app::{GameMode, PerkDecks, View};
+use crate::app::{GameMode, PerkDecks, view::View};
 use clap::Parser;
 
 #[derive(Parser, Debug)]

@@ -1,7 +1,6 @@
-use crate::app::{
-    View,
-    keybindings::{Group, binding_for_view},
-};
+use std::collections::HashSet;
+
+use crate::app::keybindings::{Group, KeyBinding};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
@@ -15,8 +14,11 @@ pub struct KeybindingsWidget {
 }
 
 impl KeybindingsWidget {
-    pub fn new(view: View) -> Self {
-        let (used_groups, keybindings) = binding_for_view(view);
+    pub fn new(keybindings: Vec<Option<&'static KeyBinding>>) -> Self {
+        let used_groups: HashSet<Group> = keybindings
+            .iter()
+            .filter_map(|b| b.map(|binding| binding.group))
+            .collect();
 
         let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
         for (i, group) in Group::iter().enumerate() {

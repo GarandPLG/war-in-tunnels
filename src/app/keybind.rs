@@ -1,16 +1,14 @@
 use crate::app::{
-    App, View,
-    keybindings::{default_view_keybindings, main_menu_keybindings, settings_keybindings},
+    App,
+    keybindings::{default_keybindings, main_menu_keybindings, settings_keybindings},
+    view::View,
 };
 use ratatui::crossterm::event::KeyEvent;
-use std::io::Result;
 
-pub fn handle_keybindings(app: &mut App, key_event: KeyEvent) -> Result<()> {
+pub fn handle_keybindings(app: &mut App, key_event: KeyEvent) {
     match app.view {
         View::MainMenu => main_menu_keybindings(app, &key_event),
         View::Settings => settings_keybindings(app, &key_event),
-        _ => default_view_keybindings(app, &key_event),
+        _ => default_keybindings(app, &key_event),
     }
-
-    Ok(())
 }

@@ -1,6 +1,4 @@
-use crate::app::View;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use std::collections::HashSet;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Action {
@@ -114,52 +112,4 @@ pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
         .iter()
         .find(|b| b.code == event.code && b.kind == event.kind && b.modifiers == event.modifiers)
         .map(|b| b.action)
-}
-
-fn used_groups_in_view(keybindings: &Vec<Option<&'static KeyBinding>>) -> HashSet<Group> {
-    keybindings
-        .iter()
-        .filter_map(|b| b.map(|binding| binding.group))
-        .collect()
-}
-
-pub fn binding_for_view(view: View) -> (HashSet<Group>, Vec<Option<&'static KeyBinding>>) {
-    let main_menu_keybindings: Vec<Option<&'static KeyBinding>> = vec![
-        binding_for(Action::Up),
-        binding_for(Action::Down),
-        binding_for(Action::Space),
-        binding_for(Action::Quit),
-        binding_for(Action::Quit2),
-    ];
-
-    let settings_keybinding: Vec<Option<&'static KeyBinding>> = vec![
-        binding_for(Action::Up),
-        binding_for(Action::Down),
-        binding_for(Action::Space),
-        binding_for(Action::Enter),
-        binding_for(Action::Quit),
-        binding_for(Action::Quit2),
-        binding_for(Action::Esc),
-    ];
-
-    let default_keybindings: Vec<Option<&'static KeyBinding>> = vec![
-        binding_for(Action::Quit),
-        binding_for(Action::Quit2),
-        binding_for(Action::Esc),
-    ];
-
-    match view {
-        View::MainMenu => (
-            used_groups_in_view(&main_menu_keybindings),
-            main_menu_keybindings,
-        ),
-        View::Settings => (
-            used_groups_in_view(&settings_keybinding),
-            settings_keybinding,
-        ),
-        _ => (
-            used_groups_in_view(&default_keybindings),
-            default_keybindings,
-        ),
-    }
 }

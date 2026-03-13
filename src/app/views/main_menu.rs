@@ -1,4 +1,8 @@
-use crate::app::{App, View, widgets::KeybindingsWidget};
+use crate::app::{
+    App, View,
+    keybindings::{Action, KeyBinding, binding_for},
+    widgets::KeybindingsWidget,
+};
 use clap::ValueEnum;
 use ratatui::{
     buffer::Buffer,
@@ -26,7 +30,7 @@ fn view_options() -> Vec<(usize, String)> {
         .collect()
 }
 
-pub fn main_menu_widget(app: &App, area: Rect, buf: &mut Buffer) {
+pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
     let vertical_layout: Layout = Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]);
 
     let [main_menu_area, keybindings_area] = vertical_layout.areas(area);
@@ -81,5 +85,15 @@ pub fn main_menu_widget(app: &App, area: Rect, buf: &mut Buffer) {
             .render(options_area, buf);
     }
 
-    KeybindingsWidget::new(View::MainMenu).render(keybindings_area, buf);
+    {
+        let keybindings: Vec<Option<&'static KeyBinding>> = vec![
+            binding_for(Action::Up),
+            binding_for(Action::Down),
+            binding_for(Action::Space),
+            binding_for(Action::Quit),
+            binding_for(Action::Quit2),
+        ];
+
+        KeybindingsWidget::new(keybindings).render(keybindings_area, buf);
+    }
 }

@@ -1,5 +1,5 @@
 use crate::{
-    app::{GameStates, handle_keybindings},
+    app::{GameStates, handle_keybindings, view::View},
     cli::Cli,
 };
 use clap::ValueEnum;
@@ -32,15 +32,6 @@ pub struct App {
     pub supply_limit: u8,
     pub xp_modifier: f32,
     pub skill_points_limit: u16,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
-pub enum View {
-    MainMenu,
-    Skirmish,
-    PerkDecks,
-    SkillsConfig,
-    Settings,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
@@ -100,7 +91,8 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        handle_keybindings(self, key_event)
+        handle_keybindings(self, key_event);
+        Ok(())
     }
 }
 
