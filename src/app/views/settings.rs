@@ -6,8 +6,8 @@ use crate::app::{
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
-    style::Stylize,
-    widgets::{Block, Borders, Padding, Paragraph, Widget},
+    style::{Style, Stylize},
+    widgets::{Block, Borders, Padding, Paragraph, Widget, Wrap},
 };
 
 pub fn settings_view(app: &App, area: Rect, buf: &mut Buffer) {
@@ -40,6 +40,28 @@ pub fn settings_view(app: &App, area: Rect, buf: &mut Buffer) {
                 .padding(Padding::new(1, 1, 1, 1)),
         )
         .render(main_area, buf);
+
+    let popup_area = Rect {
+        x: main_area.width / 4,
+        y: main_area.height / 3,
+        width: main_area.width / 2,
+        height: main_area.height / 3,
+    };
+
+    let popup = Paragraph::new("Test popup")
+        .wrap(Wrap { trim: true })
+        .style(Style::default().yellow())
+        .block(
+            Block::new()
+                .title("Insert value")
+                .title_style(Style::default().green())
+                .borders(Borders::ALL)
+                .border_style(Style::default().blue()),
+        );
+
+    if app.game_states.settings_state.show_popup {
+        popup.render(popup_area, buf);
+    }
 
     {
         let keybindings: Vec<Option<&'static KeyBinding>> = vec![

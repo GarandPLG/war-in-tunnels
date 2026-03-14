@@ -39,6 +39,7 @@ pub struct SettingsState {
     pub id: usize,
     pub name: &'static str,
     pub selected_setting: usize,
+    pub show_popup: bool,
 }
 
 impl GameStates {
@@ -67,6 +68,7 @@ impl GameStates {
                 id: 4,
                 name: "Settings",
                 selected_setting: 0,
+                show_popup: false,
             },
         }
     }

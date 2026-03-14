@@ -10,6 +10,10 @@ pub fn settings_keybindings(app: &mut App, key_event: &KeyEvent) {
             Action::Quit => app.exit = true,
             Action::Quit2 => app.exit = true,
             Action::Esc => app.view = View::MainMenu,
+            Action::Space => {
+                app.game_states.settings_state.show_popup =
+                    !app.game_states.settings_state.show_popup
+            }
             _ => (),
         }
     }
