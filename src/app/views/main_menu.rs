@@ -12,22 +12,18 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-fn view_options() -> Vec<(usize, String)> {
-    View::value_variants()
-        .iter()
-        .enumerate()
-        .filter_map(|(i, v)| {
-            v.to_possible_value().map(|possible_value| {
-                let name = possible_value
-                    .get_name()
-                    .replace('-', " ")
-                    .to_uppercase()
-                    .to_string();
-                (i, name)
-            })
-        })
-        .filter(|(_, v)| v != "MAIN MENU")
-        .collect()
+fn format_view_string(s: String) -> String {
+    if let Some(pos) = s
+        .char_indices()
+        .filter(|(_, c)| c.is_ascii_uppercase())
+        .nth(1)
+        .map(|(i, _)| i)
+    {
+        let (first, second) = s.split_at(pos);
+        format!("{first} {second}")
+    } else {
+        s
+    }
 }
 
 pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
@@ -66,14 +62,19 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
     {
         let options_area: Rect = main_menu_areas[1];
 
-        let lines: Vec<Line<'_>> = view_options()
-            .into_iter()
+        let lines: Vec<Line<'_>> = View::value_variants()
+            .iter()
+            .enumerate()
+            .filter(|(_, v)| v != &&View::MainMenu)
             .map(|(i, view)| {
-                let styled = if app.game_states.main_menu_state.selected_view == i {
-                    Line::from(format!("> {}", view)).yellow()
+                let view_string: String = format_view_string(format!("{:?}", view));
+
+                let styled: Line<'_> = if app.game_states.main_menu_state.selected_view == i {
+                    Line::from(format!("> {view_string}")).yellow()
                 } else {
-                    Line::from(view).white()
+                    Line::from(view_string).white()
                 };
+
                 styled
             })
             .collect();

@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -11,19 +12,11 @@ pub enum Action {
     Esc,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum Group {
     Movement,
     Select,
     Quit,
-}
-
-impl Group {
-    pub fn iter() -> impl Iterator<Item = Group> {
-        [Group::Movement, Group::Select, Group::Quit]
-            .iter()
-            .copied()
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

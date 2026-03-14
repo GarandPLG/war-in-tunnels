@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use crate::app::keybindings::{Group, KeyBinding};
+use clap::ValueEnum;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
@@ -21,14 +22,14 @@ impl KeybindingsWidget {
             .collect();
 
         let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
-        for (i, group) in Group::iter().enumerate() {
-            if !used_groups.contains(&group) {
+        for (i, group) in Group::value_variants().iter().enumerate() {
+            if !used_groups.contains(group) {
                 continue;
             }
 
             let grouped_lines: Vec<Line<'_>> = keybindings
                 .iter()
-                .filter(|b| b.as_ref().map_or(false, |kb| kb.group == group))
+                .filter(|b| b.as_ref().map_or(false, |kb| kb.group == *group))
                 .filter_map(|b| {
                     b.as_ref().map(|kb| {
                         Line::from_iter([
