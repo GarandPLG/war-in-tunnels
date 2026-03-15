@@ -1,6 +1,4 @@
-use std::collections::HashSet;
-
-use crate::app::keybindings::{Group, KeyBinding};
+use crate::app::keybindings::{Action, Group, KeyBinding, binding_for};
 use clap::ValueEnum;
 use ratatui::{
     buffer::Buffer,
@@ -9,13 +7,17 @@ use ratatui::{
     text::Line,
     widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
+use std::collections::HashSet;
 
 pub struct KeybindingsWidget {
     grouped: Vec<Paragraph<'static>>,
 }
 
 impl KeybindingsWidget {
-    pub fn new(keybindings: Vec<Option<&'static KeyBinding>>) -> Self {
+    pub fn new(actions: Vec<Action>) -> Self {
+        let keybindings: Vec<Option<&'static KeyBinding>> =
+            actions.iter().map(|a| binding_for(*a)).collect();
+
         let used_groups: HashSet<Group> = keybindings
             .iter()
             .filter_map(|b| b.map(|binding| binding.group))
