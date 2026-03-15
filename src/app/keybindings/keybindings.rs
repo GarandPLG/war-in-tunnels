@@ -10,12 +10,15 @@ pub enum Action {
     Space,
     Enter,
     Esc,
+    Backspace,
+    WildCard(char),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum Group {
     Movement,
     Select,
+    Input,
     Quit,
 }
 
@@ -94,6 +97,24 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         symbol: "Esc",
         description: "Go back",
     },
+    KeyBinding {
+        action: Action::Backspace,
+        code: KeyCode::Backspace,
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Input,
+        symbol: "Backspace",
+        description: "Delete character",
+    },
+    KeyBinding {
+        action: Action::WildCard('_'),
+        code: KeyCode::Char('_'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Input,
+        symbol: "*",
+        description: "All keyboard characters",
+    },
 ];
 
 pub fn binding_for(action: Action) -> Option<&'static KeyBinding> {
@@ -101,8 +122,22 @@ pub fn binding_for(action: Action) -> Option<&'static KeyBinding> {
 }
 
 pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
-    KEYBINDINGS
+    if let Some(b) = KEYBINDINGS
         .iter()
         .find(|b| b.code == event.code && b.kind == event.kind && b.modifiers == event.modifiers)
-        .map(|b| b.action)
+    {
+        return Some(b.action);
+    }
+
+    if KEYBINDINGS.iter().any(|b| {
+        matches!(b.action, Action::WildCard(_))
+            && b.kind == event.kind
+            && b.modifiers == event.modifiers
+    }) {
+        if let KeyCode::Char(c) = event.code {
+            return Some(Action::WildCard(c));
+        }
+    }
+
+    None
 }

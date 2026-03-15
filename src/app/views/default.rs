@@ -11,15 +11,17 @@ pub fn default_view(area: Rect, buf: &mut Buffer) {
 
     let [main_area, keybindings_area] = vertical_layout.areas(area);
 
-    Paragraph::new("Work in progress")
-        .alignment(Alignment::Center)
-        .yellow()
-        .block(
-            Block::new()
-                .gray()
-                .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT),
-        )
-        .render(main_area, buf);
+    {
+        Paragraph::new("Work in progress")
+            .alignment(Alignment::Center)
+            .yellow()
+            .block(
+                Block::new()
+                    .gray()
+                    .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT),
+            )
+            .render(main_area, buf);
+    }
 
     {
         let actions: Vec<Action> = vec![Action::Quit, Action::Quit2, Action::Esc];

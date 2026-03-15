@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct GameStates {
     pub main_menu_state: MainMenuState,
     pub skirmish_state: SkirmishState,
@@ -34,12 +34,13 @@ pub struct SkillsConfigState {
     pub selected_skill: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SettingsState {
     pub id: usize,
     pub name: &'static str,
     pub selected_setting: usize,
     pub show_popup: bool,
+    pub selected_setting_new_value: String,
 }
 
 impl GameStates {
@@ -69,6 +70,7 @@ impl GameStates {
                 name: "Settings",
                 selected_setting: 0,
                 show_popup: false,
+                selected_setting_new_value: String::new(),
             },
         }
     }
