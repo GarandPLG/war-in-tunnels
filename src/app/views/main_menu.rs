@@ -66,9 +66,9 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
                 let view_string: String = format_view_string(format!("{:?}", view));
 
                 let styled: Line<'_> = if app.states.main_menu.selected_view == i {
-                    Line::from(format!("> {view_string}")).yellow()
+                    Line::from_iter(["> ".cyan(), view_string.yellow()]).yellow()
                 } else {
-                    Line::from(view_string).white()
+                    Line::from(format!("  {view_string}")).white()
                 };
 
                 styled

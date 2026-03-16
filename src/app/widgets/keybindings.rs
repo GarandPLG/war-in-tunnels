@@ -72,7 +72,11 @@ impl Widget for KeybindingsWidget {
 
         let block: Block<'_> = Block::default()
             .borders(Borders::ALL)
-            .title("[ Keybindings ]");
+            .title(Line::from_iter([
+                "[ ".gray(),
+                "Keybindings".magenta(),
+                " ]".gray(),
+            ]));
 
         let inner: Rect = block.inner(area);
 

@@ -27,7 +27,7 @@ pub struct App {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum GameMode {
     LastManStanding,
-    Frontlines,
+    FrontLines,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
