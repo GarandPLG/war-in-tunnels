@@ -112,7 +112,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::NONE,
         group: Group::Input,
-        symbol: "*",
+        symbol: "[All]",
         description: "All keyboard characters",
     },
 ];
@@ -129,11 +129,10 @@ pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
         return Some(b.action);
     }
 
-    if KEYBINDINGS.iter().any(|b| {
-        matches!(b.action, Action::WildCard(_))
-            && b.kind == event.kind
-            && b.modifiers == event.modifiers
-    }) {
+    if KEYBINDINGS
+        .iter()
+        .any(|b| matches!(b.action, Action::WildCard(_)) && b.kind == event.kind)
+    {
         if let KeyCode::Char(c) = event.code {
             return Some(Action::WildCard(c));
         }

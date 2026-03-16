@@ -10,23 +10,15 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
             Action::Quit => app.exit = true,
             Action::Quit2 => app.exit = true,
             Action::Up => {
-                app.game_states.main_menu_state.selected_view = app
-                    .game_states
-                    .main_menu_state
-                    .selected_view
-                    .saturating_sub(1)
-                    .max(1);
+                app.states.main_menu.selected_view =
+                    app.states.main_menu.selected_view.saturating_sub(1).max(1);
             }
             Action::Down => {
-                app.game_states.main_menu_state.selected_view = app
-                    .game_states
-                    .main_menu_state
-                    .selected_view
-                    .saturating_add(1)
-                    .min(4);
+                app.states.main_menu.selected_view =
+                    app.states.main_menu.selected_view.saturating_add(1).min(4);
             }
             Action::Space => {
-                let selected_view: usize = app.game_states.main_menu_state.selected_view;
+                let selected_view: usize = app.states.main_menu.selected_view;
 
                 if selected_view == 1 {
                     app.view = View::Skirmish;

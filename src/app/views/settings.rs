@@ -45,23 +45,19 @@ pub fn settings_view(app: &App, area: Rect, buf: &mut Buffer) {
             height: main_area.height / 3,
         };
 
-        let popup: Paragraph<'_> = Paragraph::new(
-            app.game_states
-                .settings_state
-                .selected_setting_new_value
-                .clone(),
-        )
-        .wrap(Wrap { trim: true })
-        .style(Style::default().yellow())
-        .block(
-            Block::new()
-                .title("Insert value")
-                .title_style(Style::default().green())
-                .borders(Borders::ALL)
-                .border_style(Style::default().blue()),
-        );
+        let popup: Paragraph<'_> =
+            Paragraph::new(app.states.settings.selected_setting_new_value.clone())
+                .wrap(Wrap { trim: true })
+                .style(Style::default().yellow())
+                .block(
+                    Block::new()
+                        .title("Insert value")
+                        .title_style(Style::default().green())
+                        .borders(Borders::ALL)
+                        .border_style(Style::default().blue()),
+                );
 
-        if app.game_states.settings_state.show_popup {
+        if app.states.settings.show_popup {
             popup.render(popup_area, buf);
         }
     }

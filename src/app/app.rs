@@ -21,17 +21,7 @@ pub enum Event {
 pub struct App {
     pub exit: bool,
     pub view: View,
-    pub game_states: GameStates,
-    pub username: String,
-    pub game_mode: GameMode,
-    pub map_width: u8,
-    pub map_height: u8,
-    pub perk_deck: PerkDecks,
-    pub starting_wood: u8,
-    pub starting_iron: u8,
-    pub supply_limit: u8,
-    pub xp_modifier: f32,
-    pub skill_points_limit: u16,
+    pub states: GameStates,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
@@ -51,18 +41,8 @@ impl App {
     pub fn new(args: Cli) -> Self {
         Self {
             exit: false,
-            game_states: GameStates::new(),
             view: args.view,
-            username: args.username,
-            game_mode: args.game_mode,
-            map_width: args.map_width,
-            map_height: args.map_height,
-            perk_deck: args.perk_deck,
-            starting_wood: args.starting_wood,
-            starting_iron: args.starting_iron,
-            supply_limit: args.supply_limit,
-            xp_modifier: args.xp_modifier,
-            skill_points_limit: args.skill_points_limit,
+            states: GameStates::new(args),
         }
     }
 

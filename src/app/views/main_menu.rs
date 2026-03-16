@@ -65,7 +65,7 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
             .map(|(i, view)| {
                 let view_string: String = format_view_string(format!("{:?}", view));
 
-                let styled: Line<'_> = if app.game_states.main_menu_state.selected_view == i {
+                let styled: Line<'_> = if app.states.main_menu.selected_view == i {
                     Line::from(format!("> {view_string}")).yellow()
                 } else {
                     Line::from(view_string).white()

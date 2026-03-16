@@ -1,10 +1,15 @@
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+use crate::{
+    app::{GameMode, PerkDecks},
+    cli::Cli,
+};
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct GameStates {
-    pub main_menu_state: MainMenuState,
-    pub skirmish_state: SkirmishState,
-    pub perk_decks_state: PerkDecksState,
-    pub skills_config_state: SkillsConfigState,
-    pub settings_state: SettingsState,
+    pub main_menu: MainMenuState,
+    pub skirmish: SkirmishState,
+    pub perk_decks: PerkDecksState,
+    pub skills_config: SkillsConfigState,
+    pub settings: SettingsState,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -34,43 +39,63 @@ pub struct SkillsConfigState {
     pub selected_skill: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SettingsState {
     pub id: usize,
     pub name: &'static str,
+    pub username: String,
+    pub game_mode: GameMode,
+    pub map_width: u8,
+    pub map_height: u8,
+    pub perk_deck: PerkDecks,
+    pub starting_wood: u8,
+    pub starting_iron: u8,
+    pub supply_limit: u8,
+    pub xp_modifier: f32,
+    pub skill_points_limit: u16,
     pub selected_setting: usize,
     pub show_popup: bool,
     pub selected_setting_new_value: String,
 }
 
 impl GameStates {
-    pub fn new() -> Self {
+    pub fn new(args: Cli) -> Self {
         Self {
-            main_menu_state: MainMenuState {
+            main_menu: MainMenuState {
                 id: 0,
                 name: "Main Menu",
                 selected_view: 1,
             },
-            skirmish_state: SkirmishState {
+            skirmish: SkirmishState {
                 id: 1,
                 name: "Skirmish",
             },
-            perk_decks_state: PerkDecksState {
+            perk_decks: PerkDecksState {
                 id: 2,
                 name: "Perk Decks",
                 selected_perk_deck: 0,
             },
-            skills_config_state: SkillsConfigState {
+            skills_config: SkillsConfigState {
                 id: 3,
                 name: "Skills Config",
                 selected_skill: 0,
             },
-            settings_state: SettingsState {
+            settings: SettingsState {
                 id: 4,
                 name: "Settings",
                 selected_setting: 0,
                 show_popup: false,
                 selected_setting_new_value: String::new(),
+                username: args.username,
+                game_mode: args.game_mode,
+                map_width: args.map_width,
+                map_height: args.map_height,
+                perk_deck: args.perk_deck,
+                starting_wood: args.starting_wood,
+                starting_iron: args.starting_iron,
+                supply_limit: args.supply_limit,
+                xp_modifier: args.xp_modifier,
+                skill_points_limit: args.skill_points_limit,
             },
         }
     }

@@ -12,24 +12,15 @@ pub fn settings_keybindings(app: &mut App, key_event: &KeyEvent) {
             Action::Quit => app.exit = true,
             Action::Quit2 => app.exit = true,
             Action::Esc => app.view = View::MainMenu,
-            Action::Space => {
-                app.game_states.settings_state.show_popup =
-                    !app.game_states.settings_state.show_popup
-            }
+            Action::Space => app.states.settings.show_popup = !app.states.settings.show_popup,
             Action::Backspace => {
-                if app.game_states.settings_state.show_popup {
-                    app.game_states
-                        .settings_state
-                        .selected_setting_new_value
-                        .pop();
+                if app.states.settings.show_popup {
+                    app.states.settings.selected_setting_new_value.pop();
                 }
             }
             Action::WildCard(c) => {
-                if app.game_states.settings_state.show_popup {
-                    app.game_states
-                        .settings_state
-                        .selected_setting_new_value
-                        .push(c);
+                if app.states.settings.show_popup {
+                    app.states.settings.selected_setting_new_value.push(c);
                 }
             }
             _ => (),
