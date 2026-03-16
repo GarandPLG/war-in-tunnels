@@ -29,6 +29,7 @@ pub fn settings_keybindings(app: &mut App, key_event: &KeyEvent) {
             Action::Space => app.states.settings.show_popup = !app.states.settings.show_popup,
             Action::Enter => {
                 // FIXME: No feedback
+                // FIXME: Extract match block into a function
                 if app.states.settings.show_popup {
                     let option =
                         &app.states.settings.options[app.states.settings.selected_setting].value;

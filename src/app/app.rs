@@ -2,7 +2,6 @@ use crate::{
     app::{GameStates, handle_keybindings, view::View},
     cli::Cli,
 };
-use clap::ValueEnum;
 use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, KeyEvent},
@@ -22,19 +21,6 @@ pub struct App {
     pub exit: bool,
     pub view: View,
     pub states: GameStates,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
-pub enum GameMode {
-    LastManStanding,
-    FrontLines,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
-pub enum PerkDecks {
-    Silesian,
-    BogeyMan,
-    Anteater,
 }
 
 impl App {
