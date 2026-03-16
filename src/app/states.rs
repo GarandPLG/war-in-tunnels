@@ -40,9 +40,7 @@ pub struct SkillsConfigState {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct SettingsState {
-    pub id: usize,
-    pub name: &'static str,
+pub struct GameSettingsState {
     pub username: String,
     pub game_mode: GameMode,
     pub map_width: u8,
@@ -53,6 +51,13 @@ pub struct SettingsState {
     pub supply_limit: u8,
     pub xp_modifier: f32,
     pub skill_points_limit: u16,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SettingsState {
+    pub id: usize,
+    pub name: &'static str,
+    pub game_settings: GameSettingsState,
     pub selected_setting: usize,
     pub show_popup: bool,
     pub selected_setting_new_value: String,
@@ -86,16 +91,18 @@ impl GameStates {
                 selected_setting: 0,
                 show_popup: false,
                 selected_setting_new_value: String::new(),
-                username: args.username,
-                game_mode: args.game_mode,
-                map_width: args.map_width,
-                map_height: args.map_height,
-                perk_deck: args.perk_deck,
-                starting_wood: args.starting_wood,
-                starting_iron: args.starting_iron,
-                supply_limit: args.supply_limit,
-                xp_modifier: args.xp_modifier,
-                skill_points_limit: args.skill_points_limit,
+                game_settings: GameSettingsState {
+                    username: args.username,
+                    game_mode: args.game_mode,
+                    map_width: args.map_width,
+                    map_height: args.map_height,
+                    perk_deck: args.perk_deck,
+                    starting_wood: args.starting_wood,
+                    starting_iron: args.starting_iron,
+                    supply_limit: args.supply_limit,
+                    xp_modifier: args.xp_modifier,
+                    skill_points_limit: args.skill_points_limit,
+                },
             },
         }
     }

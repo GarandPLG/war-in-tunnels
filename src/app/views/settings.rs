@@ -38,14 +38,7 @@ pub fn settings_view(app: &App, area: Rect, buf: &mut Buffer) {
             )
             .render(main_area, buf);
 
-        let popup_area: Rect = Rect {
-            x: main_area.width / 4,
-            y: main_area.height / 3,
-            width: main_area.width / 2,
-            height: main_area.height / 3,
-        };
-
-        let popup: Paragraph<'_> =
+        if app.states.settings.show_popup {
             Paragraph::new(app.states.settings.selected_setting_new_value.clone())
                 .wrap(Wrap { trim: true })
                 .style(Style::default().yellow())
@@ -54,11 +47,23 @@ pub fn settings_view(app: &App, area: Rect, buf: &mut Buffer) {
                         .title("Insert value")
                         .title_style(Style::default().green())
                         .borders(Borders::ALL)
-                        .border_style(Style::default().blue()),
+                        .border_style(Style::default().blue())
+                        .padding(Padding {
+                            left: 1,
+                            right: 1,
+                            top: 1,
+                            bottom: 1,
+                        }),
+                )
+                .render(
+                    Rect {
+                        x: main_area.width / 3,
+                        y: main_area.height / 2,
+                        width: main_area.width / 3,
+                        height: main_area.height / 7,
+                    },
+                    buf,
                 );
-
-        if app.states.settings.show_popup {
-            popup.render(popup_area, buf);
         }
     }
 
