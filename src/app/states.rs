@@ -40,7 +40,7 @@ pub struct SkillsConfigState {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct GameSettingsState {
+pub struct SettingsOptions {
     pub username: String,
     pub game_mode: GameMode,
     pub map_width: u8,
@@ -57,7 +57,7 @@ pub struct GameSettingsState {
 pub struct SettingsState {
     pub id: usize,
     pub name: &'static str,
-    pub game_settings: GameSettingsState,
+    pub options: SettingsOptions,
     pub selected_setting: usize,
     pub show_popup: bool,
     pub selected_setting_new_value: String,
@@ -91,7 +91,7 @@ impl GameStates {
                 selected_setting: 0,
                 show_popup: false,
                 selected_setting_new_value: String::new(),
-                game_settings: GameSettingsState {
+                options: SettingsOptions {
                     username: args.username,
                     game_mode: args.game_mode,
                     map_width: args.map_width,
