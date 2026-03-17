@@ -15,7 +15,7 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
             }
             Action::Down => {
                 app.states.main_menu.selected_view =
-                    app.states.main_menu.selected_view.saturating_add(1).min(4);
+                    app.states.main_menu.selected_view.saturating_add(1).min(3);
             }
             Action::Space => {
                 let selected_view: usize = app.states.main_menu.selected_view;
@@ -26,8 +26,6 @@ pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
                     app.view = View::PerkDecks;
                 } else if selected_view == 3 {
                     app.view = View::SkillsConfig;
-                } else if selected_view == 4 {
-                    app.view = View::Settings;
                 }
             }
             _ => (),

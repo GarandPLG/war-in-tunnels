@@ -1,6 +1,6 @@
 use crate::app::{
     App,
-    views::{default_view, main_menu_view, settings_view},
+    views::{default_view, main_menu_view, skirmish_view},
 };
 use clap::ValueEnum;
 use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
@@ -11,7 +11,6 @@ pub enum View {
     Skirmish,
     PerkDecks,
     SkillsConfig,
-    Settings,
 }
 
 impl Widget for &App {
@@ -21,7 +20,7 @@ impl Widget for &App {
     {
         match self.view {
             View::MainMenu => main_menu_view(self, area, buf),
-            View::Settings => settings_view(self, area, buf),
+            View::Skirmish => skirmish_view(self, area, buf),
             _ => default_view(area, buf),
         }
     }

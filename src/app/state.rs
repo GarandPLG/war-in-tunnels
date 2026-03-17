@@ -1,8 +1,5 @@
 use crate::{
-    app::states::{
-        MainMenuState, PerkDecksState, SettingsOption, SettingsState, SettingsValue,
-        SkillsConfigState, SkirmishState,
-    },
+    app::states::{MainMenuState, PerkDecksState, SettingsState, SkillsConfigState, SkirmishState},
     cli::Cli,
 };
 
@@ -38,54 +35,16 @@ impl GameStates {
                 selected_skill: 0,
             },
             settings: SettingsState {
-                id: 4,
-                name: "Settings",
-                selected_setting: 0,
-                show_popup: false,
-                selected_setting_new_value: String::new(),
-                error_message: String::new(),
-                options: vec![
-                    SettingsOption {
-                        name: "Username",
-                        value: SettingsValue::Text(args.username),
-                    },
-                    SettingsOption {
-                        name: "Game Mode",
-                        value: SettingsValue::GameMode(args.game_mode),
-                    },
-                    SettingsOption {
-                        name: "Map Width",
-                        value: SettingsValue::U8(args.map_width),
-                    },
-                    SettingsOption {
-                        name: "Map Height",
-                        value: SettingsValue::U8(args.map_height),
-                    },
-                    SettingsOption {
-                        name: "Perk Deck",
-                        value: SettingsValue::PerkDeck(args.perk_deck),
-                    },
-                    SettingsOption {
-                        name: "Starting Wood",
-                        value: SettingsValue::U8(args.starting_wood),
-                    },
-                    SettingsOption {
-                        name: "Starting Iron",
-                        value: SettingsValue::U8(args.starting_iron),
-                    },
-                    SettingsOption {
-                        name: "Supply Limit",
-                        value: SettingsValue::U8(args.supply_limit),
-                    },
-                    SettingsOption {
-                        name: "XP Modifier",
-                        value: SettingsValue::F32(args.xp_modifier),
-                    },
-                    SettingsOption {
-                        name: "Skill Points Limit",
-                        value: SettingsValue::U16(args.skill_points_limit),
-                    },
-                ],
+                username: args.username,
+                game_mode: args.game_mode,
+                map_width: args.map_width,
+                map_height: args.map_height,
+                perk_deck: args.perk_deck,
+                starting_wood: args.starting_wood,
+                starting_iron: args.starting_iron,
+                supply_limit: args.supply_limit,
+                xp_modifier: args.xp_modifier,
+                skill_points_limit: args.skill_points_limit,
             },
         }
     }

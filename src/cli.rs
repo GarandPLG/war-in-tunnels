@@ -45,7 +45,7 @@ pub struct Cli {
         long,
         help = "Map height",
         value_name = "Positive integer [11; 50]",
-        default_value = "25"
+        default_value = "21"
     )]
     pub map_height: u8,
 
@@ -64,7 +64,7 @@ pub struct Cli {
         value_name = "Positive integer",
         default_value = "50"
     )]
-    pub starting_wood: u8,
+    pub starting_wood: u16,
 
     #[arg(
         long,
@@ -72,7 +72,7 @@ pub struct Cli {
         value_name = "Positive integer",
         default_value = "25"
     )]
-    pub starting_iron: u8,
+    pub starting_iron: u16,
 
     #[arg(
         long,
