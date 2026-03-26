@@ -16,35 +16,35 @@ pub struct BoardWidget {
 }
 
 impl BoardWidget {
-    pub fn new(app: &App, area_width: u16, area_height: u16) -> Self {
-        let cell_width: u16 = 7;
-        let cell_height: u16 = 4;
+    pub fn new(app: &mut App, area_width: u16, area_height: u16) -> Self {
+        const CELL_HIGHT: u16 = 4;
+        const CELL_WIDTH: u16 = 7;
 
-        let cols: u16 = area_width / cell_width;
-        let rows: u16 = area_height / cell_height;
+        let rows: u16 = area_height / CELL_HIGHT;
+        let cols: u16 = area_width / CELL_WIDTH;
 
-        let h_max_offset: u16 = if app.states.settings.map_height as u16 > rows {
+        let h_max_offset: usize = if app.states.settings.map_height as u16 > rows {
             app.states.settings.map_height as u16 - rows
         } else {
             0
-        };
+        } as usize;
 
-        let v_max_offset: u16 = if app.states.settings.map_width as u16 > cols {
+        let v_max_offset: usize = if app.states.settings.map_width as u16 > cols {
             app.states.settings.map_width as u16 - cols
         } else {
             0
-        };
+        } as usize;
 
-        // let h_offset: usize = (cell_height * rows as u16 / area_height) as usize;
-        // let v_offset: usize = (cell_width * cols as u16 / area_width) as usize;
+        app.states.skirmish.horizontal_offset.set_max(h_max_offset);
+        app.states.skirmish.vertical_offset.set_max(v_max_offset);
 
         Self {
-            cell_width,
-            cell_height,
+            cell_width: CELL_WIDTH,
+            cell_height: CELL_HIGHT,
             cols,
             rows,
-            h_offset: h_max_offset as usize,
-            v_offset: v_max_offset as usize,
+            h_offset: app.states.skirmish.horizontal_offset.get_value(),
+            v_offset: app.states.skirmish.vertical_offset.get_value(),
         }
     }
 }

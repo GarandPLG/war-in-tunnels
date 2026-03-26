@@ -52,7 +52,7 @@ impl App {
         Ok(())
     }
 
-    fn draw(&self, frame: &mut Frame<'_>) {
+    fn draw(&mut self, frame: &mut Frame<'_>) {
         frame.render_widget(self, frame.area());
     }
 

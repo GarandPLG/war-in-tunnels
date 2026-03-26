@@ -11,7 +11,7 @@ use ratatui::{
     widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
 
-pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
+pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
     let vertical_layout: Layout = Layout::vertical([
         Constraint::Length(4),
         Constraint::Fill(1),
@@ -70,7 +70,7 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         board_block.render(main_area, buf);
 
         let cells_area: Rect = board_area.inner(Margin {
-            horizontal: 1,
+            horizontal: 3,
             vertical: 1,
         });
 
