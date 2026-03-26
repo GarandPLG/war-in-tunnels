@@ -37,7 +37,7 @@ pub struct Cli {
         long,
         help = "Map width",
         value_name = "Positive integer [20; 100]",
-        default_value = "50"
+        default_value = "27"
     )]
     pub map_width: u8,
 
@@ -45,7 +45,7 @@ pub struct Cli {
         long,
         help = "Map height",
         value_name = "Positive integer [11; 50]",
-        default_value = "21"
+        default_value = "11"
     )]
     pub map_height: u8,
 

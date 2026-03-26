@@ -1,3 +1,5 @@
+use ratatui::widgets::ScrollbarState;
+
 use crate::{
     app::states::{MainMenuState, PerkDecksState, SettingsState, SkillsConfigState, SkirmishState},
     cli::Cli,
@@ -23,6 +25,8 @@ impl GameStates {
             skirmish: SkirmishState {
                 id: 1,
                 name: "Skirmish",
+                vertical_scrollbar: ScrollbarState::new(0),
+                horizontal_scrollbar: ScrollbarState::new(0),
             },
             perk_decks: PerkDecksState {
                 id: 2,
