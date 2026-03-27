@@ -17,8 +17,8 @@ pub struct BoardWidget {
 
 impl BoardWidget {
     pub fn new(app: &mut App, area_width: u16, area_height: u16) -> Self {
-        const CELL_HIGHT: u16 = 4;
-        const CELL_WIDTH: u16 = 7;
+        const CELL_HIGHT: u16 = 8; // 4
+        const CELL_WIDTH: u16 = 14; // 7
 
         let rows: u16 = area_height / CELL_HIGHT;
         let cols: u16 = area_width / CELL_WIDTH;
