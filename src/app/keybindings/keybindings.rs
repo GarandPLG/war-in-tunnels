@@ -22,6 +22,7 @@ pub enum Action {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum Group {
+    CtrlMovement,
     Movement,
     Scroll,
     Select,
@@ -100,7 +101,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         code: KeyCode::Up,
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::CONTROL,
-        group: Group::Movement,
+        group: Group::CtrlMovement,
         symbol: "Ctrl + ↑",
         description: "Scroll Up ",
     },
@@ -109,7 +110,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         code: KeyCode::Down,
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::CONTROL,
-        group: Group::Movement,
+        group: Group::CtrlMovement,
         symbol: "Ctrl + ↓",
         description: "Scroll Down",
     },
@@ -118,7 +119,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         code: KeyCode::Left,
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::CONTROL,
-        group: Group::Movement,
+        group: Group::CtrlMovement,
         symbol: "Ctrl + ←",
         description: "Scroll Left",
     },
@@ -127,7 +128,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         code: KeyCode::Right,
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::CONTROL,
-        group: Group::Movement,
+        group: Group::CtrlMovement,
         symbol: "Ctrl + →",
         description: "Scroll Right",
     },
@@ -156,7 +157,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         modifiers: KeyModifiers::NONE,
         group: Group::Movement,
         symbol: "Esc",
-        description: "Go back",
+        description: "Go back to main menu",
     },
     KeyBinding {
         action: Action::Backspace,

@@ -1,14 +1,13 @@
 use crate::app::{
     App, View,
-    keybindings::{Action, event_to_action},
+    keybindings::{Action, common_keybindings, event_to_action},
 };
 use ratatui::crossterm::event::KeyEvent;
 
 pub fn main_menu_keybindings(app: &mut App, event: &KeyEvent) {
     if let Some(action) = event_to_action(&event) {
+        common_keybindings(app, action);
         match action {
-            Action::Quit => app.exit = true,
-            Action::Quit2 => app.exit = true,
             Action::Up => {
                 app.states.main_menu.selected_view =
                     app.states.main_menu.selected_view.saturating_sub(1).max(1);

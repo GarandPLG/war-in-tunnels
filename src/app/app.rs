@@ -69,21 +69,19 @@ pub fn handle_input_events(tx: mpsc::Sender<Event>) {
     loop {
         match event::read() {
             Ok(ev) => match ev {
-                event::Event::Key(key_event) => {
-                    if tx.send(Event::Input(key_event)).is_err() {
+                event::Event::Key(key) => {
+                    if tx.send(Event::Input(key)).is_err() {
                         break;
                     }
                 }
-                event::Event::Resize(cols, rows) => {
-                    if tx.send(Event::Resize(cols, rows)).is_err() {
+                event::Event::Resize(c, r) => {
+                    if tx.send(Event::Resize(c, r)).is_err() {
                         break;
                     }
                 }
                 _ => {}
             },
-            Err(_) => {
-                continue;
-            }
+            Err(_) => continue,
         }
     }
 }
