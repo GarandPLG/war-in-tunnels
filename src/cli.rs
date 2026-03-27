@@ -97,6 +97,13 @@ pub struct Cli {
         default_value = "120"
     )]
     pub skill_points_limit: u16,
+
+    #[arg(
+        long,
+        help = "Enable logging to file (default: disabled)",
+        default_value_t = false
+    )]
+    pub log: bool,
 }
 
 pub fn get_args() -> Cli {

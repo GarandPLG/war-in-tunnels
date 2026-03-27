@@ -7,10 +7,15 @@ use std::{
 use war_in_tunnels::{
     app::{App, Event, handle_input_events},
     cli::{Cli, get_args},
+    logs::init_logger,
 };
 
 fn main() -> Result<()> {
     let args: Cli = get_args();
+    if args.log {
+        init_logger();
+    }
+
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
     let mut app: App = App::new(args);
 

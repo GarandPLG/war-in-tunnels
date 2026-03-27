@@ -23,13 +23,13 @@ impl BoardWidget {
         let rows: u16 = area_height / CELL_HIGHT;
         let cols: u16 = area_width / CELL_WIDTH;
 
-        let h_max_offset: usize = if app.states.settings.map_height as u16 > rows {
+        let v_max_offset: usize = if app.states.settings.map_height as u16 > rows {
             app.states.settings.map_height as u16 - rows
         } else {
             0
         } as usize;
 
-        let v_max_offset: usize = if app.states.settings.map_width as u16 > cols {
+        let h_max_offset: usize = if app.states.settings.map_width as u16 > cols {
             app.states.settings.map_width as u16 - cols
         } else {
             0
