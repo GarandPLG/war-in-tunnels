@@ -15,7 +15,7 @@ pub struct GameStates {
 }
 
 impl GameStates {
-    pub fn new(args: Cli) -> Self {
+    pub fn new(args: &Cli) -> Self {
         Self {
             main_menu: MainMenuState {
                 id: 0,
@@ -27,6 +27,9 @@ impl GameStates {
                 name: "Skirmish",
                 vertical_offset: Offset::new(),
                 horizontal_offset: Offset::new(),
+                map_width: args.map_width as usize,
+                map_height: args.map_height as usize,
+                board_cells: Vec::new(),
             },
             perk_decks: PerkDecksState {
                 id: 2,
@@ -39,16 +42,14 @@ impl GameStates {
                 selected_skill: 0,
             },
             settings: SettingsState {
-                username: args.username,
-                game_mode: args.game_mode,
-                map_width: args.map_width,
-                map_height: args.map_height,
-                perk_deck: args.perk_deck,
-                starting_wood: args.starting_wood,
-                starting_iron: args.starting_iron,
-                supply_limit: args.supply_limit,
-                xp_modifier: args.xp_modifier,
-                skill_points_limit: args.skill_points_limit,
+                username: args.username.clone(),
+                game_mode: args.game_mode.clone(),
+                perk_deck: args.perk_deck.clone(),
+                starting_wood: args.starting_wood.clone(),
+                starting_iron: args.starting_iron.clone(),
+                supply_limit: args.supply_limit.clone(),
+                xp_modifier: args.xp_modifier.clone(),
+                skill_points_limit: args.skill_points_limit.clone(),
             },
         }
     }

@@ -25,10 +25,13 @@ pub struct App {
 
 impl App {
     pub fn new(args: Cli) -> Self {
+        let mut states: GameStates = GameStates::new(&args);
+        states.skirmish.init_board();
+
         Self {
             exit: false,
             view: args.view,
-            states: GameStates::new(args),
+            states,
         }
     }
 

@@ -13,6 +13,7 @@ use ratatui::{
 //     Base,
 // }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CellWidget {
     pub row: usize,
     pub col: usize,

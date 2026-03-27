@@ -4,8 +4,6 @@ use crate::app::states::{GameMode, PerkDecks};
 pub struct SettingsState {
     pub username: String,
     pub game_mode: GameMode,
-    pub map_width: u8,
-    pub map_height: u8,
     pub perk_deck: PerkDecks,
     pub starting_wood: u16,
     pub starting_iron: u16,

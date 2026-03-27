@@ -1,3 +1,4 @@
+use crate::app::widgets::CellWidget;
 use clap::ValueEnum;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -16,6 +17,10 @@ impl Offset {
     }
 
     pub fn set_max(&mut self, max: usize) {
+        if self.max != 0 {
+            return;
+        }
+
         self.max = max;
     }
 
@@ -28,12 +33,29 @@ impl Offset {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SkirmishState {
     pub id: usize,
     pub name: &'static str,
+    pub map_width: usize,
+    pub map_height: usize,
     pub vertical_offset: Offset,
     pub horizontal_offset: Offset,
+    pub board_cells: Vec<CellWidget>,
+}
+
+impl SkirmishState {
+    pub fn init_board(&mut self) {
+        if !self.board_cells.is_empty() {
+            return;
+        }
+
+        for row in 0..self.map_height {
+            for col in 0..self.map_width {
+                self.board_cells.push(CellWidget::new(row, col));
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]

@@ -6,31 +6,33 @@ use ratatui::{
 };
 use std::rc::Rc;
 
-pub struct BoardWidget {
+pub struct BoardWidget<'a> {
+    map_width: usize,
     cell_width: u16,
     cell_height: u16,
     cols: u16,
     rows: u16,
     h_offset: usize,
     v_offset: usize,
+    cells: &'a Vec<CellWidget>,
 }
 
-impl BoardWidget {
-    pub fn new(app: &mut App, area_width: u16, area_height: u16) -> Self {
-        const CELL_HIGHT: u16 = 8; // 4
-        const CELL_WIDTH: u16 = 14; // 7
+impl<'a> BoardWidget<'a> {
+    pub fn new(app: &'a mut App, area_width: u16, area_height: u16) -> Self {
+        const CELL_HIGHT: u16 = 5; // 4
+        const CELL_WIDTH: u16 = 9; // 7
 
         let rows: u16 = area_height / CELL_HIGHT;
         let cols: u16 = area_width / CELL_WIDTH;
 
-        let v_max_offset: usize = if app.states.settings.map_height as u16 > rows {
-            app.states.settings.map_height as u16 - rows
+        let v_max_offset: usize = if app.states.skirmish.map_height as u16 > rows {
+            app.states.skirmish.map_height as u16 - rows
         } else {
             0
         } as usize;
 
-        let h_max_offset: usize = if app.states.settings.map_width as u16 > cols {
-            app.states.settings.map_width as u16 - cols
+        let h_max_offset: usize = if app.states.skirmish.map_width as u16 > cols {
+            app.states.skirmish.map_width as u16 - cols
         } else {
             0
         } as usize;
@@ -39,17 +41,19 @@ impl BoardWidget {
         app.states.skirmish.vertical_offset.set_max(v_max_offset);
 
         Self {
+            map_width: app.states.skirmish.map_width as usize,
             cell_width: CELL_WIDTH,
             cell_height: CELL_HIGHT,
             cols,
             rows,
             h_offset: app.states.skirmish.horizontal_offset.get_value(),
             v_offset: app.states.skirmish.vertical_offset.get_value(),
+            cells: &app.states.skirmish.board_cells,
         }
     }
 }
 
-impl Widget for BoardWidget {
+impl Widget for BoardWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let horizontal: Rc<[Rect]> = Layout::horizontal(vec![
             Constraint::Length(self.cell_width);
@@ -65,10 +69,12 @@ impl Widget for BoardWidget {
             .split(*col_area);
 
             for (row_idx, cell_area) in vertical.iter().enumerate() {
-                let cell: CellWidget =
-                    CellWidget::new(row_idx + self.v_offset, col_idx + self.h_offset);
-
-                cell.render(*cell_area, buf);
+                if let Some(cell) = self
+                    .cells
+                    .get((row_idx + self.v_offset) * self.map_width + (col_idx + self.h_offset))
+                {
+                    cell.render(*cell_area, buf);
+                }
             }
         }
     }
