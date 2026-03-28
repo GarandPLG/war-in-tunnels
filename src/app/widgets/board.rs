@@ -19,8 +19,8 @@ pub struct BoardWidget<'a> {
 
 impl<'a> BoardWidget<'a> {
     pub fn new(app: &'a mut App, area_width: u16, area_height: u16) -> Self {
-        const CELL_HIGHT: u16 = 5; // 4
-        const CELL_WIDTH: u16 = 9; // 7
+        const CELL_HIGHT: u16 = 5;
+        const CELL_WIDTH: u16 = 9;
 
         let rows: u16 = area_height / CELL_HIGHT;
         let cols: u16 = area_width / CELL_WIDTH;
@@ -39,6 +39,13 @@ impl<'a> BoardWidget<'a> {
 
         app.states.skirmish.horizontal_offset.set_max(h_max_offset);
         app.states.skirmish.vertical_offset.set_max(v_max_offset);
+
+        if v_max_offset > 0 {
+            app.states
+                .skirmish
+                .vertical_offset
+                .set_initial_value((app.states.skirmish.map_height - rows as usize) / 2);
+        }
 
         Self {
             map_width: app.states.skirmish.map_width as usize,
