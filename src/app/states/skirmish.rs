@@ -50,6 +50,34 @@ impl Offset {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FocusedCell {
+    pub row: usize,
+    pub col: usize,
+}
+
+impl FocusedCell {
+    pub fn new(row: usize, col: usize) -> Self {
+        Self { row, col }
+    }
+
+    pub fn move_up(&mut self) {
+        self.row = self.row.saturating_sub(1);
+    }
+
+    pub fn move_down(&mut self) {
+        self.row = self.row.saturating_add(1);
+    }
+
+    pub fn move_left(&mut self) {
+        self.col = self.col.saturating_sub(1);
+    }
+
+    pub fn move_right(&mut self) {
+        self.col = self.col.saturating_add(1);
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SkirmishState {
     pub id: usize,
@@ -60,6 +88,7 @@ pub struct SkirmishState {
     pub horizontal_offset: Offset,
     pub board_cells: Vec<CellWidget>,
     pub zoom_level: ZoomLevel,
+    pub focused_cell: FocusedCell,
 }
 
 impl SkirmishState {
@@ -70,7 +99,7 @@ impl SkirmishState {
 
         for row in 0..self.map_height {
             for col in 0..self.map_width {
-                self.board_cells.push(CellWidget::new(row, col));
+                self.board_cells.push(CellWidget::new(row, col, false));
             }
         }
     }

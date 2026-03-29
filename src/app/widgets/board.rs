@@ -1,4 +1,8 @@
-use crate::app::{App, states::ZoomLevel, widgets::CellWidget};
+use crate::app::{
+    App,
+    states::{FocusedCell, ZoomLevel},
+    widgets::CellWidget,
+};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -14,7 +18,8 @@ pub struct BoardWidget<'a> {
     rows: u16,
     h_offset: usize,
     v_offset: usize,
-    cells: &'a Vec<CellWidget>,
+    cells: &'a mut Vec<CellWidget>,
+    focused_cell: &'a FocusedCell,
 }
 
 impl<'a> BoardWidget<'a> {
@@ -63,7 +68,8 @@ impl<'a> BoardWidget<'a> {
             rows,
             h_offset: app.states.skirmish.horizontal_offset.get_value(),
             v_offset: app.states.skirmish.vertical_offset.get_value(),
-            cells: &app.states.skirmish.board_cells,
+            cells: &mut app.states.skirmish.board_cells,
+            focused_cell: &app.states.skirmish.focused_cell,
         }
     }
 }
@@ -86,8 +92,16 @@ impl Widget for BoardWidget<'_> {
             for (row_idx, cell_area) in vertical.iter().enumerate() {
                 if let Some(cell) = self
                     .cells
-                    .get((row_idx + self.v_offset) * self.map_width + (col_idx + self.h_offset))
+                    .get_mut((row_idx + self.v_offset) * self.map_width + (col_idx + self.h_offset))
                 {
+                    if row_idx + self.v_offset == self.focused_cell.row
+                        && col_idx + self.h_offset == self.focused_cell.col
+                    {
+                        cell.selected = true;
+                    } else {
+                        cell.selected = false;
+                    }
+
                     cell.render(*cell_area, buf);
                 }
             }

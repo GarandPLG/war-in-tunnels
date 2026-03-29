@@ -1,6 +1,7 @@
 use crate::{
     app::states::{
-        MainMenuState, Offset, PerkDecksState, SettingsState, SkillsConfigState, SkirmishState,
+        FocusedCell, MainMenuState, Offset, PerkDecksState, SettingsState, SkillsConfigState,
+        SkirmishState,
     },
     cli::Cli,
 };
@@ -31,6 +32,7 @@ impl GameStates {
                 map_height: args.map_height as usize,
                 board_cells: Vec::new(),
                 zoom_level: args.zoom_level,
+                focused_cell: FocusedCell::new(0, 0),
             },
             perk_decks: PerkDecksState {
                 id: 2,

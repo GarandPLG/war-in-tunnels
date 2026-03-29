@@ -205,9 +205,9 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         code: KeyCode::Esc,
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::NONE,
-        group: Group::Movement,
+        group: Group::Quit,
         symbol: "Esc",
-        description: "Go back to main menu",
+        description: "Main menu",
     },
     KeyBinding {
         action: Action::Backspace,

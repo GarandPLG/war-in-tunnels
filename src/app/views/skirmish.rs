@@ -14,6 +14,10 @@ use ratatui::{
 
 pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
     let actions: Vec<Action> = vec![
+        Action::Up,
+        Action::Down,
+        Action::Left,
+        Action::Right,
         Action::ScrollUp,
         Action::ScrollDown,
         Action::ScrollLeft,

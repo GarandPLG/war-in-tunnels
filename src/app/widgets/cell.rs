@@ -1,7 +1,7 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
-    style::Stylize,
+    style::{Color, Style, Stylize},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
@@ -17,12 +17,13 @@ use ratatui::{
 pub struct CellWidget {
     pub row: usize,
     pub col: usize,
+    pub selected: bool,
     // pub tags: Vec<CellTags>,
 }
 
 impl CellWidget {
-    pub fn new(row: usize, col: usize) -> Self {
-        Self { row, col }
+    pub fn new(row: usize, col: usize, selected: bool) -> Self {
+        Self { row, col, selected }
     }
 
     fn col_to_letters(&self) -> String {
@@ -40,6 +41,14 @@ impl CellWidget {
     pub fn display_coords(&self) -> String {
         format!("{}{}", self.col_to_letters(), self.row)
     }
+
+    fn is_selected(&self) -> Color {
+        if self.selected {
+            Color::Red
+        } else {
+            Color::White
+        }
+    }
 }
 
 impl Widget for CellWidget {
@@ -49,7 +58,7 @@ impl Widget for CellWidget {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .white()
+                    .style(Style::default().fg(self.is_selected()))
                     .title(self.display_coords().green()),
             )
             .render(area, buf);
