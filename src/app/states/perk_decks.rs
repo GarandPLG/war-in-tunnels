@@ -1,5 +1,5 @@
 use clap::ValueEnum;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PerkDecksState {
@@ -16,7 +16,7 @@ pub enum PerkDecks {
 }
 
 impl Display for PerkDecks {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             PerkDecks::Silesian => write!(f, "Silesian"),
             PerkDecks::BogeyMan => write!(f, "Bogey Man"),

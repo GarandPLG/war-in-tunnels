@@ -2,49 +2,95 @@ use clap::ValueEnum;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use std::collections::HashMap;
 
+/// Represents the set of actions that the UI can perform.
+///
+/// Each variant corresponds to a concrete operation that can be triggered by a
+/// key binding. The `WildCard` variant is a special case that matches any
+/// character key and carries the actual character pressed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Action {
+    /// Request the application to quit.
     Quit,
+    /// Alternate quit action.
     Quit2,
+    /// Move the selection cursor up.
     Up,
+    /// Move the selection cursor down.
     Down,
+    /// Move the selection cursor left.
     Left,
+    /// Move the selection cursor right.
     Right,
+    /// Scroll up without moving the cursor.
     ScrollUp,
+    /// Scroll down without moving the cursor.
     ScrollDown,
+    /// Scroll left without moving the cursor.
     ScrollLeft,
+    /// Scroll right without moving the cursor.
     ScrollRight,
+    /// Select the current item.
     Space,
+    /// Submit or confirm the current choice.
     Enter,
+    /// Return to the main menu or previous screen.
     Esc,
+    /// Delete the character before the cursor.
     Backspace,
+    /// Zoom the view in.
     ZoomIn,
+    /// Zoom the view out.
     ZoomOut,
+    /// Matches any character key; the inner `char` is the actual key pressed.
     WildCard(char),
 }
 
+/// Logical groups of key bindings used for organising help screens or
+/// configuration sections.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum Group {
+    /// Bindings that combine `Ctrl` with movement keys.
     CtrlMovement,
+    /// Plain movement bindings.
     Movement,
+    /// Scroll bindings.
     Scroll,
+    /// Selection bindings.
     Select,
+    /// Text input related bindings.
     Input,
+    /// Zoom related bindings.
     Zoom,
+    /// Quit related bindings.
     Quit,
 }
 
+/// Description of a single key binding.
+///
+/// This struct stores the mapping from a physical key event to an `Action`,
+/// together with metadata used for displaying help information.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct KeyBinding {
+    /// The logical action performed when this binding is triggered.
     pub action: Action,
+    /// The raw `crossterm::event::KeyCode` that identifies the key.
     pub code: KeyCode,
+    /// The kind of key event (crossterm::event::KeyEventKind).
     pub kind: KeyEventKind,
+    /// Any modifier keys that must be held (crossterm::event::KeyModifiers).
     pub modifiers: KeyModifiers,
+    /// The group this binding belongs to, useful for categorising help.
     pub group: Group,
+    /// Human‑readable symbol shown in UI/help screens.
     pub symbol: &'static str,
+    /// Short description of what the binding does.
     pub description: &'static str,
 }
 
+/// Complete list of all key bindings used by the application.
+///
+/// The slice is ordered primarily for readability; the runtime lookup scans
+/// this slice linearly, which is acceptable given the modest size of the list.
 pub static KEYBINDINGS: &[KeyBinding] = &[
     KeyBinding {
         action: Action::Quit,
@@ -201,10 +247,18 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
     },
 ];
 
+/// Returns the `KeyBinding` associated with the given `Action`, if one exists.
 pub fn binding_for(action: Action) -> Option<&'static KeyBinding> {
     KEYBINDINGS.iter().find(|b| b.action == action)
 }
 
+/// Converts a raw `KeyEvent` into an `Action` if a matching binding is found.
+///
+/// The function first looks for an exact match on code, kind, and modifiers.
+/// If no exact match exists but a wildcard binding is present for the same
+/// event kind, the function returns `Action::WildCard` with the character that
+/// was pressed. Returns `None` when the event does not correspond to any known
+/// action.
 pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
     if let Some(b) = KEYBINDINGS
         .iter()
@@ -225,6 +279,11 @@ pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
     None
 }
 
+/// Determines the size of the largest group among a slice of actions.
+///
+/// It counts how many times each group appears in the supplied actions and
+/// returns the highest count. This can be used, for example, to size UI
+/// elements that display groups of bindings.
 pub fn count_largest_group(actions: &Vec<Action>) -> u16 {
     let mut group_counts: HashMap<Group, u16> = HashMap::new();
 

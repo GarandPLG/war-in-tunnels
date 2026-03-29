@@ -5,9 +5,16 @@ use crate::app::{
 use clap::{Error, Parser, error::ErrorKind, value_parser};
 use std::num::ParseFloatError;
 
+/// Holds all configurable options that can be passed via the command line.
+///
+/// Each field corresponds to a CLI flag (e.g. `--view`, `--username`, …).
+/// The `clap` attributes describe the flag name, help text, default value,
+/// and any validation constraints.  The struct derives `Parser` so that
+/// `Cli::parse()` can be called directly to obtain a populated instance.
 #[derive(Parser, Debug)]
 #[command(version, about = "War in Tunnels", long_about = "War in Tunnels")]
 pub struct Cli {
+    /// The initial view/window to display.
     #[arg(
         long,
         help = "Default window",
@@ -17,6 +24,7 @@ pub struct Cli {
     )]
     pub view: View,
 
+    /// Player name shown in the UI.
     #[arg(
         long,
         help = "Username",
@@ -25,6 +33,7 @@ pub struct Cli {
     )]
     pub username: String,
 
+    /// Game mode selection.
     #[arg(
         long,
         help = "Game mode",
@@ -34,6 +43,7 @@ pub struct Cli {
     )]
     pub game_mode: GameMode,
 
+    /// Width of the generated map (20–100 tiles).
     #[arg(
         long,
         help = "Map width",
@@ -43,6 +53,7 @@ pub struct Cli {
     )]
     pub map_width: u8,
 
+    /// Height of the generated map (25–50 tiles).
     #[arg(
         long,
         help = "Map height",
@@ -52,6 +63,7 @@ pub struct Cli {
     )]
     pub map_height: u8,
 
+    /// Zoom level used for the UI.
     #[arg(
         long,
         help = "Zoom level",
@@ -61,6 +73,7 @@ pub struct Cli {
     )]
     pub zoom_level: ZoomLevel,
 
+    /// Which perk deck to use.
     #[arg(
         long,
         help = "Perk Deck",
@@ -70,6 +83,7 @@ pub struct Cli {
     )]
     pub perk_deck: PerkDecks,
 
+    /// Starting amount of wood (1–150).
     #[arg(
         long,
         help = "Starting wood",
@@ -79,6 +93,7 @@ pub struct Cli {
     )]
     pub starting_wood: u16,
 
+    /// Starting amount of iron (1–150).
     #[arg(
         long,
         help = "Starting iron",
@@ -88,6 +103,7 @@ pub struct Cli {
     )]
     pub starting_iron: u16,
 
+    /// Maximum amount of units (49–149).
     #[arg(
         long,
         help = "Supply limit",
@@ -97,6 +113,7 @@ pub struct Cli {
     )]
     pub supply_limit: u8,
 
+    /// Modifier applied to experience points (0.5–2.0).
     #[arg(
         long,
         help = "XP modifier",
@@ -106,15 +123,17 @@ pub struct Cli {
     )]
     pub xp_modifier: f32,
 
+    /// Upper bound for skill points that can be earned (90–690).
     #[arg(
         long,
         help = "Skill points limit",
-        value_name = "Positive integer [120; 690]",
+        value_name = "Positive integer [90; 690]",
         default_value = "120",
-        value_parser = value_parser!(u16).range(120..=690)
+        value_parser = value_parser!(u16).range(90..=690)
     )]
     pub skill_points_limit: u16,
 
+    /// Enable logging to a file (default: disabled).
     #[arg(
         long,
         help = "Enable logging to file (default: disabled)",
@@ -123,10 +142,25 @@ pub struct Cli {
     pub log: bool,
 }
 
+/// Parses the command line arguments and returns a fully populated `Cli`
+/// instance.  This function simply forwards to `Cli::parse()`, which
+/// handles argument validation and displays helpful error messages if
+/// the user supplies invalid input.
 pub fn get_args() -> Cli {
     Cli::parse()
 }
 
+/// Parses a string into a floating‑point XP modifier and validates that it
+/// lies within the inclusive range `0.5..=2.0`.
+///
+/// The function is used as a custom `value_parser` for the `--xp-modifier`
+/// flag.  On failure it returns a `clap::Error` with `ErrorKind::InvalidValue`,
+/// allowing `clap` to present a clear error message to the user.
+///
+/// # Errors
+///
+/// * Returns an error if the string cannot be parsed as `f32`.
+/// * Returns an error if the parsed value is outside the allowed range.
 fn parse_xp(s: &str) -> Result<f32, Error> {
     let v: f32 = s
         .parse()

@@ -10,6 +10,11 @@ use war_in_tunnels::{
     logs::init_logger,
 };
 
+/// Starts the terminal UI application.
+///
+/// The function follows the steps outlined in the module‑level documentation.
+/// It returns any `std::io::Error` encountered while initializing or restoring the
+/// terminal, or while running the `App`.
 fn main() -> Result<()> {
     let args: Cli = get_args();
     if args.log {

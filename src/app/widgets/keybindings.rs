@@ -12,11 +12,31 @@ use ratatui::{
 };
 use std::collections::HashSet;
 
+/// A widget that visualises the keybindings for a set of actions.
+///
+/// The widget stores a vector of [`Paragraph`] objects, each representing one
+/// logical group of keybindings (e.g. navigation, editing, etc.).  The paragraphs
+/// are rendered side‑by‑side inside a bordered container.
 pub struct KeybindingsWidget {
+    /// Paragraphs, one per used `Group`, containing the formatted keybinding lines.
     grouped: Vec<Paragraph<'static>>,
 }
 
 impl KeybindingsWidget {
+    /// Create a new widget from a list of actions.
+    ///
+    /// For each action, the corresponding static [`KeyBinding`] is looked up
+    /// using [`binding_for`].  Only groups that have at least one binding are
+    /// displayed.  The resulting widget contains a paragraph for each group,
+    /// formatted with the key symbol (red & bold) followed by its description.
+    ///
+    /// # Parameters
+    ///
+    /// * `actions` – A vector of actions for which keybindings should be shown.
+    ///
+    /// # Returns
+    ///
+    /// A fully‑initialised `KeybindingsWidget` ready for rendering.
     pub fn new(actions: Vec<Action>) -> Self {
         let keybindings: Vec<Option<&'static KeyBinding>> =
             actions.iter().map(|a| binding_for(*a)).collect();
@@ -66,6 +86,14 @@ impl KeybindingsWidget {
 }
 
 impl Widget for KeybindingsWidget {
+    /// Render the widget inside the given rectangular area.
+    ///
+    /// The widget first draws a surrounding border with the title *Keybindings*.
+    /// It then divides the inner area into equal horizontal slices—one per
+    /// used group—and renders each group's paragraph into its slice.
+    ///
+    /// If no groups are present, the function returns early without drawing
+    /// anything.
     fn render(self, area: Rect, buf: &mut Buffer) {
         let count: u16 = self.grouped.len() as u16;
 
