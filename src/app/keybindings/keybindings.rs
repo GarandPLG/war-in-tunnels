@@ -1,5 +1,6 @@
 use clap::ValueEnum;
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Action {
@@ -17,6 +18,8 @@ pub enum Action {
     Enter,
     Esc,
     Backspace,
+    ZoomIn,
+    ZoomOut,
     WildCard(char),
 }
 
@@ -27,6 +30,7 @@ pub enum Group {
     Scroll,
     Select,
     Input,
+    Zoom,
     Quit,
 }
 
@@ -169,6 +173,24 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         description: "Delete character",
     },
     KeyBinding {
+        action: Action::ZoomIn,
+        code: KeyCode::Char(','),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Zoom,
+        symbol: ",",
+        description: "Zoom in",
+    },
+    KeyBinding {
+        action: Action::ZoomOut,
+        code: KeyCode::Char('.'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Zoom,
+        symbol: ".",
+        description: "Zoom out",
+    },
+    KeyBinding {
         action: Action::WildCard('_'),
         code: KeyCode::Char('_'),
         kind: KeyEventKind::Press,
@@ -201,4 +223,16 @@ pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
     }
 
     None
+}
+
+pub fn count_largest_group(actions: &Vec<Action>) -> u16 {
+    let mut group_counts: HashMap<Group, u16> = HashMap::new();
+
+    for action in actions {
+        if let Some(binding) = binding_for(*action) {
+            *group_counts.entry(binding.group).or_insert(0) += 1;
+        }
+    }
+
+    group_counts.values().copied().max().map_or(0, |v| v)
 }

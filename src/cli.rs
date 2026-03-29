@@ -1,5 +1,5 @@
 use crate::app::{
-    states::{GameMode, PerkDecks},
+    states::{GameMode, PerkDecks, ZoomLevel},
     view::View,
 };
 use clap::{Error, Parser, error::ErrorKind, value_parser};
@@ -51,6 +51,15 @@ pub struct Cli {
         value_parser = value_parser!(u8).range(25..=50)
     )]
     pub map_height: u8,
+
+    #[arg(
+        long,
+        help = "Zoom level",
+        value_name = "...",
+        default_value_t = ZoomLevel::Default,
+        value_enum
+    )]
+    pub zoom_level: ZoomLevel,
 
     #[arg(
         long,

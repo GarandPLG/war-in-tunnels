@@ -1,4 +1,8 @@
-use crate::app::{App, View, keybindings::Action, widgets::KeybindingsWidget};
+use crate::app::{
+    App, View,
+    keybindings::{Action, count_largest_group},
+    widgets::KeybindingsWidget,
+};
 use clap::ValueEnum;
 use ratatui::{
     buffer::Buffer,
@@ -23,7 +27,18 @@ fn format_view_string(s: String) -> String {
 }
 
 pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
-    let vertical_layout: Layout = Layout::vertical([Constraint::Fill(1), Constraint::Length(4)]);
+    let actions: Vec<Action> = vec![
+        Action::Up,
+        Action::Down,
+        Action::Space,
+        Action::Quit,
+        Action::Quit2,
+    ];
+
+    let vertical_layout: Layout = Layout::vertical([
+        Constraint::Fill(1),
+        Constraint::Length(count_largest_group(&actions) + 2),
+    ]);
 
     let [main_menu_area, keybindings_area] = vertical_layout.areas(area);
 
@@ -83,14 +98,6 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
     }
 
     {
-        let actions: Vec<Action> = vec![
-            Action::Up,
-            Action::Down,
-            Action::Space,
-            Action::Quit,
-            Action::Quit2,
-        ];
-
         KeybindingsWidget::new(actions).render(keybindings_area, buf);
     }
 }

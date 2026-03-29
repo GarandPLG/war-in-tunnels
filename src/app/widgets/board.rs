@@ -1,4 +1,4 @@
-use crate::app::{App, widgets::CellWidget};
+use crate::app::{App, states::ZoomLevel, widgets::CellWidget};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -18,24 +18,32 @@ pub struct BoardWidget<'a> {
 }
 
 impl<'a> BoardWidget<'a> {
+    fn max_offset(map_size: u16, size: u16) -> usize {
+        if map_size > size {
+            (map_size - size) as usize
+        } else {
+            0
+        }
+    }
+
     pub fn new(app: &'a mut App, area_width: u16, area_height: u16) -> Self {
-        const CELL_HIGHT: u16 = 5;
-        const CELL_WIDTH: u16 = 9;
+        let cell_height: u16 = match app.states.skirmish.zoom_level {
+            ZoomLevel::ZoomedIn => 7,
+            ZoomLevel::Default => 5,
+            ZoomLevel::ZoomedOut => 3,
+        };
 
-        let rows: u16 = area_height / CELL_HIGHT;
-        let cols: u16 = area_width / CELL_WIDTH;
+        let cell_width: u16 = match app.states.skirmish.zoom_level {
+            ZoomLevel::ZoomedIn => 13,
+            ZoomLevel::Default => 9,
+            ZoomLevel::ZoomedOut => 5,
+        };
 
-        let v_max_offset: usize = if app.states.skirmish.map_height as u16 > rows {
-            app.states.skirmish.map_height as u16 - rows
-        } else {
-            0
-        } as usize;
+        let rows: u16 = area_height / cell_height;
+        let cols: u16 = area_width / cell_width;
 
-        let h_max_offset: usize = if app.states.skirmish.map_width as u16 > cols {
-            app.states.skirmish.map_width as u16 - cols
-        } else {
-            0
-        } as usize;
+        let v_max_offset: usize = Self::max_offset(app.states.skirmish.map_height as u16, rows);
+        let h_max_offset: usize = Self::max_offset(app.states.skirmish.map_width as u16, cols);
 
         app.states.skirmish.horizontal_offset.set_max(h_max_offset);
         app.states.skirmish.vertical_offset.set_max(v_max_offset);
@@ -49,8 +57,8 @@ impl<'a> BoardWidget<'a> {
 
         Self {
             map_width: app.states.skirmish.map_width as usize,
-            cell_width: CELL_WIDTH,
-            cell_height: CELL_HIGHT,
+            cell_width,
+            cell_height,
             cols,
             rows,
             h_offset: app.states.skirmish.horizontal_offset.get_value(),

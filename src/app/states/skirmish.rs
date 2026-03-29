@@ -33,9 +33,9 @@ impl Offset {
     }
 
     pub fn set_max(&mut self, max: usize) {
-        if self.max_initiated {
-            return;
-        }
+        // if self.max_initiated {
+        //     return;
+        // }
 
         self.max = max;
         self.max_initiated = true;
@@ -59,6 +59,7 @@ pub struct SkirmishState {
     pub vertical_offset: Offset,
     pub horizontal_offset: Offset,
     pub board_cells: Vec<CellWidget>,
+    pub zoom_level: ZoomLevel,
 }
 
 impl SkirmishState {
@@ -79,4 +80,11 @@ impl SkirmishState {
 pub enum GameMode {
     LastManStanding,
     FrontLines,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
+pub enum ZoomLevel {
+    ZoomedIn,
+    Default,
+    ZoomedOut,
 }
