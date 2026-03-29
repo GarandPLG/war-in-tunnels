@@ -1,12 +1,13 @@
 use crate::app::{
     App,
+    helpers::block_title_helper,
     keybindings::{Action, count_largest_group},
     widgets::{BoardWidget, KeybindingsWidget},
 };
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Margin, Rect},
-    style::Stylize,
+    style::{Color, Stylize},
     text::Line,
     widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
@@ -69,13 +70,10 @@ pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
     {
         let board_block: Block = Block::new()
             .gray()
-            .title(Line::from_iter([
-                "[ ".gray(),
-                "Skirmish".magenta(),
-                " - ".gray(),
-                "Map".green(),
-                " ]".gray(),
-            ]))
+            .title(block_title_helper(
+                &[("Skirmish", Color::Magenta), ("Map", Color::Green)],
+                Some(" - "),
+            ))
             .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT);
 
         let board_area: Rect = board_block.inner(main_area);

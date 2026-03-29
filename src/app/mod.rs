@@ -1,4 +1,5 @@
 pub mod app;
+pub mod helpers;
 pub mod keybind;
 pub mod keybindings;
 pub mod state;

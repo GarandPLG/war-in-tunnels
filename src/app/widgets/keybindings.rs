@@ -1,9 +1,12 @@
-use crate::app::keybindings::{Action, Group, KeyBinding, binding_for};
+use crate::app::{
+    helpers::block_single_title_helper,
+    keybindings::{Action, Group, KeyBinding, binding_for},
+};
 use clap::ValueEnum;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
-    style::Stylize,
+    style::{Color, Stylize},
     text::Line,
     widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
@@ -72,11 +75,7 @@ impl Widget for KeybindingsWidget {
 
         let block: Block<'_> = Block::default()
             .borders(Borders::ALL)
-            .title(Line::from_iter([
-                "[ ".gray(),
-                "Keybindings".magenta(),
-                " ]".gray(),
-            ]));
+            .title(block_single_title_helper("Keybindings", Color::Magenta));
 
         let inner: Rect = block.inner(area);
 
