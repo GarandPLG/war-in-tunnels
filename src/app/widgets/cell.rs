@@ -2,7 +2,7 @@ use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
     style::{Color, Style, Stylize},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
 
 // pub enum CellTags {
@@ -59,7 +59,13 @@ impl Widget for CellWidget {
                 Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(self.is_selected()))
-                    .title(self.display_coords().green()),
+                    .title(self.display_coords().green())
+                    .padding(Padding {
+                        left: 0,
+                        right: 0,
+                        top: if area.height <= 3 { 0 } else { area.height / 3 },
+                        bottom: 0,
+                    }),
             )
             .render(area, buf);
     }

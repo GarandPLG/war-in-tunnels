@@ -32,7 +32,12 @@ impl GameStates {
                 map_height: args.map_height as usize,
                 board_cells: Vec::new(),
                 zoom_level: args.zoom_level,
-                focused_cell: FocusedCell::new(0, 0),
+                focused_cell: FocusedCell::new(
+                    (args.map_height / 2) as usize - 1,
+                    2,
+                    args.map_height as usize,
+                    args.map_width as usize,
+                ),
             },
             perk_decks: PerkDecksState {
                 id: 2,
