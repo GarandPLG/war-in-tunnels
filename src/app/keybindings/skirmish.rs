@@ -8,48 +8,53 @@ use ratatui::crossterm::event::KeyEvent;
 pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
     if let Some(action) = event_to_action(&key_event) {
         common_keybindings(app, action);
+
+        let Some(states) = app.states_mut() else {
+            return;
+        };
+
         match action {
-            Action::Up => app.states.skirmish.focused_cell.move_up(),
-            Action::Down => app.states.skirmish.focused_cell.move_down(),
-            Action::Left => app.states.skirmish.focused_cell.move_left(),
-            Action::Right => app.states.skirmish.focused_cell.move_right(),
+            Action::Up => states.skirmish.board.focused_cell.move_up(),
+            Action::Down => states.skirmish.board.focused_cell.move_down(),
+            Action::Left => states.skirmish.board.focused_cell.move_left(),
+            Action::Right => states.skirmish.board.focused_cell.move_right(),
             Action::ScrollUp => {
-                app.states.skirmish.vertical_offset.prev();
-                app.states.skirmish.focused_cell.move_up();
+                states.skirmish.board.vertical_offset.prev();
+                states.skirmish.board.focused_cell.move_up();
             }
             Action::ScrollDown => {
-                app.states.skirmish.vertical_offset.next();
-                app.states.skirmish.focused_cell.move_down();
+                states.skirmish.board.vertical_offset.next();
+                states.skirmish.board.focused_cell.move_down();
             }
             Action::ScrollLeft => {
-                app.states.skirmish.horizontal_offset.prev();
-                app.states.skirmish.focused_cell.move_left();
+                states.skirmish.board.horizontal_offset.prev();
+                states.skirmish.board.focused_cell.move_left();
             }
             Action::ScrollRight => {
-                app.states.skirmish.horizontal_offset.next();
-                app.states.skirmish.focused_cell.move_right();
+                states.skirmish.board.horizontal_offset.next();
+                states.skirmish.board.focused_cell.move_right();
             }
-            Action::ZoomIn => match app.states.skirmish.zoom_level {
+            Action::ZoomIn => match states.skirmish.board.zoom_level {
                 ZoomLevel::ZoomedIn => {}
                 ZoomLevel::Default => {
-                    app.states.skirmish.zoom_level = ZoomLevel::ZoomedIn;
-                    app.states.skirmish.vertical_offset.next();
+                    states.skirmish.board.zoom_change(ZoomLevel::ZoomedIn);
+                    states.skirmish.board.vertical_offset.next();
                 }
                 ZoomLevel::ZoomedOut => {
-                    app.states.skirmish.zoom_level = ZoomLevel::Default;
-                    app.states.skirmish.vertical_offset.next();
-                    app.states.skirmish.vertical_offset.next();
+                    states.skirmish.board.zoom_change(ZoomLevel::Default);
+                    states.skirmish.board.vertical_offset.next();
+                    states.skirmish.board.vertical_offset.next();
                 }
             },
-            Action::ZoomOut => match app.states.skirmish.zoom_level {
+            Action::ZoomOut => match states.skirmish.board.zoom_level {
                 ZoomLevel::ZoomedIn => {
-                    app.states.skirmish.zoom_level = ZoomLevel::Default;
-                    app.states.skirmish.vertical_offset.prev();
+                    states.skirmish.board.zoom_change(ZoomLevel::Default);
+                    states.skirmish.board.vertical_offset.prev();
                 }
                 ZoomLevel::Default => {
-                    app.states.skirmish.zoom_level = ZoomLevel::ZoomedOut;
-                    app.states.skirmish.vertical_offset.prev();
-                    app.states.skirmish.vertical_offset.prev();
+                    states.skirmish.board.zoom_change(ZoomLevel::ZoomedOut);
+                    states.skirmish.board.vertical_offset.prev();
+                    states.skirmish.board.vertical_offset.prev();
                 }
                 ZoomLevel::ZoomedOut => {}
             },

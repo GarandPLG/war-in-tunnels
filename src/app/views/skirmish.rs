@@ -28,7 +28,7 @@ const ACTIONS: &[Action] = &[
     Action::Esc,
 ];
 
-fn skirmish_layout(area: Rect) -> [Rect; 3] {
+pub fn skirmish_layout(area: Rect) -> [Rect; 3] {
     Layout::vertical([
         Constraint::Length(4),
         Constraint::Fill(1),
@@ -37,22 +37,21 @@ fn skirmish_layout(area: Rect) -> [Rect; 3] {
     .areas(area)
 }
 
-pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
+pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
+    let Some(states) = app.states() else { return };
+
     let [title_area, main_area, keybindings_area] = skirmish_layout(area);
 
     {
         let lines: Vec<Line<'_>> = Vec::from_iter([
             Line::raw("War in Tunnels").yellow(),
             Line::from_iter([
-                format!("Wood: {} (+{}) | ", app.states.settings.starting_wood, 5),
-                format!("Iron: {} (+{}) | ", app.states.settings.starting_iron, 1),
-                format!(
-                    "Supply Limit: {}/{} | ",
-                    10, app.states.settings.supply_limit
-                ),
+                format!("Wood: {} (+{}) | ", states.settings.starting_wood, 5),
+                format!("Iron: {} (+{}) | ", states.settings.starting_iron, 1),
+                format!("Supply Limit: {}/{} | ", 10, states.settings.supply_limit),
                 format!(
                     "Skills points: {} ({}/{}) | ",
-                    1, 20, app.states.settings.skill_points_limit
+                    1, 20, states.settings.skill_points_limit
                 ),
                 format!("Perk Deck: {}/9", 5),
             ]),
@@ -91,7 +90,7 @@ pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
             vertical: 1,
         });
 
-        BoardWidget::new(app, cells_area.width, cells_area.height).render(cells_area, buf);
+        BoardWidget::new(&states.skirmish.board).render(cells_area, buf);
     }
 
     {

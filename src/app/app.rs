@@ -22,20 +22,27 @@ pub struct App {
     pub exit: bool,
     pub view: View,
     pub window_area: Rect,
-    pub states: GameStates,
+    pub args: Cli,
+    pub states: Option<GameStates>,
 }
 
 impl App {
     pub fn new(args: Cli) -> Self {
-        let mut states: GameStates = GameStates::new(&args);
-        states.skirmish.init_board();
-
         Self {
             exit: false,
             view: args.view,
             window_area: Rect::default(),
-            states,
+            args: args,
+            states: None,
         }
+    }
+
+    pub fn states(&self) -> Option<&GameStates> {
+        self.states.as_ref()
+    }
+
+    pub fn states_mut(&mut self) -> Option<&mut GameStates> {
+        self.states.as_mut()
     }
 
     pub fn run(&mut self, terminal: &mut DefaultTerminal, rx: Receiver<Event>) -> Result<()> {
@@ -65,6 +72,9 @@ impl App {
             || window_area.height != self.window_area.height
         {
             self.window_area = window_area;
+            if self.states.is_none() {
+                self.states = Some(GameStates::new(&self.args, &self.window_area))
+            }
         }
 
         frame.render_widget(self, window_area);

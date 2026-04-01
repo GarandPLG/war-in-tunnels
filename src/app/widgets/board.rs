@@ -1,9 +1,4 @@
-use crate::app::{
-    App,
-    helpers::{CellSizes, cell_size_helper},
-    states::FocusedCell,
-    widgets::CellWidget,
-};
+use crate::app::states::skirmish_states::BoardState;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -12,87 +7,48 @@ use ratatui::{
 use std::rc::Rc;
 
 pub struct BoardWidget<'a> {
-    map_width: usize,
-    cell_width: u16,
-    cell_height: u16,
-    cols: u16,
-    rows: u16,
-    h_offset: usize,
-    v_offset: usize,
-    cells: &'a mut Vec<CellWidget>,
-    focused_cell: &'a FocusedCell,
+    state: &'a BoardState,
 }
 
 impl<'a> BoardWidget<'a> {
-    fn max_offset(map_size: u16, size: u16) -> usize {
-        if map_size > size {
-            (map_size - size) as usize
-        } else {
-            0
-        }
-    }
-
-    pub fn new(app: &'a mut App, area_width: u16, area_height: u16) -> Self {
-        let cell_height: u16 = cell_size_helper(CellSizes::Height, app.states.skirmish.zoom_level);
-        let cell_width: u16 = cell_size_helper(CellSizes::Width, app.states.skirmish.zoom_level);
-
-        let rows: u16 = area_height / cell_height;
-        let cols: u16 = area_width / cell_width;
-
-        let v_max_offset: usize = Self::max_offset(app.states.skirmish.map_height as u16, rows);
-        let h_max_offset: usize = Self::max_offset(app.states.skirmish.map_width as u16, cols);
-
-        app.states.skirmish.horizontal_offset.set_max(h_max_offset);
-        app.states.skirmish.vertical_offset.set_max(v_max_offset);
-
-        if v_max_offset > 0 {
-            app.states
-                .skirmish
-                .vertical_offset
-                .set_initial_value((app.states.skirmish.map_height - rows as usize) / 2);
-        }
-
-        Self {
-            map_width: app.states.skirmish.map_width as usize,
-            cell_width,
-            cell_height,
-            cols,
-            rows,
-            h_offset: app.states.skirmish.horizontal_offset.get_value(),
-            v_offset: app.states.skirmish.vertical_offset.get_value(),
-            cells: &mut app.states.skirmish.board_cells,
-            focused_cell: &app.states.skirmish.focused_cell,
-        }
+    pub fn new(state: &'a BoardState) -> Self {
+        Self { state }
     }
 }
 
 impl Widget for BoardWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let horizontal: Rc<[Rect]> = Layout::horizontal(vec![
-            Constraint::Length(self.cell_width);
-            self.cols as usize
-        ])
-        .split(area);
+        let horizontal: Rc<[Rect]> =
+            Layout::horizontal(vec![
+                Constraint::Length(self.state.cell_width as u16);
+                self.state.cols
+            ])
+            .split(area);
 
         for (col_idx, col_area) in horizontal.iter().enumerate() {
-            let vertical: Rc<[Rect]> = Layout::vertical(vec![
-                Constraint::Length(self.cell_height);
-                self.rows as usize
-            ])
-            .split(*col_area);
+            let vertical: Rc<[Rect]> =
+                Layout::vertical(vec![
+                    Constraint::Length(self.state.cell_height as u16);
+                    self.state.rows
+                ])
+                .split(*col_area);
 
             for (row_idx, cell_area) in vertical.iter().enumerate() {
-                if let Some(cell) = self
-                    .cells
-                    .get_mut((row_idx + self.v_offset) * self.map_width + (col_idx + self.h_offset))
-                {
-                    if row_idx + self.v_offset == self.focused_cell.row
-                        && col_idx + self.h_offset == self.focused_cell.col
-                    {
-                        cell.selected = true;
-                    } else {
-                        cell.selected = false;
-                    }
+                if let Some(cell) = self.state.cells.get(
+                    (row_idx + self.state.vertical_offset.get_value()) * self.state.map_width
+                        + (col_idx + self.state.horizontal_offset.get_value()),
+                ) {
+                    // FIXME: Fix showing selected cell
+
+                    // if row_idx + self.state.vertical_offset.get_value()
+                    //     == self.state.focused_cell.row
+                    //     && col_idx + self.state.horizontal_offset.get_value()
+                    //         == self.state.focused_cell.col
+                    // {
+                    //     cell.selected = true;
+                    // } else {
+                    //     cell.selected = false;
+                    // }
 
                     cell.render(*cell_area, buf);
                 }

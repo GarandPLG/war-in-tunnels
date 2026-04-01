@@ -1,10 +1,11 @@
 use crate::{
     app::states::{
-        FocusedCell, MainMenuState, Offset, PerkDecksState, SettingsState, SkillsConfigState,
-        SkirmishState,
+        MainMenuState, PerkDecksState, SettingsState, SkillsConfigState, SkirmishState,
+        skirmish_states::BoardState,
     },
     cli::Cli,
 };
+use ratatui::layout::Rect;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct GameStates {
@@ -16,7 +17,7 @@ pub struct GameStates {
 }
 
 impl GameStates {
-    pub fn new(args: &Cli) -> Self {
+    pub fn new(args: &Cli, area: &Rect) -> Self {
         Self {
             main_menu: MainMenuState {
                 id: 0,
@@ -26,17 +27,11 @@ impl GameStates {
             skirmish: SkirmishState {
                 id: 1,
                 name: "Skirmish",
-                vertical_offset: Offset::new(),
-                horizontal_offset: Offset::new(),
-                map_width: args.map_width as usize,
-                map_height: args.map_height as usize,
-                board_cells: Vec::new(),
-                zoom_level: args.zoom_level,
-                focused_cell: FocusedCell::new(
-                    (args.map_height / 2) as usize - 1,
-                    2,
-                    args.map_height as usize,
+                board: BoardState::new(
+                    area,
                     args.map_width as usize,
+                    args.map_height as usize,
+                    args.zoom_level,
                 ),
             },
             perk_decks: PerkDecksState {

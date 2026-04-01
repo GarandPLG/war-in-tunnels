@@ -5,7 +5,7 @@ pub enum CellSizes {
     Height,
 }
 
-pub fn cell_size_helper(cell_size: CellSizes, zoom_level: ZoomLevel) -> u16 {
+pub fn cell_size_helper(cell_size: CellSizes, zoom_level: ZoomLevel) -> usize {
     match (cell_size, zoom_level) {
         (CellSizes::Width, ZoomLevel::ZoomedIn) => 13,
         (CellSizes::Width, ZoomLevel::Default) => 9,

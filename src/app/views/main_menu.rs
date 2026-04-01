@@ -30,6 +30,8 @@ fn main_menu_layout(area: Rect) -> [Rect; 2] {
 }
 
 pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
+    let Some(states) = app.states() else { return };
+
     let [main_menu_area, keybindings_area] = main_menu_layout(area);
 
     Block::new()
@@ -70,7 +72,7 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
             .map(|(i, view)| {
                 let view_string: String = main_menu_option_helper(format!("{:?}", view));
 
-                let styled: Line<'_> = if app.states.main_menu.selected_view == i {
+                let styled: Line<'_> = if states.main_menu.selected_view == i {
                     Line::from_iter(["> ".cyan(), view_string.yellow()]).yellow()
                 } else {
                     Line::from(format!("  {view_string}")).white()

@@ -2,17 +2,13 @@
 pub struct Offset {
     value: usize,
     max: usize,
-    value_initiated: bool,
-    max_initiated: bool,
 }
 
 impl Offset {
-    pub fn new() -> Self {
+    pub fn new(initial_value: Option<usize>, initial_max: Option<usize>) -> Self {
         Self {
-            value: 0,
-            max: 0,
-            value_initiated: false,
-            max_initiated: false,
+            value: initial_value.unwrap_or(0),
+            max: initial_max.unwrap_or(0),
         }
     }
 
@@ -20,22 +16,12 @@ impl Offset {
         self.value
     }
 
-    pub fn set_initial_value(&mut self, value: usize) {
-        if self.value_initiated {
-            return;
-        }
-
+    pub fn set_value(&mut self, value: usize) {
         self.value = value;
-        self.value_initiated = true;
     }
 
     pub fn set_max(&mut self, max: usize) {
-        if self.max_initiated {
-            return;
-        }
-
         self.max = max;
-        self.max_initiated = true;
     }
 
     pub fn next(&mut self) {
