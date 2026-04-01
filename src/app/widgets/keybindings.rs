@@ -32,12 +32,12 @@ impl KeybindingsWidget {
     ///
     /// # Parameters
     ///
-    /// * `actions` – A vector of actions for which keybindings should be shown.
+    /// * `actions` – A slice of actions for which keybindings should be shown.
     ///
     /// # Returns
     ///
     /// A fully‑initialised `KeybindingsWidget` ready for rendering.
-    pub fn new(actions: Vec<Action>) -> Self {
+    pub fn new(actions: &[Action]) -> Self {
         let keybindings: Vec<Option<&'static KeyBinding>> =
             actions.iter().map(|a| binding_for(*a)).collect();
 

@@ -284,7 +284,7 @@ pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
 /// It counts how many times each group appears in the supplied actions and
 /// returns the highest count. This can be used, for example, to size UI
 /// elements that display groups of bindings.
-pub fn count_largest_group(actions: &Vec<Action>) -> u16 {
+pub fn count_largest_group(actions: &[Action]) -> u16 {
     let mut group_counts: HashMap<Group, u16> = HashMap::new();
 
     for action in actions {

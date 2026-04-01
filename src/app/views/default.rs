@@ -9,15 +9,18 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-pub fn default_view(area: Rect, buf: &mut Buffer) {
-    let actions: Vec<Action> = vec![Action::Quit, Action::Quit2, Action::Esc];
+const ACTIONS: &[Action] = &[Action::Quit, Action::Quit2, Action::Esc];
 
-    let vertical_layout: Layout = Layout::vertical([
+fn default_view_layout(area: Rect) -> [Rect; 2] {
+    Layout::vertical([
         Constraint::Fill(1),
-        Constraint::Length(count_largest_group(&actions) + 2),
-    ]);
+        Constraint::Length(count_largest_group(&ACTIONS) + 2),
+    ])
+    .areas(area)
+}
 
-    let [main_area, keybindings_area] = vertical_layout.areas(area);
+pub fn default_view(area: Rect, buf: &mut Buffer) {
+    let [main_area, keybindings_area] = default_view_layout(area);
 
     {
         Paragraph::new("Work in progress")
@@ -32,6 +35,6 @@ pub fn default_view(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        KeybindingsWidget::new(actions).render(keybindings_area, buf);
+        KeybindingsWidget::new(ACTIONS).render(keybindings_area, buf);
     }
 }

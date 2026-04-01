@@ -5,6 +5,7 @@ use crate::{
 use ratatui::{
     DefaultTerminal, Frame,
     crossterm::event::{self, KeyEvent},
+    layout::Rect,
 };
 use std::{
     io::Result,
@@ -20,6 +21,7 @@ pub enum Event {
 pub struct App {
     pub exit: bool,
     pub view: View,
+    pub window_area: Rect,
     pub states: GameStates,
 }
 
@@ -31,6 +33,7 @@ impl App {
         Self {
             exit: false,
             view: args.view,
+            window_area: Rect::default(),
             states,
         }
     }
@@ -56,7 +59,15 @@ impl App {
     }
 
     fn draw(&mut self, frame: &mut Frame<'_>) {
-        frame.render_widget(self, frame.area());
+        let window_area: Rect = frame.area();
+
+        if window_area.width != self.window_area.width
+            || window_area.height != self.window_area.height
+        {
+            self.window_area = window_area;
+        }
+
+        frame.render_widget(self, window_area);
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {

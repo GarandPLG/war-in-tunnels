@@ -12,30 +12,33 @@ use ratatui::{
     widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
 
-pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
-    let actions: Vec<Action> = vec![
-        Action::Up,
-        Action::Down,
-        Action::Left,
-        Action::Right,
-        Action::ScrollUp,
-        Action::ScrollDown,
-        Action::ScrollLeft,
-        Action::ScrollRight,
-        Action::ZoomIn,
-        Action::ZoomOut,
-        Action::Quit,
-        Action::Quit2,
-        Action::Esc,
-    ];
+const ACTIONS: &[Action] = &[
+    Action::Up,
+    Action::Down,
+    Action::Left,
+    Action::Right,
+    Action::ScrollUp,
+    Action::ScrollDown,
+    Action::ScrollLeft,
+    Action::ScrollRight,
+    Action::ZoomIn,
+    Action::ZoomOut,
+    Action::Quit,
+    Action::Quit2,
+    Action::Esc,
+];
 
-    let vertical_layout: Layout = Layout::vertical([
+fn skirmish_layout(area: Rect) -> [Rect; 3] {
+    Layout::vertical([
         Constraint::Length(4),
         Constraint::Fill(1),
-        Constraint::Length(count_largest_group(&actions) + 2),
-    ]);
+        Constraint::Length(count_largest_group(&ACTIONS) + 2),
+    ])
+    .areas(area)
+}
 
-    let [title_area, main_area, keybindings_area] = vertical_layout.areas(area);
+pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
+    let [title_area, main_area, keybindings_area] = skirmish_layout(area);
 
     {
         let lines: Vec<Line<'_>> = Vec::from_iter([
@@ -92,6 +95,6 @@ pub fn skirmish_view(app: &mut App, area: Rect, buf: &mut Buffer) {
     }
 
     {
-        KeybindingsWidget::new(actions).render(keybindings_area, buf);
+        KeybindingsWidget::new(ACTIONS).render(keybindings_area, buf);
     }
 }

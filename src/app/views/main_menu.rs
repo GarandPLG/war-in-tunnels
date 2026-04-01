@@ -1,5 +1,6 @@
 use crate::app::{
     App, View,
+    helpers::main_menu_option_helper,
     keybindings::{Action, count_largest_group},
     widgets::KeybindingsWidget,
 };
@@ -12,35 +13,24 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-fn format_view_string(s: String) -> String {
-    if let Some(pos) = s
-        .char_indices()
-        .filter(|(_, c)| c.is_ascii_uppercase())
-        .nth(1)
-        .map(|(i, _)| i)
-    {
-        let (first, second) = s.split_at(pos);
-        format!("{first} {second}")
-    } else {
-        s
-    }
+const ACTIONS: &[Action] = &[
+    Action::Up,
+    Action::Down,
+    Action::Space,
+    Action::Quit,
+    Action::Quit2,
+];
+
+fn main_menu_layout(area: Rect) -> [Rect; 2] {
+    Layout::vertical([
+        Constraint::Fill(1),
+        Constraint::Length(count_largest_group(&ACTIONS) + 2),
+    ])
+    .areas(area)
 }
 
 pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
-    let actions: Vec<Action> = vec![
-        Action::Up,
-        Action::Down,
-        Action::Space,
-        Action::Quit,
-        Action::Quit2,
-    ];
-
-    let vertical_layout: Layout = Layout::vertical([
-        Constraint::Fill(1),
-        Constraint::Length(count_largest_group(&actions) + 2),
-    ]);
-
-    let [main_menu_area, keybindings_area] = vertical_layout.areas(area);
+    let [main_menu_area, keybindings_area] = main_menu_layout(area);
 
     Block::new()
         .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT)
@@ -78,7 +68,7 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
             .enumerate()
             .filter(|(_, v)| v != &&View::MainMenu)
             .map(|(i, view)| {
-                let view_string: String = format_view_string(format!("{:?}", view));
+                let view_string: String = main_menu_option_helper(format!("{:?}", view));
 
                 let styled: Line<'_> = if app.states.main_menu.selected_view == i {
                     Line::from_iter(["> ".cyan(), view_string.yellow()]).yellow()
@@ -98,6 +88,6 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
     }
 
     {
-        KeybindingsWidget::new(actions).render(keybindings_area, buf);
+        KeybindingsWidget::new(ACTIONS).render(keybindings_area, buf);
     }
 }
