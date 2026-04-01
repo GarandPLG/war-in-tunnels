@@ -1,6 +1,7 @@
 use crate::app::{
     App,
-    states::{FocusedCell, ZoomLevel},
+    helpers::{CellSizes, cell_size_helper},
+    states::FocusedCell,
     widgets::CellWidget,
 };
 use ratatui::{
@@ -32,17 +33,8 @@ impl<'a> BoardWidget<'a> {
     }
 
     pub fn new(app: &'a mut App, area_width: u16, area_height: u16) -> Self {
-        let cell_height: u16 = match app.states.skirmish.zoom_level {
-            ZoomLevel::ZoomedIn => 7,
-            ZoomLevel::Default => 5,
-            ZoomLevel::ZoomedOut => 3,
-        };
-
-        let cell_width: u16 = match app.states.skirmish.zoom_level {
-            ZoomLevel::ZoomedIn => 13,
-            ZoomLevel::Default => 9,
-            ZoomLevel::ZoomedOut => 5,
-        };
+        let cell_height: u16 = cell_size_helper(CellSizes::Height, app.states.skirmish.zoom_level);
+        let cell_width: u16 = cell_size_helper(CellSizes::Width, app.states.skirmish.zoom_level);
 
         let rows: u16 = area_height / cell_height;
         let cols: u16 = area_width / cell_width;
