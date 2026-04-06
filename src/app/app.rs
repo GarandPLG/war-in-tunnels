@@ -4,16 +4,16 @@ use crate::{
 };
 use ratatui::{
     DefaultTerminal, Frame,
-    crossterm::event::{self, KeyEvent},
+    crossterm::event::{Event, KeyEvent, read},
     layout::Rect,
 };
 use std::{
     io::Result,
-    sync::mpsc::{self, Receiver, RecvTimeoutError},
+    sync::mpsc::{Receiver, RecvTimeoutError, Sender},
     time::Duration,
 };
 
-pub enum Event {
+pub enum AppEvent {
     Input(KeyEvent),
     Resize(u16, u16),
 }
@@ -45,7 +45,7 @@ impl App {
         self.states.as_mut()
     }
 
-    pub fn run(&mut self, terminal: &mut DefaultTerminal, rx: Receiver<Event>) -> Result<()> {
+    pub fn run(&mut self, terminal: &mut DefaultTerminal, rx: Receiver<AppEvent>) -> Result<()> {
         while !self.exit {
             terminal.draw(|frame: &mut Frame<'_>| self.draw(frame))?;
 
@@ -57,8 +57,8 @@ impl App {
                 Err(_) => break,
             };
             match event {
-                Event::Input(key_event) => self.handle_key_event(key_event)?,
-                Event::Resize(_, _) => {}
+                AppEvent::Input(key_event) => self.handle_key_event(key_event)?,
+                AppEvent::Resize(_, _) => {}
             }
         }
 
@@ -86,17 +86,17 @@ impl App {
     }
 }
 
-pub fn handle_input_events(tx: mpsc::Sender<Event>) {
+pub fn handle_input_events(tx: Sender<AppEvent>) {
     loop {
-        match event::read() {
+        match read() {
             Ok(ev) => match ev {
-                event::Event::Key(key) => {
-                    if tx.send(Event::Input(key)).is_err() {
+                Event::Key(key) => {
+                    if tx.send(AppEvent::Input(key)).is_err() {
                         break;
                     }
                 }
-                event::Event::Resize(c, r) => {
-                    if tx.send(Event::Resize(c, r)).is_err() {
+                Event::Resize(c, r) => {
+                    if tx.send(AppEvent::Resize(c, r)).is_err() {
                         break;
                     }
                 }
