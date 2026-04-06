@@ -2,7 +2,7 @@ use ratatui::{Terminal, prelude::CrosstermBackend};
 use std::{
     io::{Result, Stdout},
     sync::mpsc::{Sender, channel},
-    thread,
+    thread::{self, JoinHandle},
 };
 use war_in_tunnels::{
     app::{App, AppEvent, handle_input_events},
@@ -27,12 +27,14 @@ fn main() -> Result<()> {
     let (event_tx, event_rx) = channel::<AppEvent>();
 
     let tx_to_input_events: Sender<AppEvent> = event_tx.clone();
-    thread::spawn(move || {
+    let input_thread: JoinHandle<()> = thread::spawn(move || {
         handle_input_events(tx_to_input_events);
     });
 
     let app_result: Result<()> = app.run(&mut terminal, event_rx);
     ratatui::restore();
+
+    let _ = input_thread.join();
 
     app_result
 }
