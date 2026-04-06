@@ -1,9 +1,9 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FocusedCell {
-    pub row: usize,
-    pub col: usize,
-    pub max_row: usize,
-    pub max_col: usize,
+    row: usize,
+    col: usize,
+    max_row: usize,
+    max_col: usize,
 }
 
 impl FocusedCell {
@@ -14,6 +14,14 @@ impl FocusedCell {
             max_row,
             max_col,
         }
+    }
+
+    pub fn get_row(&self) -> usize {
+        self.row
+    }
+
+    pub fn get_col(&self) -> usize {
+        self.col
     }
 
     pub fn move_up(&mut self) {

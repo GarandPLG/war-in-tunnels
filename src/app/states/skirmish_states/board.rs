@@ -83,8 +83,8 @@ impl BoardState {
             Offset::new(Some(self.horizontal_offset.get_value()), Some(h_max_offset));
 
         self.focused_cell = FocusedCell::new(
-            self.focused_cell.row,
-            self.focused_cell.col,
+            self.focused_cell.get_row(),
+            self.focused_cell.get_col(),
             self.map_height,
             self.map_width,
         );
