@@ -5,7 +5,10 @@ use std::{
     thread::{self, JoinHandle},
 };
 use war_in_tunnels::{
-    app::{App, AppEvent, handle_input_events},
+    app::{
+        App,
+        threads::{AppEvent, handle_input_events},
+    },
     cli::{Cli, get_args},
     logs::init_logger,
 };

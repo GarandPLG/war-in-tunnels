@@ -42,15 +42,16 @@
       develop = naerskLib.buildPackage {
         name = "war-in-tunnels";
         src = ./.;
-        # buildInputs = with pkgs; [];
+        buildInputs = with pkgs; [alsa-lib];
         nativeBuildInputs = with pkgs; [pkg-config];
       };
     };
 
     devShells.${system}.default = pkgs.mkShell {
       env.RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-      buildInputs = [
+      buildInputs = with pkgs; [
         rustToolchain
+        alsa-lib
       ];
       nativeBuildInputs = with pkgs; [pkg-config];
 

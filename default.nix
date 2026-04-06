@@ -2,6 +2,7 @@
   lib,
   rustPlatform,
   pkg-config,
+  alsa-lib,
 }:
 rustPlatform.buildRustPackage {
   name = "war-in-tunnels";
@@ -9,7 +10,7 @@ rustPlatform.buildRustPackage {
   version = "0.1.0";
 
   src = ./.;
-  # buildInputs = [ ];
+  buildInputs = [alsa-lib];
   nativeBuildInputs = [pkg-config];
   cargoHash = lib.fakeHash;
 

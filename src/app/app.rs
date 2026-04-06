@@ -1,22 +1,13 @@
 use crate::{
-    app::{GameStates, handle_keybindings, view::View},
+    app::{GameStates, handle_keybindings, threads::AppEvent, view::View},
     cli::Cli,
 };
-use ratatui::{
-    DefaultTerminal, Frame,
-    crossterm::event::{Event, KeyEvent, read},
-    layout::Rect,
-};
+use ratatui::{DefaultTerminal, Frame, crossterm::event::KeyEvent, layout::Rect};
 use std::{
     io::Result,
-    sync::mpsc::{Receiver, RecvTimeoutError, Sender},
+    sync::mpsc::{Receiver, RecvTimeoutError},
     time::Duration,
 };
-
-pub enum AppEvent {
-    Input(KeyEvent),
-    Resize(u16, u16),
-}
 
 pub struct App {
     pub exit: bool,
@@ -83,26 +74,5 @@ impl App {
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         handle_keybindings(self, key_event);
         Ok(())
-    }
-}
-
-pub fn handle_input_events(tx: Sender<AppEvent>) {
-    loop {
-        match read() {
-            Ok(ev) => match ev {
-                Event::Key(key) => {
-                    if tx.send(AppEvent::Input(key)).is_err() {
-                        break;
-                    }
-                }
-                Event::Resize(c, r) => {
-                    if tx.send(AppEvent::Resize(c, r)).is_err() {
-                        break;
-                    }
-                }
-                _ => {}
-            },
-            Err(_) => continue,
-        }
     }
 }
