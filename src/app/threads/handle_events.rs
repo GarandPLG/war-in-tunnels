@@ -2,7 +2,8 @@ use crate::app::threads::AppEvent;
 use ratatui::crossterm::event::{Event, read};
 use std::sync::mpsc::Sender;
 
-pub fn handle_input_events(tx: Sender<AppEvent>) {
+/// Reads *all* crossterm events and forwards the ones we care about.
+pub fn handle_events(tx: Sender<AppEvent>) {
     loop {
         match read() {
             Ok(ev) => match ev {
@@ -11,8 +12,8 @@ pub fn handle_input_events(tx: Sender<AppEvent>) {
                         break;
                     }
                 }
-                Event::Resize(c, r) => {
-                    if tx.send(AppEvent::Resize(c, r)).is_err() {
+                Event::Resize(cols, rows) => {
+                    if tx.send(AppEvent::Resize(cols, rows)).is_err() {
                         break;
                     }
                 }
