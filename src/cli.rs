@@ -43,23 +43,23 @@ pub struct Cli {
     )]
     pub game_mode: GameMode,
 
-    /// Width of the generated map (20–100 tiles).
+    /// Width of the generated map (36–100 tiles).
     #[arg(
         long,
         help = "Map width",
-        value_name = "Positive integer [20; 100]",
-        default_value = "50",
-        value_parser = value_parser!(u8).range(20..=100)
+        value_name = "Positive integer [36; 108]",
+        default_value = "36",
+        value_parser = value_parser!(u8).range(36..=108)
     )]
     pub map_width: u8,
 
-    /// Height of the generated map (25–50 tiles).
+    /// Height of the generated map (13–50 tiles).
     #[arg(
         long,
         help = "Map height",
-        value_name = "Positive integer [11; 50]",
-        default_value = "25",
-        value_parser = value_parser!(u8).range(25..=50)
+        value_name = "Positive integer [13; 39]",
+        default_value = "13",
+        value_parser = value_parser!(u8).range(13..=39)
     )]
     pub map_height: u8,
 
