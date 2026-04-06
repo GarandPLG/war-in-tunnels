@@ -48,7 +48,10 @@
     };
 
     devShells.${system}.default = pkgs.mkShell {
-      env.RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+      env = {
+        RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [alsa-lib]);
+      };
       buildInputs = with pkgs; [
         rustToolchain
         alsa-lib

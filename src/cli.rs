@@ -140,6 +140,14 @@ pub struct Cli {
         default_value_t = false
     )]
     pub log: bool,
+
+    /// Mute soundtrack (default: disabled).
+    #[arg(
+        long,
+        help = "Mute soundtrack (default: disabled)",
+        default_value_t = false
+    )]
+    pub mute: bool,
 }
 
 /// Parses the command line arguments and returns a fully populated `Cli`

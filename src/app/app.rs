@@ -1,11 +1,15 @@
 use crate::{
-    app::{GameStates, handle_keybindings, threads::AppEvent, view::View},
+    app::{
+        GameStates, handle_keybindings,
+        threads::{AppEvent, AudioCmd},
+        view::View,
+    },
     cli::Cli,
 };
 use ratatui::{DefaultTerminal, Frame, crossterm::event::KeyEvent, layout::Rect};
 use std::{
     io::Result,
-    sync::mpsc::{Receiver, RecvTimeoutError},
+    sync::mpsc::{Receiver, RecvTimeoutError, Sender},
     time::Duration,
 };
 
@@ -15,16 +19,18 @@ pub struct App {
     pub window_area: Rect,
     pub args: Cli,
     pub states: Option<GameStates>,
+    pub audio_tx: Sender<AudioCmd>,
 }
 
 impl App {
-    pub fn new(args: Cli) -> Self {
+    pub fn new(args: Cli, audio_tx: Sender<AudioCmd>) -> Self {
         Self {
             exit: false,
             view: args.view,
             window_area: Rect::default(),
             args: args,
             states: None,
+            audio_tx,
         }
     }
 

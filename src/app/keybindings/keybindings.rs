@@ -41,6 +41,12 @@ pub enum Action {
     ZoomIn,
     /// Zoom the view out.
     ZoomOut,
+    /// Mute music.
+    Mute,
+    /// Volume up.
+    VolumeUp,
+    /// Volume down.
+    VolumeDown,
     /// Matches any character key; the inner `char` is the actual key pressed.
     WildCard(char),
 }
@@ -61,6 +67,8 @@ pub enum Group {
     Input,
     /// Zoom related bindings.
     Zoom,
+    /// Music related bindings.
+    Music,
     /// Quit related bindings.
     Quit,
 }
@@ -235,6 +243,33 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         group: Group::Zoom,
         symbol: ".",
         description: "Zoom out",
+    },
+    KeyBinding {
+        action: Action::Mute,
+        code: KeyCode::Char('m'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Music,
+        symbol: "m",
+        description: "Mute music",
+    },
+    KeyBinding {
+        action: Action::VolumeUp,
+        code: KeyCode::Char('b'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Music,
+        symbol: "b",
+        description: "Increase music volume",
+    },
+    KeyBinding {
+        action: Action::VolumeDown,
+        code: KeyCode::Char('n'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Music,
+        symbol: "n",
+        description: "Decrease music volume",
     },
     KeyBinding {
         action: Action::WildCard('_'),

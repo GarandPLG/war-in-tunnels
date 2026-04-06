@@ -17,6 +17,9 @@ const ACTIONS: &[Action] = &[
     Action::Up,
     Action::Down,
     Action::Space,
+    Action::VolumeUp,
+    Action::VolumeDown,
+    Action::Mute,
     Action::Quit,
     Action::Quit2,
 ];
