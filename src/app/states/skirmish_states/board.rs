@@ -45,7 +45,7 @@ impl BoardState {
 
         for row in 0..map_height {
             for col in 0..map_width {
-                cells.push(CellWidget::new(row, col, false));
+                cells.push(CellWidget::new(row, col));
             }
         }
 

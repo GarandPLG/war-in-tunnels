@@ -1,4 +1,4 @@
-use crate::app::states::skirmish_states::BoardState;
+use crate::app::{states::skirmish_states::BoardState, widgets::CellWidget};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -34,21 +34,21 @@ impl Widget for BoardWidget<'_> {
                 .split(*col_area);
 
             for (row_idx, cell_area) in vertical.iter().enumerate() {
-                if let Some(cell) = self.state.cells.get(
-                    (row_idx + self.state.vertical_offset.get_value()) * self.state.map_width
-                        + (col_idx + self.state.horizontal_offset.get_value()),
-                ) {
-                    // FIXME: Fix showing selected cell
+                let map_row: usize = row_idx + self.state.vertical_offset.get_value();
+                let map_col: usize = col_idx + self.state.horizontal_offset.get_value();
 
-                    // if row_idx + self.state.vertical_offset.get_value()
-                    //     == self.state.focused_cell.row
-                    //     && col_idx + self.state.horizontal_offset.get_value()
-                    //         == self.state.focused_cell.col
-                    // {
-                    //     cell.selected = true;
-                    // } else {
-                    //     cell.selected = false;
-                    // }
+                if let Some(template) = self
+                    .state
+                    .cells
+                    .get(map_row * self.state.map_width + map_col)
+                {
+                    let mut cell: CellWidget = *template;
+
+                    if map_row == self.state.focused_cell.get_row()
+                        && map_col == self.state.focused_cell.get_col()
+                    {
+                        cell.set_selected(true);
+                    }
 
                     cell.render(*cell_area, buf);
                 }

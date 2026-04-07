@@ -17,13 +17,21 @@ use ratatui::{
 pub struct CellWidget {
     pub row: usize,
     pub col: usize,
-    pub selected: bool,
+    selected: bool,
     // pub tags: Vec<CellTags>,
 }
 
 impl CellWidget {
-    pub fn new(row: usize, col: usize, selected: bool) -> Self {
-        Self { row, col, selected }
+    pub fn new(row: usize, col: usize) -> Self {
+        Self {
+            row,
+            col,
+            selected: false,
+        }
+    }
+
+    pub fn set_selected(&mut self, selected: bool) {
+        self.selected = selected;
     }
 
     fn col_to_letters(&self) -> String {
@@ -42,7 +50,7 @@ impl CellWidget {
         format!("{}{}", self.col_to_letters(), self.row)
     }
 
-    fn is_selected(&self) -> Color {
+    fn fg_color(&self) -> Color {
         if self.selected {
             Color::Red
         } else {
@@ -58,7 +66,7 @@ impl Widget for CellWidget {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .style(Style::default().fg(self.is_selected()))
+                    .style(Style::default().fg(self.fg_color()))
                     .title(self.display_coords().green())
                     .padding(Padding {
                         left: 0,
