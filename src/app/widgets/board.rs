@@ -1,4 +1,4 @@
-use crate::app::{states::skirmish_states::BoardState, widgets::CellWidget};
+use crate::app::states::skirmish_states::BoardState;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -37,19 +37,11 @@ impl Widget for BoardWidget<'_> {
                 let map_row: usize = row_idx + self.state.vertical_offset.get_value();
                 let map_col: usize = col_idx + self.state.horizontal_offset.get_value();
 
-                if let Some(template) = self
+                if let Some(cell) = self
                     .state
                     .cells
                     .get(map_row * self.state.map_width + map_col)
                 {
-                    let mut cell: CellWidget = template.clone();
-
-                    if map_row == self.state.focused_cell.get_row()
-                        && map_col == self.state.focused_cell.get_col()
-                    {
-                        cell.set_selected(true);
-                    }
-
                     cell.render(*cell_area, buf);
                 }
             }

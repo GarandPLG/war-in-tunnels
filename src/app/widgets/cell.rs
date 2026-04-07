@@ -15,13 +15,12 @@ use ratatui::{
 //     Base,
 // }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CellWidget {
     row: usize,
     col: usize,
     selected: bool,
     zoom_level: ZoomLevel,
-    // text_area: Vec<Line>,
     // pub tags: Vec<CellTags>,
 }
 
@@ -35,12 +34,14 @@ impl CellWidget {
         }
     }
 
-    pub fn set_selected(&mut self, selected: bool) {
+    pub fn set_selected(&mut self, selected: bool) -> &mut Self {
         self.selected = selected;
+        self
     }
 
-    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) {
+    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) -> &mut Self {
         self.zoom_level = zoom_level;
+        self
     }
 
     fn col_to_letters(&self) -> String {

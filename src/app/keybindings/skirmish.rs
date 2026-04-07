@@ -1,7 +1,10 @@
 use crate::app::{
     App,
     keybindings::{Action, common_keybindings, event_to_action},
-    states::ZoomLevel,
+    states::{
+        ZoomLevel,
+        skirmish_states::{BoardState, MoveFocusedCell},
+    },
 };
 use ratatui::crossterm::event::KeyEvent;
 
@@ -13,48 +16,58 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
             return;
         };
 
+        let board: &mut BoardState = &mut states.skirmish.board;
+
         match action {
-            Action::Up => states.skirmish.board.focused_cell.move_up(),
-            Action::Down => states.skirmish.board.focused_cell.move_down(),
-            Action::Left => states.skirmish.board.focused_cell.move_left(),
-            Action::Right => states.skirmish.board.focused_cell.move_right(),
+            Action::Up => {
+                board.change_focused_cell(MoveFocusedCell::Up);
+            }
+            Action::Down => {
+                board.change_focused_cell(MoveFocusedCell::Down);
+            }
+            Action::Left => {
+                board.change_focused_cell(MoveFocusedCell::Left);
+            }
+            Action::Right => {
+                board.change_focused_cell(MoveFocusedCell::Right);
+            }
             Action::ScrollUp => {
-                states.skirmish.board.vertical_offset.prev();
-                states.skirmish.board.focused_cell.move_up();
+                board.vertical_offset.prev();
+                board.change_focused_cell(MoveFocusedCell::Up);
             }
             Action::ScrollDown => {
-                states.skirmish.board.vertical_offset.next();
-                states.skirmish.board.focused_cell.move_down();
+                board.vertical_offset.next();
+                board.change_focused_cell(MoveFocusedCell::Down);
             }
             Action::ScrollLeft => {
-                states.skirmish.board.horizontal_offset.prev();
-                states.skirmish.board.focused_cell.move_left();
+                board.horizontal_offset.prev();
+                board.change_focused_cell(MoveFocusedCell::Left);
             }
             Action::ScrollRight => {
-                states.skirmish.board.horizontal_offset.next();
-                states.skirmish.board.focused_cell.move_right();
+                board.horizontal_offset.next();
+                board.change_focused_cell(MoveFocusedCell::Right);
             }
-            Action::ZoomIn => match states.skirmish.board.zoom_level {
+            Action::ZoomIn => match board.zoom_level {
                 ZoomLevel::ZoomedIn => {}
                 ZoomLevel::Default => {
-                    states.skirmish.board.zoom_change(ZoomLevel::ZoomedIn);
-                    states.skirmish.board.vertical_offset.next();
+                    board.zoom_change(ZoomLevel::ZoomedIn);
+                    board.vertical_offset.next();
                 }
                 ZoomLevel::ZoomedOut => {
-                    states.skirmish.board.zoom_change(ZoomLevel::Default);
-                    states.skirmish.board.vertical_offset.next();
-                    states.skirmish.board.vertical_offset.next();
+                    board.zoom_change(ZoomLevel::Default);
+                    board.vertical_offset.next();
+                    board.vertical_offset.next();
                 }
             },
-            Action::ZoomOut => match states.skirmish.board.zoom_level {
+            Action::ZoomOut => match board.zoom_level {
                 ZoomLevel::ZoomedIn => {
-                    states.skirmish.board.zoom_change(ZoomLevel::Default);
-                    states.skirmish.board.vertical_offset.prev();
+                    board.zoom_change(ZoomLevel::Default);
+                    board.vertical_offset.prev();
                 }
                 ZoomLevel::Default => {
-                    states.skirmish.board.zoom_change(ZoomLevel::ZoomedOut);
-                    states.skirmish.board.vertical_offset.prev();
-                    states.skirmish.board.vertical_offset.prev();
+                    board.zoom_change(ZoomLevel::ZoomedOut);
+                    board.vertical_offset.prev();
+                    board.vertical_offset.prev();
                 }
                 ZoomLevel::ZoomedOut => {}
             },

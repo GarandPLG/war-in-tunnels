@@ -1,3 +1,10 @@
+pub enum MoveFocusedCell {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FocusedCell {
     row: usize,
@@ -24,19 +31,22 @@ impl FocusedCell {
         self.col
     }
 
-    pub fn move_up(&mut self) {
-        self.row = self.row.saturating_sub(1).max(0);
-    }
+    pub fn move_focused_cell(&mut self, direction: MoveFocusedCell) -> (usize, usize) {
+        match direction {
+            MoveFocusedCell::Up => {
+                self.row = self.row.saturating_sub(1).max(0);
+            }
+            MoveFocusedCell::Down => {
+                self.row = self.row.saturating_add(1).min(self.max_row - 1);
+            }
+            MoveFocusedCell::Left => {
+                self.col = self.col.saturating_sub(1).max(0);
+            }
+            MoveFocusedCell::Right => {
+                self.col = self.col.saturating_add(1).min(self.max_col - 1);
+            }
+        }
 
-    pub fn move_down(&mut self) {
-        self.row = self.row.saturating_add(1).min(self.max_row - 1);
-    }
-
-    pub fn move_left(&mut self) {
-        self.col = self.col.saturating_sub(1).max(0);
-    }
-
-    pub fn move_right(&mut self) {
-        self.col = self.col.saturating_add(1).min(self.max_col - 1);
+        (self.row, self.col)
     }
 }

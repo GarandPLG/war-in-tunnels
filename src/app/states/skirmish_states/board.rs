@@ -1,6 +1,6 @@
 use crate::app::{
     helpers::{CellSizes, cell_size_helper, cells_area_helper},
-    states::{FocusedCell, Offset, ZoomLevel},
+    states::{FocusedCell, Offset, ZoomLevel, skirmish_states::MoveFocusedCell},
     widgets::CellWidget,
 };
 use ratatui::layout::Rect;
@@ -45,7 +45,13 @@ impl BoardState {
 
         for row in 0..map_height {
             for col in 0..map_width {
-                cells.push(CellWidget::new(row, col, zoom_level));
+                cells.push(*CellWidget::new(row, col, zoom_level).set_selected(
+                    if row == focused_cell.get_row() && col == focused_cell.get_col() {
+                        true
+                    } else {
+                        false
+                    },
+                ));
             }
         }
 
@@ -67,6 +73,10 @@ impl BoardState {
 
     fn get_mut_cell(&mut self, row: usize, col: usize) -> &mut CellWidget {
         &mut self.cells[row * self.map_width + col]
+    }
+
+    fn max_offset(map_size: usize, size: usize) -> usize {
+        if map_size > size { map_size - size } else { 0 }
     }
 
     pub fn zoom_change(&mut self, new_zoom_level: ZoomLevel) {
@@ -100,7 +110,12 @@ impl BoardState {
         }
     }
 
-    fn max_offset(map_size: usize, size: usize) -> usize {
-        if map_size > size { map_size - size } else { 0 }
+    pub fn change_focused_cell(&mut self, direction: MoveFocusedCell) {
+        let old_row: usize = self.focused_cell.get_row();
+        let old_col: usize = self.focused_cell.get_col();
+        let (new_row, new_col) = self.focused_cell.move_focused_cell(direction);
+
+        self.get_mut_cell(old_row, old_col).set_selected(false);
+        self.get_mut_cell(new_row, new_col).set_selected(true);
     }
 }
