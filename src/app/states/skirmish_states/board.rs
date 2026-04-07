@@ -7,7 +7,7 @@ use ratatui::layout::Rect;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BoardState {
-    pub cells_area: Rect,
+    cells_area: Rect,
     pub cell_width: usize,
     pub cell_height: usize,
     pub map_width: usize,
@@ -18,7 +18,7 @@ pub struct BoardState {
     pub horizontal_offset: Offset,
     pub cells: Vec<CellWidget>,
     pub zoom_level: ZoomLevel,
-    pub focused_cell: FocusedCell,
+    focused_cell: FocusedCell,
 }
 
 impl BoardState {
