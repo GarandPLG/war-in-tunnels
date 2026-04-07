@@ -45,7 +45,7 @@ impl BoardState {
 
         for row in 0..map_height {
             for col in 0..map_width {
-                cells.push(CellWidget::new(row, col));
+                cells.push(CellWidget::new(row, col, zoom_level));
             }
         }
 
@@ -63,6 +63,10 @@ impl BoardState {
             zoom_level,
             focused_cell,
         }
+    }
+
+    fn get_mut_cell(&mut self, row: usize, col: usize) -> &mut CellWidget {
+        &mut self.cells[row * self.map_width + col]
     }
 
     pub fn zoom_change(&mut self, new_zoom_level: ZoomLevel) {
@@ -88,6 +92,12 @@ impl BoardState {
             self.map_height,
             self.map_width,
         );
+
+        for row in 0..self.map_height {
+            for col in 0..self.map_width {
+                self.get_mut_cell(row, col).set_zoom_level(new_zoom_level);
+            }
+        }
     }
 
     fn max_offset(map_size: usize, size: usize) -> usize {

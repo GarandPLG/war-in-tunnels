@@ -1,8 +1,10 @@
+use crate::app::states::ZoomLevel;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
     style::{Color, Style, Stylize},
-    widgets::{Block, Borders, Padding, Paragraph, Widget},
+    text::Line,
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 // pub enum CellTags {
@@ -13,25 +15,32 @@ use ratatui::{
 //     Base,
 // }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CellWidget {
-    pub row: usize,
-    pub col: usize,
+    row: usize,
+    col: usize,
     selected: bool,
+    zoom_level: ZoomLevel,
+    // text_area: Vec<Line>,
     // pub tags: Vec<CellTags>,
 }
 
 impl CellWidget {
-    pub fn new(row: usize, col: usize) -> Self {
+    pub fn new(row: usize, col: usize, zoom_level: ZoomLevel) -> Self {
         Self {
             row,
             col,
             selected: false,
+            zoom_level,
         }
     }
 
     pub fn set_selected(&mut self, selected: bool) {
         self.selected = selected;
+    }
+
+    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) {
+        self.zoom_level = zoom_level;
     }
 
     fn col_to_letters(&self) -> String {
@@ -46,7 +55,7 @@ impl CellWidget {
         letters.iter().rev().collect()
     }
 
-    pub fn display_coords(&self) -> String {
+    fn display_coords(&self) -> String {
         format!("{}{}", self.col_to_letters(), self.row)
     }
 
@@ -57,24 +66,44 @@ impl CellWidget {
             Color::White
         }
     }
+
+    fn get_text_area(&self) -> Vec<Line<'_>> {
+        let mut text_area: Vec<Line<'_>> = Vec::new();
+
+        match self.zoom_level {
+            ZoomLevel::ZoomedIn => {
+                text_area.push(Line::from("           "));
+                text_area.push(Line::from("           "));
+                text_area.push(Line::from("           "));
+                text_area.push(Line::from("           "));
+                text_area.push(Line::from("           "));
+            }
+            ZoomLevel::Default => {
+                text_area.push(Line::from("       "));
+                text_area.push(Line::from("       "));
+                text_area.push(Line::from("       "));
+            }
+            ZoomLevel::ZoomedOut => {
+                text_area.push(Line::from("   "));
+            }
+        }
+
+        text_area
+    }
+
+    fn get_block(&self) -> Block<'_> {
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(self.fg_color()))
+            .title(self.display_coords().green())
+    }
 }
 
 impl Widget for CellWidget {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new("")
+        Paragraph::new(self.get_text_area())
             .alignment(Alignment::Center)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .style(Style::default().fg(self.fg_color()))
-                    .title(self.display_coords().green())
-                    .padding(Padding {
-                        left: 0,
-                        right: 0,
-                        top: if area.height <= 3 { 0 } else { area.height / 3 },
-                        bottom: 0,
-                    }),
-            )
+            .block(self.get_block())
             .render(area, buf);
     }
 }

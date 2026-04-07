@@ -35,6 +35,6 @@ pub fn default_view(area: Rect, buf: &mut Buffer) {
     }
 
     {
-        KeybindingsWidget::new(ACTIONS).render(keybindings_area, buf);
+        KeybindingsWidget::new(ACTIONS, keybindings_area.height).render(keybindings_area, buf);
     }
 }

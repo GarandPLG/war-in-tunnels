@@ -251,7 +251,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         modifiers: KeyModifiers::NONE,
         group: Group::Music,
         symbol: "m",
-        description: "Mute music",
+        description: "🔈",
     },
     KeyBinding {
         action: Action::VolumeUp,
@@ -260,7 +260,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         modifiers: KeyModifiers::NONE,
         group: Group::Music,
         symbol: "b",
-        description: "Increase music volume",
+        description: "🔊",
     },
     KeyBinding {
         action: Action::VolumeDown,
@@ -269,7 +269,7 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         modifiers: KeyModifiers::NONE,
         group: Group::Music,
         symbol: "n",
-        description: "Decrease music volume",
+        description: "🔉",
     },
     KeyBinding {
         action: Action::WildCard('_'),

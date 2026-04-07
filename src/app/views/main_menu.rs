@@ -93,6 +93,6 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
     }
 
     {
-        KeybindingsWidget::new(ACTIONS).render(keybindings_area, buf);
+        KeybindingsWidget::new(ACTIONS, keybindings_area.height).render(keybindings_area, buf);
     }
 }

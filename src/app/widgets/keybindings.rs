@@ -33,11 +33,15 @@ impl KeybindingsWidget {
     /// # Parameters
     ///
     /// * `actions` – A slice of actions for which keybindings should be shown.
+    /// * `area_height` – The height of the area in which the widget will be rendered.
+    ///   This value is used to calculate vertical padding so that the keybinding rows
+    ///   are vertically centered when the widget's allocated height is larger than the
+    ///   number of lines needed to display the bindings.
     ///
     /// # Returns
     ///
     /// A fully‑initialised `KeybindingsWidget` ready for rendering.
-    pub fn new(actions: &[Action]) -> Self {
+    pub fn new(actions: &[Action], area_height: u16) -> Self {
         let keybindings: Vec<Option<&'static KeyBinding>> =
             actions.iter().map(|a| binding_for(*a)).collect();
 
@@ -47,7 +51,8 @@ impl KeybindingsWidget {
             .collect();
 
         let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
-        for (i, group) in Group::value_variants().iter().enumerate() {
+
+        for group in Group::value_variants().iter() {
             if !used_groups.contains(group) {
                 continue;
             }
@@ -66,9 +71,18 @@ impl KeybindingsWidget {
                 })
                 .collect();
 
-            let mut block: Block<'_> = Block::default().padding(Padding::new(1, 1, 0, 0));
+            let height_diff: u16 =
+                area_height.saturating_sub(grouped_lines.len().saturating_add(2) as u16);
 
-            if i != 0 {
+            let padding_top: u16 = if height_diff <= 1 {
+                height_diff
+            } else {
+                height_diff / 2
+            };
+
+            let mut block: Block<'_> = Block::default().padding(Padding::new(1, 1, padding_top, 0));
+
+            if !grouped_keybindings.is_empty() {
                 block = block.borders(Borders::LEFT);
             }
 

@@ -42,7 +42,7 @@ impl Widget for BoardWidget<'_> {
                     .cells
                     .get(map_row * self.state.map_width + map_col)
                 {
-                    let mut cell: CellWidget = *template;
+                    let mut cell: CellWidget = template.clone();
 
                     if map_row == self.state.focused_cell.get_row()
                         && map_col == self.state.focused_cell.get_col()
