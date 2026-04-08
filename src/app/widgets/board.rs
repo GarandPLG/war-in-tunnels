@@ -34,16 +34,11 @@ impl Widget for BoardWidget<'_> {
                 .split(*col_area);
 
             for (row_idx, cell_area) in vertical.iter().enumerate() {
-                let map_row: usize = row_idx + self.state.vertical_offset.get_value();
-                let map_col: usize = col_idx + self.state.horizontal_offset.get_value();
-
-                if let Some(cell) = self
-                    .state
+                self.state
                     .cells
-                    .get(map_row * self.state.map_width + map_col)
-                {
-                    cell.render(*cell_area, buf);
-                }
+                    .get(row_idx + self.state.vertical_offset.get_value())
+                    .and_then(|rows| rows.get(col_idx + self.state.horizontal_offset.get_value()))
+                    .map(|cell| cell.render(*cell_area, buf));
             }
         }
     }

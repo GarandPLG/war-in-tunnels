@@ -21,15 +21,27 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
         match action {
             Action::Up => {
                 board.change_focused_cell(MoveFocusedCell::Up);
+                if !board.is_focused_cell_visible() {
+                    board.vertical_offset.prev();
+                }
             }
             Action::Down => {
                 board.change_focused_cell(MoveFocusedCell::Down);
+                if !board.is_focused_cell_visible() {
+                    board.vertical_offset.next();
+                }
             }
             Action::Left => {
                 board.change_focused_cell(MoveFocusedCell::Left);
+                if !board.is_focused_cell_visible() {
+                    board.horizontal_offset.prev();
+                }
             }
             Action::Right => {
                 board.change_focused_cell(MoveFocusedCell::Right);
+                if !board.is_focused_cell_visible() {
+                    board.horizontal_offset.next();
+                }
             }
             Action::ScrollUp => {
                 board.vertical_offset.prev();

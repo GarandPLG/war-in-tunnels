@@ -16,7 +16,7 @@ pub struct BoardState {
     pub rows: usize,
     pub vertical_offset: Offset,
     pub horizontal_offset: Offset,
-    pub cells: Vec<CellWidget>,
+    pub cells: Vec<Vec<CellWidget>>,
     pub zoom_level: ZoomLevel,
     focused_cell: FocusedCell,
 }
@@ -41,11 +41,13 @@ impl BoardState {
         let focused_cell: FocusedCell =
             FocusedCell::new((map_height / 2) - 1, 2, map_height, map_width);
 
-        let mut cells: Vec<CellWidget> = Vec::new();
+        let mut cells: Vec<Vec<CellWidget>> = Vec::new();
 
         for row in 0..map_height {
+            let mut rows: Vec<CellWidget> = Vec::new();
+
             for col in 0..map_width {
-                cells.push(*CellWidget::new(row, col, zoom_level).set_selected(
+                rows.push(*CellWidget::new(row, col, zoom_level).set_selected(
                     if row == focused_cell.get_row() && col == focused_cell.get_col() {
                         true
                     } else {
@@ -53,6 +55,8 @@ impl BoardState {
                     },
                 ));
             }
+
+            cells.push(rows);
         }
 
         Self {
@@ -72,7 +76,7 @@ impl BoardState {
     }
 
     fn get_mut_cell(&mut self, row: usize, col: usize) -> &mut CellWidget {
-        &mut self.cells[row * self.map_width + col]
+        &mut self.cells[row][col]
     }
 
     fn max_offset(map_size: usize, size: usize) -> usize {
@@ -132,5 +136,26 @@ impl BoardState {
 
         self.get_mut_cell(old_row, old_col).set_selected(false);
         self.get_mut_cell(new_row, new_col).set_selected(true);
+    }
+
+    pub fn is_focused_cell_visible(&self) -> bool {
+        let vertical_offset: usize = self.vertical_offset.get_value();
+        let horizontal_offset: usize = self.horizontal_offset.get_value();
+
+        let row: usize = self.focused_cell.get_row();
+        let col: usize = self.focused_cell.get_col();
+
+        if 0usize.saturating_add(vertical_offset) > row
+            || row >= self.rows.saturating_add(vertical_offset)
+        {
+            return false;
+        }
+        if 0usize.saturating_add(horizontal_offset) > col
+            || col >= self.cols.saturating_add(horizontal_offset)
+        {
+            return false;
+        }
+
+        true
     }
 }
