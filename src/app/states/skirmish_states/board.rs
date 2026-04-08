@@ -34,12 +34,13 @@ impl BoardState {
         let v_max_offset: usize = Self::max_offset(map_height, rows);
         let h_max_offset: usize = Self::max_offset(map_width, cols);
 
-        let vertical_offset: Offset =
-            Offset::new(Some((map_height - rows as usize) / 2), Some(v_max_offset));
+        let vertical_offset: Offset = Offset::new(
+            Some((map_height - rows as usize) / 2 + 1),
+            Some(v_max_offset),
+        );
         let horizontal_offset: Offset = Offset::new(None, Some(h_max_offset));
 
-        let focused_cell: FocusedCell =
-            FocusedCell::new((map_height / 2) - 1, 2, map_height, map_width);
+        let focused_cell: FocusedCell = FocusedCell::new(map_height / 2, 2, map_height, map_width);
 
         let mut cells: Vec<Vec<CellWidget>> = Vec::new();
 
