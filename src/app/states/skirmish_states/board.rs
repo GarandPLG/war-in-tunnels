@@ -48,12 +48,11 @@ impl BoardState {
             let mut rows: Vec<CellWidget> = Vec::new();
 
             for col in 0..map_width {
-                rows.push(*CellWidget::new(row, col, zoom_level).set_selected(
-                    if row == focused_cell.get_row() && col == focused_cell.get_col() {
-                        true
-                    } else {
-                        false
-                    },
+                rows.push(CellWidget::new(
+                    row,
+                    col,
+                    row == focused_cell.get_row() && col == focused_cell.get_col(),
+                    zoom_level,
                 ));
             }
 

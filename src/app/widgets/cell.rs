@@ -25,23 +25,21 @@ pub struct CellWidget {
 }
 
 impl CellWidget {
-    pub fn new(row: usize, col: usize, zoom_level: ZoomLevel) -> Self {
+    pub fn new(row: usize, col: usize, selected: bool, zoom_level: ZoomLevel) -> Self {
         Self {
             row,
             col,
-            selected: false,
+            selected,
             zoom_level,
         }
     }
 
-    pub fn set_selected(&mut self, selected: bool) -> &mut Self {
+    pub fn set_selected(&mut self, selected: bool) {
         self.selected = selected;
-        self
     }
 
-    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) -> &mut Self {
+    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) {
         self.zoom_level = zoom_level;
-        self
     }
 
     fn col_to_letters(&self) -> String {
