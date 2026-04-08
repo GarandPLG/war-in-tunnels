@@ -55,7 +55,13 @@ impl App {
             };
             match event {
                 AppEvent::Input(key_event) => self.handle_key_event(key_event)?,
-                AppEvent::Resize(_, _) => {}
+                AppEvent::Resize(_, _) => {
+                    let window_area: Rect = self.window_area;
+                    let Some(state) = self.states_mut() else {
+                        panic!("State issue")
+                    };
+                    state.skirmish.board.resize_change(&window_area);
+                }
             }
         }
 

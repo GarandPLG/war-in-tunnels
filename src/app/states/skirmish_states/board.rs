@@ -79,6 +79,21 @@ impl BoardState {
         if map_size > size { map_size - size } else { 0 }
     }
 
+    pub fn resize_change(&mut self, area: &Rect) {
+        self.cells_area = cells_area_helper(area);
+
+        self.cols = (self.cells_area.width / self.cell_width as u16) as usize;
+        self.rows = (self.cells_area.height / self.cell_height as u16) as usize;
+
+        let h_max_offset: usize = Self::max_offset(self.map_height, self.cols);
+        let v_max_offset: usize = Self::max_offset(self.map_width, self.rows);
+
+        self.horizontal_offset =
+            Offset::new(Some(self.horizontal_offset.get_value()), Some(h_max_offset));
+        self.vertical_offset =
+            Offset::new(Some(self.vertical_offset.get_value()), Some(v_max_offset));
+    }
+
     pub fn zoom_change(&mut self, new_zoom_level: ZoomLevel) {
         self.zoom_level = new_zoom_level;
 
