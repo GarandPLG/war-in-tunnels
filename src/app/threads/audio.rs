@@ -48,7 +48,7 @@ static PRELOADED_SOUNDTRACKS: Lazy<RwLock<HashMap<Soundtrack, Arc<SoundtrackCach
     });
 
 fn load_soundtrack_folder(folder: &str) -> SoundtrackCache {
-    let base: String = format!("soundtrack/{}", folder);
+    let base: String = format!("soundtracks/{}", folder);
     let mut cache: HashMap<SoundrackParts, Vec<u8>> = HashMap::new();
 
     macro_rules! load {
