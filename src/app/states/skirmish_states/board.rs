@@ -1,7 +1,7 @@
 use crate::app::{
     helpers::{CellSizes, cell_size_helper, cells_area_helper},
     states::{FocusedCell, Offset, ZoomLevel, skirmish_states::MoveFocusedCell},
-    widgets::CellWidget,
+    widgets::{CellTag, CellWidget, Players},
 };
 use ratatui::layout::Rect;
 
@@ -19,6 +19,8 @@ pub struct BoardState {
     pub cells: Vec<Vec<CellWidget>>,
     pub zoom_level: ZoomLevel,
     focused_cell: FocusedCell,
+    player_base_coords: (usize, usize),
+    enemy_base_coords: (usize, usize),
 }
 
 impl BoardState {
@@ -35,25 +37,34 @@ impl BoardState {
         let h_max_offset: usize = Self::max_offset(map_width, cols);
 
         let vertical_offset: Offset = Offset::new(
-            Some((map_height - rows as usize) / 2 + 1),
+            Some((map_height - rows as usize + 1) / 2),
             Some(v_max_offset),
         );
         let horizontal_offset: Offset = Offset::new(None, Some(h_max_offset));
 
-        let focused_cell: FocusedCell = FocusedCell::new(map_height / 2, 2, map_height, map_width);
+        let focused_cell: FocusedCell =
+            FocusedCell::new((map_height) / 2, 2, map_height, map_width);
 
         let mut cells: Vec<Vec<CellWidget>> = Vec::new();
+
+        let player_base_coords: (usize, usize) = ((map_height) / 2, 1);
+        let enemy_base_coords: (usize, usize) = ((map_height) / 2, map_width - 2);
 
         for row in 0..map_height {
             let mut rows: Vec<CellWidget> = Vec::new();
 
             for col in 0..map_width {
-                rows.push(CellWidget::new(
-                    row,
-                    col,
-                    row == focused_cell.get_row() && col == focused_cell.get_col(),
-                    zoom_level,
-                ));
+                let selected: bool = row == focused_cell.get_row() && col == focused_cell.get_col();
+
+                let tag: CellTag = if row == player_base_coords.0 && col == player_base_coords.1 {
+                    CellTag::Base(Players::Player)
+                } else if row == enemy_base_coords.0 && col == enemy_base_coords.1 {
+                    CellTag::Base(Players::Enemy)
+                } else {
+                    CellTag::Stone
+                };
+
+                rows.push(CellWidget::new(row, col, zoom_level, selected, tag));
             }
 
             cells.push(rows);
@@ -72,6 +83,8 @@ impl BoardState {
             cells,
             zoom_level,
             focused_cell,
+            player_base_coords,
+            enemy_base_coords,
         }
     }
 

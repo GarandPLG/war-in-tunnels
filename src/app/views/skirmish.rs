@@ -89,11 +89,22 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         board_block.render(main_area, buf);
 
         let cells_area: Rect = board_area.inner(Margin {
-            horizontal: 3,
+            horizontal: 1,
             vertical: 1,
         });
 
-        BoardWidget::new(&states.skirmish.board).render(cells_area, buf);
+        // TODO: add actual (effective) board sizes as Constraints
+        BoardWidget::new(&states.skirmish.board).render(
+            cells_area.centered(
+                Constraint::Length(
+                    (states.skirmish.board.cell_width * states.skirmish.board.cols) as u16,
+                ),
+                Constraint::Length(
+                    (states.skirmish.board.cell_height * states.skirmish.board.rows) as u16,
+                ),
+            ),
+            buf,
+        );
     }
 
     {

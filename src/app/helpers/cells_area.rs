@@ -9,7 +9,7 @@ pub fn cells_area_helper(area: &Rect) -> Rect {
         .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT)
         .inner(skirmish_layout(*area)[1])
         .inner(Margin {
-            horizontal: 3,
+            horizontal: 1,
             vertical: 1,
         })
 }

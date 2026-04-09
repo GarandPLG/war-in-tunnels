@@ -49,18 +49,18 @@ pub struct Cli {
         long,
         help = "Map width",
         value_name = "Positive integer [36; 108]",
-        default_value = "36",
+        default_value = "42",
         value_parser = value_parser!(u8).range(36..=108)
     )]
     pub map_width: u8,
 
-    /// Height of the generated map (13–50 tiles).
+    /// Height of the generated map (11–50 tiles).
     #[arg(
         long,
         help = "Map height",
-        value_name = "Positive integer [13; 39]",
-        default_value = "13",
-        value_parser = value_parser!(u8).range(13..=39)
+        value_name = "Positive integer [11; 39]",
+        default_value = "11",
+        value_parser = value_parser!(u8).range(11..=39)
     )]
     pub map_height: u8,
 

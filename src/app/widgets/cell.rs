@@ -3,17 +3,22 @@ use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
     style::{Color, Style, Stylize},
-    text::Line,
+    text::{Line, Span, ToSpan},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-// pub enum CellTags {
-//     Player,
-//     Enemy,
-//     Dirt,
-//     Tunnel,
-//     Base,
-// }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CellTag {
+    Base(Players),
+    Tunel,
+    Stone,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Players {
+    Player,
+    Enemy,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CellWidget {
@@ -21,16 +26,23 @@ pub struct CellWidget {
     col: usize,
     selected: bool,
     zoom_level: ZoomLevel,
-    // pub tags: Vec<CellTags>,
+    tag: CellTag,
 }
 
 impl CellWidget {
-    pub fn new(row: usize, col: usize, selected: bool, zoom_level: ZoomLevel) -> Self {
+    pub fn new(
+        row: usize,
+        col: usize,
+        zoom_level: ZoomLevel,
+        selected: bool,
+        tag: CellTag,
+    ) -> Self {
         Self {
             row,
             col,
             selected,
             zoom_level,
+            tag,
         }
     }
 
@@ -40,6 +52,10 @@ impl CellWidget {
 
     pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) {
         self.zoom_level = zoom_level;
+    }
+
+    pub fn set_tag(&mut self, tag: CellTag) {
+        self.tag = tag;
     }
 
     fn col_to_letters(&self) -> String {
@@ -54,36 +70,49 @@ impl CellWidget {
         letters.iter().rev().collect()
     }
 
-    fn display_coords(&self) -> String {
-        format!("{}{}", self.col_to_letters(), self.row)
+    fn display_coords(&self) -> Span<'_> {
+        if self.selected || self.tag != CellTag::Stone {
+            format!("{}{}", self.col_to_letters(), self.row).green()
+        } else {
+            "".to_span()
+        }
     }
 
     fn fg_color(&self) -> Color {
-        if self.selected {
-            Color::Red
-        } else {
-            Color::White
+        match self.tag {
+            _ if self.selected => Color::LightYellow,
+            CellTag::Base(Players::Player) if !self.selected => Color::LightBlue,
+            CellTag::Base(Players::Enemy) if !self.selected => Color::LightRed,
+            CellTag::Tunel if !self.selected => Color::Gray,
+            _ => Color::White,
         }
     }
 
     fn get_text_area(&self) -> Vec<Line<'_>> {
+        let tag: &str = match self.tag {
+            CellTag::Base(_) => "B",
+            CellTag::Tunel => "T",
+            CellTag::Stone => " ",
+        };
+        let units: &str = " "; // TODO: units count on that cell
+
         let mut text_area: Vec<Line<'_>> = Vec::new();
 
         match self.zoom_level {
             ZoomLevel::ZoomedIn => {
-                text_area.push(Line::from("           "));
-                text_area.push(Line::from("           "));
-                text_area.push(Line::from("           "));
-                text_area.push(Line::from("           "));
-                text_area.push(Line::from("           "));
+                text_area.push(Line::from(format!("          {}", units)));
+                text_area.push(Line::from(format!("           ")));
+                text_area.push(Line::from(format!("     {}     ", tag)));
+                text_area.push(Line::from(format!("           ")));
+                text_area.push(Line::from(format!("           ")));
             }
             ZoomLevel::Default => {
-                text_area.push(Line::from("       "));
-                text_area.push(Line::from("       "));
-                text_area.push(Line::from("       "));
+                text_area.push(Line::from(format!("      {}", units)));
+                text_area.push(Line::from(format!("   {}   ", tag)));
+                text_area.push(Line::from(format!("       ")));
             }
             ZoomLevel::ZoomedOut => {
-                text_area.push(Line::from("   "));
+                text_area.push(Line::from(format!(" {} ", tag)));
             }
         }
 
@@ -94,7 +123,7 @@ impl CellWidget {
         Block::default()
             .borders(Borders::ALL)
             .style(Style::default().fg(self.fg_color()))
-            .title(self.display_coords().green())
+            .title(self.display_coords())
     }
 }
 
