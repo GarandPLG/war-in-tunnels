@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use once_cell::sync::Lazy;
 use rodio::{
     Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source, cpal::BufferSize, source::Amplify,
@@ -6,7 +7,8 @@ use std::{
     collections::HashMap,
     fs::read,
     io::{BufReader, Cursor},
-    sync::mpsc::Receiver,
+    process::exit,
+    sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, mpsc::Receiver},
 };
 
 #[derive(Debug)]
@@ -15,9 +17,15 @@ pub enum AudioCmd {
     VolumeUp,
     VolumeDown,
     ChangePart(SoundrackParts),
+    ChangeSoundtrack(Soundtrack),
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy, ValueEnum)]
+pub enum Soundtrack {
+    Default,
+}
+
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub enum SoundrackParts {
     Calm,
     Buildup,
@@ -25,35 +33,103 @@ pub enum SoundrackParts {
     Outro,
 }
 
-static PRELOADED_DEFAULT_SOUNDTRACK: Lazy<HashMap<SoundrackParts, Vec<u8>>> = Lazy::new(|| {
-    let mut map: HashMap<SoundrackParts, Vec<u8>> = HashMap::new();
+type SoundtrackCache = HashMap<SoundrackParts, Vec<u8>>;
+
+static PRELOADED_SOUNDTRACKS: Lazy<RwLock<HashMap<Soundtrack, Arc<SoundtrackCache>>>> =
+    Lazy::new(|| {
+        let mut map: HashMap<Soundtrack, Arc<HashMap<SoundrackParts, Vec<u8>>>> = HashMap::new();
+
+        map.insert(
+            Soundtrack::Default,
+            Arc::new(load_soundtrack_folder("default")),
+        );
+
+        RwLock::new(map)
+    });
+
+fn load_soundtrack_folder(folder: &str) -> SoundtrackCache {
+    let base: String = format!("soundtrack/{}", folder);
+    let mut cache: HashMap<SoundrackParts, Vec<u8>> = HashMap::new();
 
     macro_rules! load {
-        ($part:expr, $path:expr) => {
-            map.insert($part, read($path).expect(concat!("cannot read ", $path)));
+        ($part:ident, $file:expr) => {
+            let path = format!("{}/{}", base, $file);
+            cache.insert(
+                SoundrackParts::$part,
+                read(&path).expect(&format!("cannot read {}", path)),
+            );
         };
     }
 
-    load!(SoundrackParts::Calm, "soundtrack/default/test.ogg"); // calm.ogg
-    load!(SoundrackParts::Buildup, "soundtrack/default/test.ogg"); // buildup.ogg
-    load!(SoundrackParts::Assault, "soundtrack/default/test.ogg"); // assault.ogg
-    load!(SoundrackParts::Outro, "soundtrack/default/test.ogg"); // outro.ogg
+    load!(Calm, "test.ogg"); // calm.ogg
+    load!(Buildup, "test.ogg"); // buildup.ogg
+    load!(Assault, "test.ogg"); // assault.ogg
+    load!(Outro, "test.ogg"); // outro.ogg
 
-    map
-});
-
-fn load_audio(part: &SoundrackParts) -> Amplify<Decoder<BufReader<Cursor<Vec<u8>>>>> {
-    let data: &Vec<u8> = PRELOADED_DEFAULT_SOUNDTRACK
-        .get(part)
-        .expect("preloaded ogg not found");
-
-    let cursor: Cursor<Vec<u8>> = Cursor::new(data.clone());
-    let reader: BufReader<Cursor<Vec<u8>>> = BufReader::new(cursor);
-
-    Decoder::new(reader).expect("decoder issue").amplify(0.20)
+    cache
 }
 
-pub fn handle_audio(rx: Receiver<AudioCmd>, mute: bool) {
+fn load_audio(
+    soundtrack: &Soundtrack,
+    part: &SoundrackParts,
+) -> Amplify<Decoder<BufReader<Cursor<Vec<u8>>>>> {
+    {
+        let guard: RwLockReadGuard<'_, HashMap<Soundtrack, Arc<HashMap<SoundrackParts, Vec<u8>>>>> =
+            PRELOADED_SOUNDTRACKS
+                .read()
+                .map_err(|e| {
+                    eprintln!("RwLock poisoned: {}", e);
+                    exit(1);
+                })
+                .expect("lock issue");
+
+        if let Some(soundtrack_cache) = guard.get(soundtrack) {
+            let data: &Vec<u8> = soundtrack_cache.get(part).expect("part missing in cache");
+
+            return Decoder::new(BufReader::new(Cursor::new(data.clone())))
+                .expect("decoder issue")
+                .amplify(0.20);
+        }
+    }
+
+    {
+        let mut guard: RwLockWriteGuard<
+            '_,
+            HashMap<Soundtrack, Arc<HashMap<SoundrackParts, Vec<u8>>>>,
+        > = PRELOADED_SOUNDTRACKS
+            .write()
+            .map_err(|e| {
+                eprintln!("RwLock poisoned: {}", e);
+                exit(1);
+            })
+            .expect("lock issue");
+
+        if let Some(soundtrack_cache) = guard.get(soundtrack) {
+            let data: &Vec<u8> = soundtrack_cache.get(part).expect("part missing in cache");
+
+            return Decoder::new(BufReader::new(Cursor::new(data.clone())))
+                .expect("decoder issue")
+                .amplify(0.20);
+        }
+
+        let folder_name: &str = match soundtrack {
+            Soundtrack::Default => "default",
+        };
+
+        let new_cache: Arc<HashMap<SoundrackParts, Vec<u8>>> =
+            Arc::new(load_soundtrack_folder(folder_name));
+
+        let data: &Vec<u8> = new_cache.get(&part).expect("part missing after load");
+
+        guard.insert(*soundtrack, Arc::clone(&new_cache));
+
+        Decoder::new(BufReader::new(Cursor::new(data.clone())))
+            .expect("decoder issue")
+            .amplify(0.20)
+    }
+}
+
+pub fn handle_audio(rx: Receiver<AudioCmd>, mute: bool, soundtrack: Soundtrack) {
     let mut handle: MixerDeviceSink = DeviceSinkBuilder::from_default_device()
         .expect("get default device")
         .with_buffer_size(BufferSize::Fixed(4096))
@@ -66,8 +142,9 @@ pub fn handle_audio(rx: Receiver<AudioCmd>, mute: bool) {
     let mut volume: f32 = player.volume();
     player.set_volume(if mute { 0.0 } else { volume });
 
+    let mut current_soundtrack: Soundtrack = soundtrack;
     let mut current_part: SoundrackParts = SoundrackParts::Calm;
-    player.append(load_audio(&current_part));
+    player.append(load_audio(&current_soundtrack, &current_part));
 
     loop {
         for cmd in rx.try_iter() {
@@ -85,14 +162,19 @@ pub fn handle_audio(rx: Receiver<AudioCmd>, mute: bool) {
                 }
                 AudioCmd::ChangePart(part) => {
                     current_part = part;
-                    player.append(load_audio(&current_part));
+                    player.append(load_audio(&current_soundtrack, &current_part));
+                    player.skip_one();
+                }
+                AudioCmd::ChangeSoundtrack(st) => {
+                    current_soundtrack = st;
+                    player.append(load_audio(&current_soundtrack, &current_part));
                     player.skip_one();
                 }
             }
         }
 
         if player.empty() {
-            player.append(load_audio(&current_part));
+            player.append(load_audio(&current_soundtrack, &current_part));
         }
     }
 }

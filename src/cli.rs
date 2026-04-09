@@ -1,5 +1,6 @@
 use crate::app::{
     states::{GameMode, PerkDecks, ZoomLevel},
+    threads::Soundtrack,
     view::View,
 };
 use clap::{Error, Parser, error::ErrorKind, value_parser};
@@ -133,13 +134,15 @@ pub struct Cli {
     )]
     pub skill_points_limit: u16,
 
-    /// Enable logging to a file (default: disabled).
+    /// Which soundtrack to play (default: default)
     #[arg(
-        long,
-        help = "Enable logging to file (default: disabled)",
-        default_value_t = false
-    )]
-    pub log: bool,
+            long,
+            help = "Soundtrack",
+            value_name = "...",
+            default_value_t = Soundtrack::Default,
+            value_enum
+        )]
+    pub sound_track: Soundtrack,
 
     /// Mute soundtrack (default: disabled).
     #[arg(
@@ -148,6 +151,14 @@ pub struct Cli {
         default_value_t = false
     )]
     pub mute: bool,
+
+    /// Enable logging to a file (default: disabled).
+    #[arg(
+        long,
+        help = "Enable logging to file (default: disabled)",
+        default_value_t = false
+    )]
+    pub log: bool,
 }
 
 /// Parses the command line arguments and returns a fully populated `Cli`

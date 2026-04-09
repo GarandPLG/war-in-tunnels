@@ -44,7 +44,7 @@ fn main() -> Result<()> {
     // });
 
     thread::spawn(move || {
-        handle_audio(audio_rx, args.mute);
+        handle_audio(audio_rx, args.mute, args.sound_track);
     });
 
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
