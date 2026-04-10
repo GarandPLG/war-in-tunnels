@@ -81,7 +81,7 @@ impl CellWidget {
     }
 
     fn display_coords(&self) -> Span<'_> {
-        if self.selected || self.tag != CellTag::Stone {
+        if self.selected || self.tag != CellTag::Stone || self.marked {
             format!("{}{}", self.col_to_letters(), self.row).green()
         } else {
             "".to_span()

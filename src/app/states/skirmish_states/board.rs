@@ -106,22 +106,25 @@ impl BoardState {
             .collect()
     }
 
-    fn get_last_marked_cell(&self) -> Option<(usize, usize)> {
-        self.marked_cells.last().cloned()
+    pub fn toggle_marking(&mut self) {
+        self.marking_cells = !self.marking_cells;
+
+        if self.marking_cells {
+            self.start_marking_cells();
+        } else {
+            self.clear_marked_cells();
+        }
     }
 
-    pub fn set_marked_cell(&mut self, row: usize, col: usize, old_row: usize, old_col: usize) {
-        let last_cell: Option<(usize, usize)> = self.get_last_marked_cell();
-        let cell: &mut CellWidget = self.get_mut_cell(row, col);
+    pub fn set_marked_cell(&mut self, new_cell: (usize, usize), old_cell: (usize, usize)) {
+        let cell: &mut CellWidget = self.get_mut_cell(new_cell.0, new_cell.1);
 
-        if cell.get_marked() {
-            if last_cell == Some((old_row, old_col)) {
-                self.get_mut_cell(old_row, old_col).set_marked(false);
-                self.marked_cells.pop();
-            }
+        if cell.get_marked() && old_cell != new_cell {
+            self.get_mut_cell(old_cell.0, old_cell.1).set_marked(false);
+            self.marked_cells.pop();
         } else {
             cell.set_marked(true);
-            self.marked_cells.push((row, col));
+            self.marked_cells.push((new_cell.0, new_cell.1));
         }
     }
 
@@ -215,15 +218,15 @@ impl BoardState {
     }
 
     pub fn change_focused_cell(&mut self, direction: MoveFocusedCell) {
-        let old_row: usize = self.focused_cell.get_row();
-        let old_col: usize = self.focused_cell.get_col();
-        let (new_row, new_col) = self.focused_cell.move_focused_cell(direction);
+        let old_cell: (usize, usize) = (self.focused_cell.get_row(), self.focused_cell.get_col());
+        let new_cell: (usize, usize) = self.focused_cell.move_focused_cell(direction);
 
-        self.get_mut_cell(old_row, old_col).set_selected(false);
-        self.get_mut_cell(new_row, new_col).set_selected(true);
+        self.get_mut_cell(old_cell.0, old_cell.1)
+            .set_selected(false);
+        self.get_mut_cell(new_cell.0, new_cell.1).set_selected(true);
 
         if self.marking_cells {
-            self.set_marked_cell(new_row, new_col, old_row, old_col);
+            self.set_marked_cell(new_cell, old_cell);
         }
     }
 }

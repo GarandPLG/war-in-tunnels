@@ -83,15 +83,7 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
                 }
                 ZoomLevel::ZoomedOut => {}
             },
-            Action::Space => {
-                if board.marking_cells {
-                    board.marking_cells = false;
-                    board.clear_marked_cells();
-                } else {
-                    board.marking_cells = true;
-                    board.start_marking_cells();
-                }
-            }
+            Action::Space => board.toggle_marking(),
             Action::Backspace => {
                 board.marking_cells = false;
                 board.clear_marked_cells()
