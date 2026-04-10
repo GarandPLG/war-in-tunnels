@@ -27,6 +27,7 @@ pub struct CellWidget {
     selected: bool,
     zoom_level: ZoomLevel,
     tag: CellTag,
+    marked: bool,
 }
 
 impl CellWidget {
@@ -43,6 +44,7 @@ impl CellWidget {
             selected,
             zoom_level,
             tag,
+            marked: false,
         }
     }
 
@@ -56,6 +58,14 @@ impl CellWidget {
 
     pub fn set_tag(&mut self, tag: CellTag) {
         self.tag = tag;
+    }
+
+    pub fn get_marked(&self) -> bool {
+        self.marked
+    }
+
+    pub fn set_marked(&mut self, marked: bool) {
+        self.marked = marked
     }
 
     fn col_to_letters(&self) -> String {
@@ -80,6 +90,7 @@ impl CellWidget {
 
     fn fg_color(&self) -> Color {
         match self.tag {
+            _ if self.marked => Color::LightMagenta,
             _ if self.selected => Color::LightYellow,
             CellTag::Base(Players::Player) if !self.selected => Color::LightBlue,
             CellTag::Base(Players::Enemy) if !self.selected => Color::LightRed,

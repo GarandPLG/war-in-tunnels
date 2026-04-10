@@ -21,6 +21,8 @@ pub struct BoardState {
     focused_cell: FocusedCell,
     player_base_coords: (usize, usize),
     enemy_base_coords: (usize, usize),
+    pub marking_cells: bool,
+    marked_cells: Vec<(usize, usize)>,
 }
 
 impl BoardState {
@@ -70,6 +72,9 @@ impl BoardState {
             cells.push(rows);
         }
 
+        let marking_cells: bool = false;
+        let marked_cells: Vec<(usize, usize)> = Vec::new();
+
         Self {
             cells_area,
             cell_width,
@@ -85,6 +90,8 @@ impl BoardState {
             focused_cell,
             player_base_coords,
             enemy_base_coords,
+            marking_cells,
+            marked_cells,
         }
     }
 
@@ -92,11 +99,76 @@ impl BoardState {
         &mut self.cells[row][col]
     }
 
+    pub fn get_marked_cells(&self) -> Vec<&CellWidget> {
+        self.marked_cells
+            .iter()
+            .map(move |&(row, col)| &self.cells[row][col])
+            .collect()
+    }
+
+    fn get_last_marked_cell(&self) -> Option<(usize, usize)> {
+        self.marked_cells.last().cloned()
+    }
+
+    pub fn set_marked_cell(&mut self, row: usize, col: usize, old_row: usize, old_col: usize) {
+        let last_cell: Option<(usize, usize)> = self.get_last_marked_cell();
+        let cell: &mut CellWidget = self.get_mut_cell(row, col);
+
+        if cell.get_marked() {
+            if last_cell == Some((old_row, old_col)) {
+                self.get_mut_cell(old_row, old_col).set_marked(false);
+                self.marked_cells.pop();
+            }
+        } else {
+            cell.set_marked(true);
+            self.marked_cells.push((row, col));
+        }
+    }
+
+    pub fn start_marking_cells(&mut self) {
+        let row: usize = self.focused_cell.get_row();
+        let col: usize = self.focused_cell.get_col();
+
+        let cell: &mut CellWidget = self.get_mut_cell(row, col);
+        cell.set_marked(true);
+
+        self.marked_cells.push((row, col));
+    }
+
+    pub fn clear_marked_cells(&mut self) {
+        for (row, col) in self.marked_cells.clone() {
+            self.get_mut_cell(row, col).set_marked(false);
+        }
+
+        self.marked_cells.clear();
+    }
+
     fn max_offset(map_size: usize, size: usize) -> usize {
         if map_size > size { map_size - size } else { 0 }
     }
 
-    pub fn resize_change(&mut self, area: &Rect) {
+    pub fn is_focused_cell_visible(&self) -> bool {
+        let vertical_offset: usize = self.vertical_offset.get_value();
+        let horizontal_offset: usize = self.horizontal_offset.get_value();
+
+        let row: usize = self.focused_cell.get_row();
+        let col: usize = self.focused_cell.get_col();
+
+        if 0usize.saturating_add(vertical_offset) > row
+            || row >= self.rows.saturating_add(vertical_offset)
+        {
+            return false;
+        }
+        if 0usize.saturating_add(horizontal_offset) > col
+            || col >= self.cols.saturating_add(horizontal_offset)
+        {
+            return false;
+        }
+
+        true
+    }
+
+    pub fn change_resize(&mut self, area: &Rect) {
         self.cells_area = cells_area_helper(area);
 
         self.cols = (self.cells_area.width / self.cell_width as u16) as usize;
@@ -111,7 +183,7 @@ impl BoardState {
             Offset::new(Some(self.vertical_offset.get_value()), Some(v_max_offset));
     }
 
-    pub fn zoom_change(&mut self, new_zoom_level: ZoomLevel) {
+    pub fn change_zoom(&mut self, new_zoom_level: ZoomLevel) {
         self.zoom_level = new_zoom_level;
 
         self.cell_width = cell_size_helper(CellSizes::Width, self.zoom_level);
@@ -149,26 +221,9 @@ impl BoardState {
 
         self.get_mut_cell(old_row, old_col).set_selected(false);
         self.get_mut_cell(new_row, new_col).set_selected(true);
-    }
 
-    pub fn is_focused_cell_visible(&self) -> bool {
-        let vertical_offset: usize = self.vertical_offset.get_value();
-        let horizontal_offset: usize = self.horizontal_offset.get_value();
-
-        let row: usize = self.focused_cell.get_row();
-        let col: usize = self.focused_cell.get_col();
-
-        if 0usize.saturating_add(vertical_offset) > row
-            || row >= self.rows.saturating_add(vertical_offset)
-        {
-            return false;
+        if self.marking_cells {
+            self.set_marked_cell(new_row, new_col, old_row, old_col);
         }
-        if 0usize.saturating_add(horizontal_offset) > col
-            || col >= self.cols.saturating_add(horizontal_offset)
-        {
-            return false;
-        }
-
-        true
     }
 }

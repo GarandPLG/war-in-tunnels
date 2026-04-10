@@ -25,6 +25,8 @@ const ACTIONS: &[Action] = &[
     Action::ZoomOut,
     Action::VolumeUp,
     Action::VolumeDown,
+    Action::Space,
+    Action::Backspace,
     Action::Mute,
     Action::Quit,
     Action::Quit2,
@@ -92,19 +94,16 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             horizontal: 1,
             vertical: 1,
         });
+        // .centered(
+        //     Constraint::Length(
+        //         (states.skirmish.board.cell_width * states.skirmish.board.cols) as u16,
+        //     ),
+        //     Constraint::Length(
+        //         (states.skirmish.board.cell_height * states.skirmish.board.rows) as u16,
+        //     ),
+        // );
 
-        // TODO: add actual (effective) board sizes as Constraints
-        BoardWidget::new(&states.skirmish.board).render(
-            cells_area.centered(
-                Constraint::Length(
-                    (states.skirmish.board.cell_width * states.skirmish.board.cols) as u16,
-                ),
-                Constraint::Length(
-                    (states.skirmish.board.cell_height * states.skirmish.board.rows) as u16,
-                ),
-            ),
-            buf,
-        );
+        BoardWidget::new(&states.skirmish.board).render(cells_area, buf);
     }
 
     {

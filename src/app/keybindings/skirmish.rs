@@ -62,27 +62,40 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
             Action::ZoomIn => match board.zoom_level {
                 ZoomLevel::ZoomedIn => {}
                 ZoomLevel::Default => {
-                    board.zoom_change(ZoomLevel::ZoomedIn);
+                    board.change_zoom(ZoomLevel::ZoomedIn);
                     board.vertical_offset.next();
                 }
                 ZoomLevel::ZoomedOut => {
-                    board.zoom_change(ZoomLevel::Default);
+                    board.change_zoom(ZoomLevel::Default);
                     board.vertical_offset.next();
                     board.vertical_offset.next();
                 }
             },
             Action::ZoomOut => match board.zoom_level {
                 ZoomLevel::ZoomedIn => {
-                    board.zoom_change(ZoomLevel::Default);
+                    board.change_zoom(ZoomLevel::Default);
                     board.vertical_offset.prev();
                 }
                 ZoomLevel::Default => {
-                    board.zoom_change(ZoomLevel::ZoomedOut);
+                    board.change_zoom(ZoomLevel::ZoomedOut);
                     board.vertical_offset.prev();
                     board.vertical_offset.prev();
                 }
                 ZoomLevel::ZoomedOut => {}
             },
+            Action::Space => {
+                if board.marking_cells {
+                    board.marking_cells = false;
+                    board.clear_marked_cells();
+                } else {
+                    board.marking_cells = true;
+                    board.start_marking_cells();
+                }
+            }
+            Action::Backspace => {
+                board.marking_cells = false;
+                board.clear_marked_cells()
+            }
             _ => (),
         }
     }
