@@ -57,16 +57,20 @@ impl BoardState {
 
             for col in 0..map_width {
                 let selected: bool = row == focused_cell.get_row() && col == focused_cell.get_col();
+                let player_base: bool = row == player_base_coords.0 && col == player_base_coords.1;
+                let enemy_base: bool = row == enemy_base_coords.0 && col == enemy_base_coords.1;
 
-                let tag: CellTag = if row == player_base_coords.0 && col == player_base_coords.1 {
+                let tag: CellTag = if player_base {
                     CellTag::Base(Players::Player)
-                } else if row == enemy_base_coords.0 && col == enemy_base_coords.1 {
+                } else if enemy_base {
                     CellTag::Base(Players::Enemy)
                 } else {
                     CellTag::Stone
                 };
 
-                rows.push(CellWidget::new(row, col, zoom_level, selected, tag));
+                rows.push(CellWidget::new(
+                    row, col, zoom_level, selected, tag, None, None,
+                ));
             }
 
             cells.push(rows);

@@ -1,4 +1,4 @@
-use crate::app::states::ZoomLevel;
+use crate::app::{buildings::Building, states::ZoomLevel, units::Unit};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -28,6 +28,8 @@ pub struct CellWidget {
     zoom_level: ZoomLevel,
     tag: CellTag,
     marked: bool,
+    unit: Option<Unit>,
+    building: Option<Building>,
 }
 
 impl CellWidget {
@@ -37,6 +39,8 @@ impl CellWidget {
         zoom_level: ZoomLevel,
         selected: bool,
         tag: CellTag,
+        unit: Option<Unit>,
+        building: Option<Building>,
     ) -> Self {
         Self {
             row,
@@ -45,6 +49,8 @@ impl CellWidget {
             zoom_level,
             tag,
             marked: false,
+            unit,
+            building,
         }
     }
 
