@@ -29,14 +29,16 @@ pub enum Action {
     ScrollLeft,
     /// Scroll right without moving the cursor.
     ScrollRight,
-    /// Select the current item.
+    /// Toggle selecting cell.
     Space,
+    /// Unmark last selected cell.
+    Backspace,
+    /// Cancel marking cell.
+    Delete,
     /// Submit or confirm the current choice.
     Enter,
     /// Return to the main menu or previous screen.
     Esc,
-    /// Delete the character before the cursor.
-    Backspace,
     /// Zoom the view in.
     ZoomIn,
     /// Zoom the view out.
@@ -199,15 +201,33 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         symbol: "Space",
         description: "Marking cells",
     },
-    // KeyBinding {
-    //     action: Action::Enter,
-    //     code: KeyCode::Enter,
-    //     kind: KeyEventKind::Press,
-    //     modifiers: KeyModifiers::NONE,
-    //     group: Group::Select,
-    //     symbol: "Enter",
-    //     description: "Submit",
-    // },
+    KeyBinding {
+        action: Action::Backspace,
+        code: KeyCode::Backspace,
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Select,
+        symbol: "Backspace",
+        description: "Unmark cell",
+    },
+    KeyBinding {
+        action: Action::Delete,
+        code: KeyCode::Delete,
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Select,
+        symbol: "Delete",
+        description: "Cancel marking",
+    },
+    KeyBinding {
+        action: Action::Enter,
+        code: KeyCode::Enter,
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Select,
+        symbol: "Enter",
+        description: "Submit",
+    },
     KeyBinding {
         action: Action::Esc,
         code: KeyCode::Esc,
@@ -216,15 +236,6 @@ pub static KEYBINDINGS: &[KeyBinding] = &[
         group: Group::Quit,
         symbol: "Esc",
         description: "Main menu",
-    },
-    KeyBinding {
-        action: Action::Backspace,
-        code: KeyCode::Backspace,
-        kind: KeyEventKind::Press,
-        modifiers: KeyModifiers::NONE,
-        group: Group::Select,
-        symbol: "Backspace",
-        description: "Cancel marking",
     },
     KeyBinding {
         action: Action::ZoomIn,

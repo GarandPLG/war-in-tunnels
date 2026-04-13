@@ -48,8 +48,9 @@ impl CellWidget {
         }
     }
 
-    pub fn set_selected(&mut self, selected: bool) {
+    pub fn set_selected(&mut self, selected: bool) -> &mut Self {
         self.selected = selected;
+        self
     }
 
     pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) {
@@ -64,8 +65,9 @@ impl CellWidget {
         self.marked
     }
 
-    pub fn set_marked(&mut self, marked: bool) {
-        self.marked = marked
+    pub fn set_marked(&mut self, marked: bool) -> &mut Self {
+        self.marked = marked;
+        self
     }
 
     fn col_to_letters(&self) -> String {
@@ -90,8 +92,9 @@ impl CellWidget {
 
     fn fg_color(&self) -> Color {
         match self.tag {
-            _ if self.marked => Color::LightMagenta,
-            _ if self.selected => Color::LightYellow,
+            _ if self.marked && self.selected => Color::Magenta,
+            _ if self.marked && !self.selected => Color::LightMagenta,
+            _ if self.selected && !self.marked => Color::LightYellow,
             CellTag::Base(Players::Player) if !self.selected => Color::LightBlue,
             CellTag::Base(Players::Enemy) if !self.selected => Color::LightRed,
             CellTag::Tunel if !self.selected => Color::Gray,

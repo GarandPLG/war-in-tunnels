@@ -84,7 +84,8 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
                 ZoomLevel::ZoomedOut => {}
             },
             Action::Space => board.toggle_marking(),
-            Action::Backspace => {
+            Action::Backspace => board.undo_marked_cell(),
+            Action::Delete => {
                 board.marking_cells = false;
                 board.clear_marked_cells()
             }

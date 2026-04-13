@@ -49,4 +49,9 @@ impl FocusedCell {
 
         (self.row, self.col)
     }
+
+    pub fn set_focused_cell(&mut self, cell: (usize, usize)) {
+        self.row = cell.0.max(0).min(self.max_row - 1);
+        self.col = cell.1.max(0).min(self.max_col - 1);
+    }
 }

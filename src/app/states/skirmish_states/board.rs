@@ -116,16 +116,35 @@ impl BoardState {
         }
     }
 
-    pub fn set_marked_cell(&mut self, new_cell: (usize, usize), old_cell: (usize, usize)) {
+    pub fn set_marked_cell(&mut self, new_cell: (usize, usize)) {
         let cell: &mut CellWidget = self.get_mut_cell(new_cell.0, new_cell.1);
 
-        if cell.get_marked() && old_cell != new_cell {
-            self.get_mut_cell(old_cell.0, old_cell.1).set_marked(false);
-            self.marked_cells.pop();
-        } else {
+        if !cell.get_marked() {
             cell.set_marked(true);
-            self.marked_cells.push((new_cell.0, new_cell.1));
         }
+
+        self.marked_cells.push((new_cell.0, new_cell.1));
+    }
+
+    pub fn undo_marked_cell(&mut self) {
+        if self.marked_cells.len() < 2 {
+            return;
+        }
+
+        let old: (usize, usize) = self.marked_cells[self.marked_cells.len() - 1];
+        let new: (usize, usize) = self.marked_cells[self.marked_cells.len() - 2];
+        let old_is_unique: bool = self.marked_cells.iter().filter(|x| **x == old).count() == 1;
+
+        let old_cell: &mut CellWidget = self.get_mut_cell(old.0, old.1).set_selected(false);
+        if old_is_unique {
+            old_cell.set_marked(false);
+        }
+
+        self.get_mut_cell(new.0, new.1).set_selected(true);
+
+        self.marked_cells.pop();
+
+        self.focused_cell.set_focused_cell(new);
     }
 
     pub fn start_marking_cells(&mut self) {
@@ -226,7 +245,7 @@ impl BoardState {
         self.get_mut_cell(new_cell.0, new_cell.1).set_selected(true);
 
         if self.marking_cells {
-            self.set_marked_cell(new_cell, old_cell);
+            self.set_marked_cell(new_cell);
         }
     }
 }
