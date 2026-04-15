@@ -1,3 +1,4 @@
+pub mod miner;
 pub mod unit;
 
-pub use unit::Unit;
+pub use unit::Units;

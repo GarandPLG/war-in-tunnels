@@ -20,3 +20,16 @@ pub enum ZoomLevel {
     Default,
     ZoomedOut,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CellTag {
+    Base(Players),
+    Tunel,
+    Stone,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Players {
+    Player,
+    Enemy,
+}

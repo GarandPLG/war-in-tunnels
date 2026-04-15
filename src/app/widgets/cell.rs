@@ -1,4 +1,8 @@
-use crate::app::{buildings::Building, states::ZoomLevel, units::Unit};
+use crate::app::{
+    buildings::Buildings,
+    states::{CellTag, Players, ZoomLevel},
+    units::Units,
+};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -8,19 +12,6 @@ use ratatui::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CellTag {
-    Base(Players),
-    Tunel,
-    Stone,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Players {
-    Player,
-    Enemy,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CellWidget {
     row: usize,
     col: usize,
@@ -28,8 +19,8 @@ pub struct CellWidget {
     zoom_level: ZoomLevel,
     tag: CellTag,
     marked: bool,
-    unit: Option<Unit>,
-    building: Option<Building>,
+    unit: Option<Units>,
+    building: Option<Buildings>,
 }
 
 impl CellWidget {
@@ -39,8 +30,8 @@ impl CellWidget {
         zoom_level: ZoomLevel,
         selected: bool,
         tag: CellTag,
-        unit: Option<Unit>,
-        building: Option<Building>,
+        unit: Option<Units>,
+        building: Option<Buildings>,
     ) -> Self {
         Self {
             row,

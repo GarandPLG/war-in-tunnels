@@ -1,3 +1,4 @@
+pub mod base;
 pub mod building;
 
-pub use building::Building;
+pub use building::Buildings;

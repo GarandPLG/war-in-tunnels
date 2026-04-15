@@ -1,7 +1,7 @@
 use crate::app::{
     helpers::{CellSizes, cell_size_helper, cells_area_helper},
-    states::{FocusedCell, Offset, ZoomLevel, skirmish_states::MoveFocusedCell},
-    widgets::{CellTag, CellWidget, Players},
+    states::{CellTag, FocusedCell, Offset, Players, ZoomLevel, skirmish_states::MoveFocusedCell},
+    widgets::CellWidget,
 };
 use ratatui::layout::Rect;
 

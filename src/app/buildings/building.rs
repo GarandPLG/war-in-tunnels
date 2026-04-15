@@ -1,2 +1,2 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Building {}
+pub enum Buildings {}
