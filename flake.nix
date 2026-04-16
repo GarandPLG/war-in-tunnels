@@ -70,6 +70,8 @@
         echo "    nix run              - Run production version"
         echo "    nix build .#develop  - Build development version"
         echo "    nix run .#develop    - Run development version"
+        echo ""
+        cargo run -- -h
       '';
     };
   };
