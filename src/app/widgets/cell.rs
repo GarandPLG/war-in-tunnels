@@ -132,16 +132,16 @@ impl CellWidget {
 
         match self.zoom_level {
             ZoomLevel::ZoomedIn => {
-                text_area.push(Line::from(format!("         {} ", unit)));
+                text_area.push(Line::from(format!(" {}       {} ", b_level, unit)));
                 text_area.push(Line::from(format!("           ")));
                 text_area.push(Line::from(format!("     {}     ", tag)));
                 text_area.push(Line::from(format!("           ")));
-                text_area.push(Line::from(format!("     {}     ", b_level)));
+                text_area.push(Line::from(format!("           ")));
             }
             ZoomLevel::Default => {
-                text_area.push(Line::from(format!("     {} ", unit)));
+                text_area.push(Line::from(format!(" {}   {} ", b_level, unit)));
                 text_area.push(Line::from(format!("   {}   ", tag)));
-                text_area.push(Line::from(format!("   {}   ", b_level)));
+                text_area.push(Line::from(format!("       ")));
             }
             ZoomLevel::ZoomedOut => {
                 text_area.push(Line::from(format!(" {} ", tag)));
