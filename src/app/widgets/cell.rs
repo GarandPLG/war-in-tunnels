@@ -1,7 +1,4 @@
-use crate::app::{
-    states::{CellStructure, Players, ZoomLevel},
-    units::Units,
-};
+use crate::app::states::{CellStructure, Players, Units, ZoomLevel};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -46,12 +43,14 @@ impl CellWidget {
         self
     }
 
-    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) {
+    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) -> &mut Self {
         self.zoom_level = zoom_level;
+        self
     }
 
-    pub fn set_structure(&mut self, sctructure: CellStructure) {
+    pub fn set_structure(&mut self, sctructure: CellStructure) -> &mut Self {
         self.structure = sctructure;
+        self
     }
 
     pub fn get_marked(&self) -> bool {

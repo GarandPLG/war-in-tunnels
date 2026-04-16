@@ -1,4 +1,4 @@
-use crate::app::{buildings::BaseBuilding, states::skirmish_states::BoardState};
+use crate::app::{buildings::BaseBuilding, states::skirmish_states::BoardState, units::MinerUnit};
 use clap::ValueEnum;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,6 +22,12 @@ pub enum ZoomLevel {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Players {
+    Player,
+    Enemy,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CellStructure {
     Base(BaseBuilding),
     Tunel,
@@ -29,7 +35,6 @@ pub enum CellStructure {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Players {
-    Player,
-    Enemy,
+pub enum Units {
+    Miner(MinerUnit),
 }

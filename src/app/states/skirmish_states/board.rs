@@ -2,9 +2,10 @@ use crate::app::{
     buildings::BaseBuilding,
     helpers::{CellSizes, cell_size_helper, cells_area_helper},
     states::{
-        CellStructure, FocusedCell, Offset, Players, ZoomLevel, skirmish_states::MoveFocusedCell,
+        CellStructure, FocusedCell, Offset, Players, Units, ZoomLevel,
+        skirmish_states::MoveFocusedCell,
     },
-    units::{MinerUnit, Units},
+    units::MinerUnit,
     widgets::CellWidget,
 };
 use ratatui::layout::Rect;
