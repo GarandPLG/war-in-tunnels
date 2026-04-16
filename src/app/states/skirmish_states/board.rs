@@ -1,7 +1,9 @@
 use crate::app::{
-    buildings::{BaseBuilding, Buildings},
+    buildings::BaseBuilding,
     helpers::{CellSizes, cell_size_helper, cells_area_helper},
-    states::{CellTag, FocusedCell, Offset, Players, ZoomLevel, skirmish_states::MoveFocusedCell},
+    states::{
+        CellStructure, FocusedCell, Offset, Players, ZoomLevel, skirmish_states::MoveFocusedCell,
+    },
     units::{MinerUnit, Units},
     widgets::CellWidget,
 };
@@ -62,12 +64,12 @@ impl BoardState {
                 let player_base: bool = row == player_base_coords.0 && col == player_base_coords.1;
                 let enemy_base: bool = row == enemy_base_coords.0 && col == enemy_base_coords.1;
 
-                let tag: CellTag = if player_base {
-                    CellTag::Base(Players::Player)
+                let structure: CellStructure = if player_base {
+                    CellStructure::Base(BaseBuilding::new(Players::Player))
                 } else if enemy_base {
-                    CellTag::Base(Players::Enemy)
+                    CellStructure::Base(BaseBuilding::new(Players::Enemy))
                 } else {
-                    CellTag::Stone
+                    CellStructure::Stone
                 };
 
                 let unit: Option<Units> = if player_base {
@@ -78,16 +80,8 @@ impl BoardState {
                     None
                 };
 
-                let building: Option<Buildings> = if player_base {
-                    Some(Buildings::Base(BaseBuilding::new(Players::Player)))
-                } else if enemy_base {
-                    Some(Buildings::Base(BaseBuilding::new(Players::Enemy)))
-                } else {
-                    None
-                };
-
                 rows.push(CellWidget::new(
-                    row, col, zoom_level, selected, tag, unit, building,
+                    row, col, zoom_level, selected, structure, unit,
                 ));
             }
 

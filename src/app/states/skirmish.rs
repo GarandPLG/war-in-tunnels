@@ -1,4 +1,4 @@
-use crate::app::states::skirmish_states::BoardState;
+use crate::app::{buildings::BaseBuilding, states::skirmish_states::BoardState};
 use clap::ValueEnum;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,8 +22,8 @@ pub enum ZoomLevel {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CellTag {
-    Base(Players),
+pub enum CellStructure {
+    Base(BaseBuilding),
     Tunel,
     Stone,
 }

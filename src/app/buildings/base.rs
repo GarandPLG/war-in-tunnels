@@ -16,6 +16,10 @@ impl BaseBuilding {
         }
     }
 
+    pub fn get_owner(&self) -> Players {
+        self.owner
+    }
+
     pub fn get_tag(&self) -> &'static str {
         self.tag
     }
