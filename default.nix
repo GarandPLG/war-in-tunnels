@@ -1,25 +1,50 @@
 {
   lib,
   rustPlatform,
+  # fetchFromGitea,
   pkg-config,
   alsa-lib,
-}:
-rustPlatform.buildRustPackage {
-  name = "war-in-tunnels";
-  pname = "war-in-tunnels";
+  versionCheckHook,
+  nix-update-script,
+}: let
   version = "0.1.0";
+in
+  rustPlatform.buildRustPackage {
+    pname = "war-in-tunnels";
+    inherit version;
 
-  src = ./.;
-  buildInputs = [alsa-lib];
-  nativeBuildInputs = [pkg-config];
-  cargoHash = lib.fakeHash;
+    src = ./.;
+    # src = fetchFromGitea {
+    #   domain = "gitea.garandplg.com";
+    #   owner = "GarandPLG";
+    #   repo = "war-in-tunnels";
+    #   tag = "v${version}";
+    #   hash = lib.fakeHash;
+    # };
 
-  meta = {
-    description = "TUI underground game";
-    homepage = "https://gitea.garandplg.com/GarandPLG/war-in-tunnels";
-    license = lib.licenses.mit;
-    maintainers = [
-      "Garand_PLG"
-    ];
-  };
-}
+    cargoHash = "sha256-Cv/sUzkiQuQS3ybg2glfXucIu+HtPi2brH/D7tqc3Mc=";
+
+    nativeBuildInputs = [pkg-config];
+    buildInputs = [alsa-lib];
+
+    nativeInstallCheckInputs = [versionCheckHook];
+    doInstallCheck = true;
+
+    passthru.updateScript = nix-update-script {};
+
+    postInstall = ''
+      cp -r soundtracks $out/bin
+      mv $out/bin/war_in_tunnels $out/bin/war-in-tunnels
+    '';
+
+    meta = {
+      description = "TUI underground game";
+      homepage = "https://gitea.garandplg.com/GarandPLG/war-in-tunnels";
+      license = lib.licenses.mit;
+      platforms = ["x86_64-linux"];
+      maintainers = with lib.maintainers; [
+        GarandPLG
+      ];
+      mainProgram = "war-in-tunnels";
+    };
+  }

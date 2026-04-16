@@ -1,4 +1,4 @@
-mod block_title;
+pub mod block_title;
 mod cells_area;
 mod main_menu_option;
 mod zoom_level;

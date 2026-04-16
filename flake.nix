@@ -44,6 +44,10 @@
         src = ./.;
         buildInputs = with pkgs; [alsa-lib];
         nativeBuildInputs = with pkgs; [pkg-config];
+        postInstall = ''
+          cp -r soundtracks $out/bin
+          mv $out/bin/war_in_tunnels $out/bin/war-in-tunnels
+        '';
       };
     };
 

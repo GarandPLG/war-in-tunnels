@@ -31,7 +31,9 @@ use ratatui::{
 /// # Example
 ///
 /// ```rust
+/// use war_in_tunnels::app::helpers::block_title::block_title_helper;
 /// use ratatui::style::Color;
+/// use ratatui::text::Line;
 ///
 /// let title: Line<'_> = block_title_helper(
 ///     &[
@@ -89,7 +91,9 @@ pub fn block_title_helper<'a>(texts: &[(&'a str, Color)], separator: Option<&'a 
 /// # Example
 ///
 /// ```rust
+/// use war_in_tunnels::app::helpers::block_title::block_single_title_helper;
 /// use ratatui::style::Color;
+/// use ratatui::text::Line;
 ///
 /// let title: Line<'_> = block_single_title_helper("Keybindings", Color::Magenta);
 /// // `title` now represents: [ Keybindings ] with “Keybindings” coloured magenta.

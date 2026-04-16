@@ -1,6 +1,6 @@
 mod app;
 mod buildings;
-mod helpers;
+pub mod helpers;
 mod keybind;
 mod keybindings;
 mod state;
