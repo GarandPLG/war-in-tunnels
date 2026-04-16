@@ -1,8 +1,8 @@
-pub mod main_menu;
-pub mod perk_decks;
-pub mod settings;
-pub mod skills_config;
-pub mod skirmish;
+mod main_menu;
+mod perk_decks;
+mod settings;
+mod skills_config;
+mod skirmish;
 pub mod skirmish_states;
 
 pub use main_menu::MainMenuState;

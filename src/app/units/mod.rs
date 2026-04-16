@@ -1,3 +1,3 @@
-pub mod miner;
+mod miner;
 
 pub use miner::MinerUnit;

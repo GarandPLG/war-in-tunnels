@@ -101,7 +101,7 @@ pub struct KeyBinding {
 ///
 /// The slice is ordered primarily for readability; the runtime lookup scans
 /// this slice linearly, which is acceptable given the modest size of the list.
-pub static KEYBINDINGS: &[KeyBinding] = &[
+static KEYBINDINGS: &[KeyBinding] = &[
     KeyBinding {
         action: Action::Quit,
         code: KeyCode::Char('q'),

@@ -1,15 +1,15 @@
-pub mod app;
-pub mod buildings;
-pub mod helpers;
-pub mod keybind;
-pub mod keybindings;
-pub mod state;
+mod app;
+mod buildings;
+mod helpers;
+mod keybind;
+mod keybindings;
+mod state;
 pub mod states;
 pub mod threads;
-pub mod units;
+mod units;
 pub mod view;
-pub mod views;
-pub mod widgets;
+mod views;
+mod widgets;
 
 pub use app::App;
 pub use keybind::handle_keybindings;

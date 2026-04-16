@@ -1,7 +1,7 @@
-pub mod block_title;
-pub mod cells_area;
-pub mod main_menu_option;
-pub mod zoom_level;
+mod block_title;
+mod cells_area;
+mod main_menu_option;
+mod zoom_level;
 
 pub use block_title::{block_single_title_helper, block_title_helper};
 pub use cells_area::cells_area_helper;

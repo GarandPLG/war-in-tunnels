@@ -1,6 +1,6 @@
-pub mod default;
-pub mod main_menu;
-pub mod skirmish;
+mod default;
+mod main_menu;
+mod skirmish;
 
 pub use default::default_view;
 pub use main_menu::main_menu_view;
