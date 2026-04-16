@@ -1,6 +1,8 @@
 use crate::app::{
+    buildings::{BaseBuilding, Buildings},
     helpers::{CellSizes, cell_size_helper, cells_area_helper},
     states::{CellTag, FocusedCell, Offset, Players, ZoomLevel, skirmish_states::MoveFocusedCell},
+    units::{MinerUnit, Units},
     widgets::CellWidget,
 };
 use ratatui::layout::Rect;
@@ -68,8 +70,24 @@ impl BoardState {
                     CellTag::Stone
                 };
 
+                let unit: Option<Units> = if player_base {
+                    Some(Units::Miner(MinerUnit::new(Players::Player)))
+                } else if enemy_base {
+                    Some(Units::Miner(MinerUnit::new(Players::Enemy)))
+                } else {
+                    None
+                };
+
+                let building: Option<Buildings> = if player_base {
+                    Some(Buildings::Base(BaseBuilding::new(Players::Player)))
+                } else if enemy_base {
+                    Some(Buildings::Base(BaseBuilding::new(Players::Enemy)))
+                } else {
+                    None
+                };
+
                 rows.push(CellWidget::new(
-                    row, col, zoom_level, selected, tag, None, None,
+                    row, col, zoom_level, selected, tag, unit, building,
                 ));
             }
 

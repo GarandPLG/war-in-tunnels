@@ -100,27 +100,48 @@ impl CellWidget {
     }
 
     fn get_text_area(&self) -> Vec<Line<'_>> {
-        let tag: &str = match self.tag {
-            CellTag::Base(_) => "B",
-            CellTag::Tunel => "T",
-            CellTag::Stone => " ",
+        let tag: &str = match self.building {
+            Some(building) => match building {
+                Buildings::Base(base) => base.get_tag(),
+                // _ => " ",
+            },
+            None => match self.tag {
+                CellTag::Tunel => "T",
+                CellTag::Stone => " ",
+                _ => " ",
+            },
         };
-        let units: &str = " "; // TODO: units count on that cell
+
+        let b_level: &str = match self.building {
+            Some(building) => match building {
+                Buildings::Base(base) => base.get_level(),
+                // _ => " ",
+            },
+            None => " ",
+        };
+
+        let unit: &str = match self.unit {
+            Some(unit) => match unit {
+                Units::Miner(miner) => miner.get_tag(),
+                // _ => " ",
+            },
+            None => " ",
+        };
 
         let mut text_area: Vec<Line<'_>> = Vec::new();
 
         match self.zoom_level {
             ZoomLevel::ZoomedIn => {
-                text_area.push(Line::from(format!("          {}", units)));
+                text_area.push(Line::from(format!("         {} ", unit)));
                 text_area.push(Line::from(format!("           ")));
                 text_area.push(Line::from(format!("     {}     ", tag)));
                 text_area.push(Line::from(format!("           ")));
-                text_area.push(Line::from(format!("           ")));
+                text_area.push(Line::from(format!("     {}     ", b_level)));
             }
             ZoomLevel::Default => {
-                text_area.push(Line::from(format!("      {}", units)));
+                text_area.push(Line::from(format!("     {} ", unit)));
                 text_area.push(Line::from(format!("   {}   ", tag)));
-                text_area.push(Line::from(format!("       ")));
+                text_area.push(Line::from(format!("   {}   ", b_level)));
             }
             ZoomLevel::ZoomedOut => {
                 text_area.push(Line::from(format!(" {} ", tag)));

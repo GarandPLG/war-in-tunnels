@@ -1,2 +1,6 @@
+use crate::app::buildings::BaseBuilding;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Buildings {}
+pub enum Buildings {
+    Base(BaseBuilding),
+}
