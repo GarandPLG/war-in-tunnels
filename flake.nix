@@ -1,5 +1,5 @@
 {
-  description = "TUI underground game";
+  description = "TUI underground RTS";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";

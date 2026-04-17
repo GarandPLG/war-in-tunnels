@@ -7,11 +7,11 @@
   versionCheckHook,
   nix-update-script,
 }: let
+  pname = "war-in-tunnels";
   version = "0.1.0";
 in
   rustPlatform.buildRustPackage {
-    pname = "war-in-tunnels";
-    inherit version;
+    inherit pname version;
 
     src = ./.;
     # src = fetchFromGitea {
@@ -38,13 +38,13 @@ in
     '';
 
     meta = {
-      description = "TUI underground game";
+      description = "TUI underground RTS";
       homepage = "https://gitea.garandplg.com/GarandPLG/war-in-tunnels";
       license = lib.licenses.mit;
       platforms = ["x86_64-linux"];
       maintainers = with lib.maintainers; [
         GarandPLG
       ];
-      mainProgram = "war-in-tunnels";
+      mainProgram = pname;
     };
   }
