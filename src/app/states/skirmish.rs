@@ -1,4 +1,4 @@
-use crate::app::{buildings::BaseBuilding, states::skirmish_states::BoardState, units::MinerUnit};
+use crate::app::states::skirmish_states::{BoardState, buildings::BaseBuilding, units::MinerUnit};
 use clap::ValueEnum;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,12 +1,10 @@
 mod app;
-mod buildings;
 pub mod helpers;
 mod keybind;
 mod keybindings;
 mod state;
 pub mod states;
 pub mod threads;
-mod units;
 pub mod view;
 mod views;
 mod widgets;
