@@ -1,4 +1,4 @@
-use crate::app::states::{CellStructure, Units, ZoomLevel, skirmish_states::buildings::Stone};
+use crate::app::states::{CellStructure, Units, ZoomLevel, skirmish_states::structures::Stone};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},

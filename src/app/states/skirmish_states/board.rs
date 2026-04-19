@@ -4,7 +4,7 @@ use crate::app::{
         CellStructure, FocusedCell, Offset, Players, Units, ZoomLevel,
         skirmish_states::{
             MoveFocusedCell,
-            buildings::{BaseBuilding, Stone},
+            structures::{BaseBuilding, Stone},
             units::MinerUnit,
         },
     },

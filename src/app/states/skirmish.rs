@@ -1,6 +1,6 @@
 use crate::app::states::skirmish_states::{
     BoardState,
-    buildings::{BaseBuilding, Stone, Tunnel},
+    structures::{BaseBuilding, Stone, Tunnel},
     units::MinerUnit,
 };
 use clap::ValueEnum;
