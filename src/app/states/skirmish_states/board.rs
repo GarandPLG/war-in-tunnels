@@ -2,7 +2,11 @@ use crate::app::{
     helpers::{CellSizes, cell_size_helper, cells_area_helper},
     states::{
         CellStructure, FocusedCell, Offset, Players, Units, ZoomLevel,
-        skirmish_states::{MoveFocusedCell, buildings::BaseBuilding, units::MinerUnit},
+        skirmish_states::{
+            MoveFocusedCell,
+            buildings::{BaseBuilding, Stone},
+            units::MinerUnit,
+        },
     },
     widgets::CellWidget,
 };
@@ -68,7 +72,7 @@ impl BoardState {
                 } else if enemy_base {
                     CellStructure::Base(BaseBuilding::new(Players::Enemy))
                 } else {
-                    CellStructure::Stone
+                    CellStructure::Stone(Stone::new())
                 };
 
                 let unit: Option<Units> = if player_base {

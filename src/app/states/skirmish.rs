@@ -1,4 +1,8 @@
-use crate::app::states::skirmish_states::{BoardState, buildings::BaseBuilding, units::MinerUnit};
+use crate::app::states::skirmish_states::{
+    BoardState,
+    buildings::{BaseBuilding, Stone, Tunnel},
+    units::MinerUnit,
+};
 use clap::ValueEnum;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,8 +34,8 @@ pub enum Players {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CellStructure {
     Base(BaseBuilding),
-    Tunel,
-    Stone,
+    Tunnel(Tunnel),
+    Stone(Stone),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

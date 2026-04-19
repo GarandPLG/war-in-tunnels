@@ -1,4 +1,4 @@
-use crate::app::states::{CellStructure, Players, Units, ZoomLevel};
+use crate::app::states::{CellStructure, Units, ZoomLevel, skirmish_states::buildings::Stone};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -75,7 +75,7 @@ impl CellWidget {
     }
 
     fn display_coords(&self) -> Span<'_> {
-        if self.selected || self.structure != CellStructure::Stone || self.marked {
+        if self.selected || self.structure != CellStructure::Stone(Stone::new()) || self.marked {
             format!("{}{}", self.col_to_letters(), self.row).green()
         } else {
             "".to_span()
@@ -83,38 +83,43 @@ impl CellWidget {
     }
 
     fn fg_color(&self) -> Color {
-        match self.structure {
-            _ if self.marked && self.selected => Color::Magenta,
-            _ if self.marked && !self.selected => Color::LightMagenta,
-            _ if self.selected && !self.marked => Color::LightYellow,
-            CellStructure::Base(base) if !self.selected => match base.get_owner() {
-                Players::Player => Color::LightBlue,
-                Players::Enemy => Color::LightRed,
-            },
-            CellStructure::Tunel if !self.selected => Color::Gray,
-            _ => Color::White,
+        if self.marked && self.selected {
+            return Color::Magenta;
+        } else if self.marked && !self.selected {
+            return Color::LightMagenta;
+        } else if self.selected && !self.marked {
+            return Color::LightYellow;
         }
+
+        if !self.selected {
+            return match self.structure {
+                CellStructure::Base(base) => base.get_color(),
+                CellStructure::Tunnel(tunnel) => tunnel.get_color(),
+                CellStructure::Stone(stone) => stone.get_color(),
+            };
+        }
+
+        Color::White
     }
 
     fn get_text_area(&self) -> Vec<Line<'_>> {
-        let tag: &str = match self.structure {
+        let tag: char = match self.structure {
             CellStructure::Base(base) => base.get_tag(),
-            CellStructure::Tunel => "T",
-            CellStructure::Stone => " ",
-            // _ => " ",
+            CellStructure::Tunnel(tunnel) => tunnel.get_tag(),
+            CellStructure::Stone(stone) => stone.get_tag(),
         };
 
-        let b_level: &str = match self.structure {
+        let b_level: char = match self.structure {
             CellStructure::Base(base) => base.get_level(),
-            _ => " ",
+            _ => ' ',
         };
 
-        let unit: &str = match self.unit {
+        let unit: char = match self.unit {
             Some(unit) => match unit {
                 Units::Miner(miner) => miner.get_tag(),
-                // _ => " ",
+                // _ => ' ',
             },
-            None => " ",
+            None => ' ',
         };
 
         let mut text_area: Vec<Line<'_>> = Vec::new();
