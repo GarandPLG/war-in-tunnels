@@ -91,15 +91,11 @@ impl CellWidget {
             return Color::LightYellow;
         }
 
-        if !self.selected {
-            return match self.structure {
-                CellStructure::Base(base) => base.get_color(),
-                CellStructure::Tunnel(tunnel) => tunnel.get_color(),
-                CellStructure::Stone(stone) => stone.get_color(),
-            };
+        match self.structure {
+            CellStructure::Base(base) => base.get_color(),
+            CellStructure::Tunnel(tunnel) => tunnel.get_color(),
+            CellStructure::Stone(stone) => stone.get_color(),
         }
-
-        Color::White
     }
 
     fn get_text_area(&self) -> Vec<Line<'_>> {
