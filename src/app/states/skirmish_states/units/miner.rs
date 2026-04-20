@@ -1,4 +1,4 @@
-use crate::app::states::Players;
+use crate::app::states::{Players, skirmish_states::units::Unit};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MinerUnit {
@@ -9,8 +9,14 @@ impl MinerUnit {
     pub fn new(owner: Players) -> Self {
         Self { owner }
     }
+}
 
-    pub fn get_tag(self) -> char {
+impl Unit for MinerUnit {
+    fn get_owner(&self) -> Players {
+        self.owner
+    }
+
+    fn get_tag(&self) -> char {
         'M'
     }
 }

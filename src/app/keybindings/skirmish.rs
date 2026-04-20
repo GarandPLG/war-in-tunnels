@@ -1,10 +1,7 @@
 use crate::app::{
     App,
     keybindings::{Action, common_keybindings, event_to_action},
-    states::{
-        ZoomLevel,
-        skirmish_states::{BoardState, MoveFocusedCell},
-    },
+    states::skirmish_states::{BoardState, MoveFocusedCell, ZoomLevel},
 };
 use ratatui::crossterm::event::KeyEvent;
 

@@ -1,3 +1,4 @@
+use crate::app::states::skirmish_states::structures::Structure;
 use ratatui::style::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -19,20 +20,26 @@ impl Tunnel {
             lamp: false,
         }
     }
+}
 
-    pub fn get_tag(&self) -> char {
+impl Structure for Tunnel {
+    fn get_tag(&self) -> char {
         'T'
     }
 
-    pub fn get_color(&self) -> Color {
+    fn get_color(&self) -> Color {
         Color::Gray
     }
 
-    pub fn get_durability(&self) -> u16 {
+    fn get_level(&self) -> char {
+        ' '
+    }
+
+    fn get_durability(&self) -> u16 {
         self.durability
     }
 
-    pub fn get_stress(&self) -> u8 {
+    fn get_stress(&self) -> u8 {
         self.stress
     }
 }

@@ -1,4 +1,8 @@
-use crate::app::states::{CellStructure, Units, ZoomLevel, skirmish_states::structures::Stone};
+use crate::app::states::skirmish_states::{
+    ZoomLevel,
+    structures::{Stone, Structures},
+    units::{OptionalUnit, Units},
+};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -13,7 +17,7 @@ pub struct CellWidget {
     col: usize,
     selected: bool,
     zoom_level: ZoomLevel,
-    structure: CellStructure,
+    structure: Structures,
     marked: bool,
     unit: Option<Units>,
 }
@@ -24,7 +28,7 @@ impl CellWidget {
         col: usize,
         zoom_level: ZoomLevel,
         selected: bool,
-        structure: CellStructure,
+        structure: Structures,
         unit: Option<Units>,
     ) -> Self {
         Self {
@@ -48,7 +52,7 @@ impl CellWidget {
         self
     }
 
-    pub fn set_structure(&mut self, sctructure: CellStructure) -> &mut Self {
+    pub fn set_structure(&mut self, sctructure: Structures) -> &mut Self {
         self.structure = sctructure;
         self
     }
@@ -75,7 +79,7 @@ impl CellWidget {
     }
 
     fn display_coords(&self) -> Span<'_> {
-        if self.selected || self.structure != CellStructure::Stone(Stone::new()) || self.marked {
+        if self.selected || self.structure != Structures::Stone(Stone::new()) || self.marked {
             format!("{}{}", self.col_to_letters(), self.row).green()
         } else {
             "".to_span()
@@ -84,61 +88,22 @@ impl CellWidget {
 
     fn fg_color(&self) -> Color {
         if self.marked && self.selected {
-            return Color::Magenta;
+            Color::Magenta
         } else if self.marked && !self.selected {
-            return Color::LightMagenta;
-        } else if self.selected && !self.marked {
-            return Color::LightYellow;
-        }
-
-        match self.structure {
-            CellStructure::Base(base) => base.get_color(),
-            CellStructure::Tunnel(tunnel) => tunnel.get_color(),
-            CellStructure::Stone(stone) => stone.get_color(),
+            Color::LightMagenta
+        } else if !self.marked && self.selected {
+            Color::LightYellow
+        } else {
+            self.structure.get_color()
         }
     }
 
     fn get_text_area(&self) -> Vec<Line<'_>> {
-        let tag: char = match self.structure {
-            CellStructure::Base(base) => base.get_tag(),
-            CellStructure::Tunnel(tunnel) => tunnel.get_tag(),
-            CellStructure::Stone(stone) => stone.get_tag(),
-        };
-
-        let b_level: char = match self.structure {
-            CellStructure::Base(base) => base.get_level(),
-            _ => ' ',
-        };
-
-        let unit: char = match self.unit {
-            Some(unit) => match unit {
-                Units::Miner(miner) => miner.get_tag(),
-                // _ => ' ',
-            },
-            None => ' ',
-        };
-
-        let mut text_area: Vec<Line<'_>> = Vec::new();
-
-        match self.zoom_level {
-            ZoomLevel::ZoomedIn => {
-                text_area.push(Line::from(format!(" {}       {} ", b_level, unit)));
-                text_area.push(Line::from(format!("           ")));
-                text_area.push(Line::from(format!("     {}     ", tag)));
-                text_area.push(Line::from(format!("           ")));
-                text_area.push(Line::from(format!("           ")));
-            }
-            ZoomLevel::Default => {
-                text_area.push(Line::from(format!(" {}   {} ", b_level, unit)));
-                text_area.push(Line::from(format!("   {}   ", tag)));
-                text_area.push(Line::from(format!("       ")));
-            }
-            ZoomLevel::ZoomedOut => {
-                text_area.push(Line::from(format!(" {} ", tag)));
-            }
-        }
-
-        text_area
+        self.zoom_level.get_cell_text_area(
+            self.structure.get_tag(),
+            self.structure.get_level(),
+            self.unit.try_get_tag(),
+        )
     }
 
     fn get_block(&self) -> Block<'_> {

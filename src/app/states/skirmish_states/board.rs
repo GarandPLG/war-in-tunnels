@@ -1,11 +1,11 @@
 use crate::app::{
-    helpers::{CellSizes, cell_size_helper, cells_area_helper},
+    helpers::cells_area_helper,
     states::{
-        CellStructure, FocusedCell, Offset, Players, Units, ZoomLevel,
+        FocusedCell, Offset, Players,
         skirmish_states::{
-            MoveFocusedCell,
-            structures::{BaseBuilding, Stone},
-            units::MinerUnit,
+            CellSizes, MoveFocusedCell, ZoomLevel,
+            structures::{BaseBuilding, Stone, Structures},
+            units::{MinerUnit, Units},
         },
     },
     widgets::CellWidget,
@@ -36,8 +36,8 @@ impl BoardState {
     pub fn new(area: &Rect, map_width: usize, map_height: usize, zoom_level: ZoomLevel) -> Self {
         let cells_area: Rect = cells_area_helper(area);
 
-        let cell_width: usize = cell_size_helper(CellSizes::Width, zoom_level);
-        let cell_height: usize = cell_size_helper(CellSizes::Height, zoom_level);
+        let cell_width: usize = zoom_level.get_cell_size(CellSizes::Width);
+        let cell_height: usize = zoom_level.get_cell_size(CellSizes::Height);
 
         let cols: usize = (cells_area.width / cell_width as u16) as usize;
         let rows: usize = (cells_area.height / cell_height as u16) as usize;
@@ -67,12 +67,12 @@ impl BoardState {
                 let player_base: bool = row == player_base_coords.0 && col == player_base_coords.1;
                 let enemy_base: bool = row == enemy_base_coords.0 && col == enemy_base_coords.1;
 
-                let structure: CellStructure = if player_base {
-                    CellStructure::Base(BaseBuilding::new(Players::Player))
+                let structure: Structures = if player_base {
+                    Structures::Base(BaseBuilding::new(Players::Player))
                 } else if enemy_base {
-                    CellStructure::Base(BaseBuilding::new(Players::Enemy))
+                    Structures::Base(BaseBuilding::new(Players::Enemy))
                 } else {
-                    CellStructure::Stone(Stone::new())
+                    Structures::Stone(Stone::new())
                 };
 
                 let unit: Option<Units> = if player_base {
@@ -227,8 +227,8 @@ impl BoardState {
     pub fn change_zoom(&mut self, new_zoom_level: ZoomLevel) {
         self.zoom_level = new_zoom_level;
 
-        self.cell_width = cell_size_helper(CellSizes::Width, self.zoom_level);
-        self.cell_height = cell_size_helper(CellSizes::Height, self.zoom_level);
+        self.cell_width = new_zoom_level.get_cell_size(CellSizes::Width);
+        self.cell_height = new_zoom_level.get_cell_size(CellSizes::Height);
 
         self.cols = (self.cells_area.width / self.cell_width as u16) as usize;
         self.rows = (self.cells_area.height / self.cell_height as u16) as usize;

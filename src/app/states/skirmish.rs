@@ -1,8 +1,4 @@
-use crate::app::states::skirmish_states::{
-    BoardState,
-    structures::{BaseBuilding, Stone, Tunnel},
-    units::MinerUnit,
-};
+use crate::app::states::skirmish_states::BoardState;
 use clap::ValueEnum;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -18,27 +14,8 @@ pub enum GameMode {
     FrontLines,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
-pub enum ZoomLevel {
-    ZoomedIn,
-    Default,
-    ZoomedOut,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Players {
     Player,
     Enemy,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CellStructure {
-    Base(BaseBuilding),
-    Tunnel(Tunnel),
-    Stone(Stone),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Units {
-    Miner(MinerUnit),
 }
