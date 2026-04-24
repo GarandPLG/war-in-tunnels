@@ -8,23 +8,25 @@ pub enum Units {
     Miner(MinerUnit),
 }
 
+impl Units {
+    fn unit(&self) -> &dyn Unit {
+        match self {
+            Self::Miner(m) => m,
+        }
+    }
+}
+
 impl Unit for Units {
     fn get_tag(&self) -> char {
-        match self {
-            Self::Miner(m) => m.get_tag(),
-        }
+        self.unit().get_tag()
     }
 
     fn get_name(&self) -> &'static str {
-        match self {
-            Self::Miner(m) => m.get_name(),
-        }
+        self.unit().get_name()
     }
 
     fn get_owner(&self) -> Players {
-        match self {
-            Self::Miner(m) => m.get_owner(),
-        }
+        self.unit().get_owner()
     }
 }
 
