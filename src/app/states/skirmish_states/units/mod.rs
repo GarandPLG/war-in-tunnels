@@ -4,4 +4,4 @@ mod units_trait;
 
 pub use miner::MinerUnit;
 pub use units_enum::Units;
-pub use units_trait::{OptionalUnit, Unit};
+pub use units_trait::Unit;

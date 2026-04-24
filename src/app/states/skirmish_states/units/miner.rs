@@ -19,4 +19,8 @@ impl Unit for MinerUnit {
     fn get_tag(&self) -> char {
         'M'
     }
+
+    fn get_name(&self) -> &'static str {
+        "Miner"
+    }
 }

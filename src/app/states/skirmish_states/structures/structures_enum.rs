@@ -8,28 +8,52 @@ pub enum Structures {
     Stone(Stone),
 }
 
-impl Structures {
-    pub fn get_color(&self) -> Color {
+impl Structure for Structures {
+    fn get_color(&self) -> Color {
         match self {
-            Structures::Base(b) => b.get_color(),
-            Structures::Tunnel(t) => t.get_color(),
-            Structures::Stone(s) => s.get_color(),
+            Self::Base(b) => b.get_color(),
+            Self::Tunnel(t) => t.get_color(),
+            Self::Stone(s) => s.get_color(),
         }
     }
 
-    pub fn get_tag(&self) -> char {
+    fn get_tag(&self) -> char {
         match self {
-            Structures::Base(b) => b.get_tag(),
-            Structures::Tunnel(t) => t.get_tag(),
-            Structures::Stone(s) => s.get_tag(),
+            Self::Base(b) => b.get_tag(),
+            Self::Tunnel(t) => t.get_tag(),
+            Self::Stone(s) => s.get_tag(),
         }
     }
 
-    pub fn get_level(&self) -> char {
+    fn get_level(&self) -> char {
         match self {
-            Structures::Base(b) => b.get_level(),
-            Structures::Tunnel(t) => t.get_level(),
-            Structures::Stone(s) => s.get_level(),
+            Self::Base(b) => b.get_level(),
+            Self::Tunnel(t) => t.get_level(),
+            Self::Stone(s) => s.get_level(),
+        }
+    }
+
+    fn get_name(&self) -> &'static str {
+        match self {
+            Self::Base(b) => b.get_name(),
+            Self::Tunnel(t) => t.get_name(),
+            Self::Stone(s) => s.get_name(),
+        }
+    }
+
+    fn get_durability(&self) -> u16 {
+        match self {
+            Self::Base(b) => b.get_durability(),
+            Self::Tunnel(t) => t.get_durability(),
+            Self::Stone(s) => s.get_durability(),
+        }
+    }
+
+    fn get_stress(&self) -> u8 {
+        match self {
+            Self::Base(b) => b.get_stress(),
+            Self::Tunnel(t) => t.get_stress(),
+            Self::Stone(s) => s.get_stress(),
         }
     }
 }

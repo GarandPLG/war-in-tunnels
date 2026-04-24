@@ -2,7 +2,8 @@ use crate::app::{
     App,
     helpers::block_title_helper,
     keybindings::{Action, count_largest_group},
-    widgets::{BoardWidget, KeybindingsWidget},
+    states::skirmish_states::{structures::Structure, units::Unit},
+    widgets::{BoardWidget, KeybindingsWidget, SidePanelWidget},
 };
 use ratatui::{
     buffer::Buffer,
@@ -29,6 +30,7 @@ const ACTIONS: &[Action] = &[
     Action::Backspace,
     Action::Delete,
     Action::Mute,
+    Action::Tab,
     Action::Quit,
     Action::Quit2,
     Action::Esc,
@@ -41,6 +43,16 @@ pub fn skirmish_layout(area: Rect) -> [Rect; 3] {
         Constraint::Length(count_largest_group(&ACTIONS) + 2),
     ])
     .areas(area)
+}
+
+pub fn skirmish_main_area_layout(area: Rect, side_panel: bool) -> [Rect; 2] {
+    let constraint: [Constraint; 2] = if side_panel {
+        [Constraint::Percentage(80), Constraint::Percentage(20)]
+    } else {
+        [Constraint::Percentage(100), Constraint::Percentage(0)]
+    };
+
+    Layout::horizontal(constraint).areas(area)
 }
 
 pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
@@ -80,16 +92,22 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
     }
 
     {
-        let board_block: Block = Block::new()
+        let main_block: Block = Block::new()
             .gray()
             .title(block_title_helper(
-                &[("Skirmish", Color::Magenta), ("Map", Color::Green)],
+                &[
+                    ("Skirmish".to_string(), Color::Magenta),
+                    ("Map".to_string(), Color::Green),
+                ],
                 Some(" - "),
             ))
             .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT);
 
-        let board_area: Rect = board_block.inner(main_area);
-        board_block.render(main_area, buf);
+        let main_inner_area: Rect = main_block.inner(main_area);
+        main_block.render(main_area, buf);
+
+        let [board_area, side_panel_area] =
+            skirmish_main_area_layout(main_inner_area, states.skirmish.side_panel);
 
         let cells_area: Rect = board_area.inner(Margin {
             horizontal: 1,
@@ -105,6 +123,26 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         // );
 
         BoardWidget::new(&states.skirmish.board).render(cells_area, buf);
+
+        if states.skirmish.side_panel {
+            let row: usize = states.skirmish.board.get_focused_cell().get_row();
+            let col: usize = states.skirmish.board.get_focused_cell().get_col();
+            let coords: (usize, usize) = (row, col);
+            let structure_name: &str = states
+                .skirmish
+                .board
+                .get_ref_cell(row, col)
+                .get_structure()
+                .get_name();
+            let unit_name: &str = states
+                .skirmish
+                .board
+                .get_ref_cell(row, col)
+                .get_unit_option()
+                .get_name();
+
+            SidePanelWidget::new(coords, structure_name, unit_name).render(side_panel_area, buf);
+        }
     }
 
     {

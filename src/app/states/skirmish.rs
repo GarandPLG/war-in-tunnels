@@ -6,6 +6,7 @@ pub struct SkirmishState {
     pub id: usize,
     pub name: &'static str,
     pub board: BoardState,
+    pub side_panel: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]

@@ -115,9 +115,13 @@ impl Widget for KeybindingsWidget {
             return;
         }
 
-        let block: Block<'_> = Block::default()
-            .borders(Borders::ALL)
-            .title(block_single_title_helper("Keybindings", Color::Magenta));
+        let block: Block<'_> =
+            Block::default()
+                .borders(Borders::ALL)
+                .title(block_single_title_helper(
+                    "Keybindings".to_string(),
+                    Color::Magenta,
+                ));
 
         let inner: Rect = block.inner(area);
 

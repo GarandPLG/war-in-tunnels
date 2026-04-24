@@ -32,7 +32,9 @@ impl GameStates {
                     args.map_width as usize,
                     args.map_height as usize,
                     args.zoom_level,
+                    false,
                 ),
+                side_panel: false,
             },
             perk_decks: PerkDecksState {
                 id: 2,

@@ -3,11 +3,13 @@ use crate::app::{
     keybindings::{Action, common_keybindings, event_to_action},
     states::skirmish_states::{BoardState, MoveFocusedCell, ZoomLevel},
 };
-use ratatui::crossterm::event::KeyEvent;
+use ratatui::{crossterm::event::KeyEvent, layout::Rect};
 
 pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
     if let Some(action) = event_to_action(&key_event) {
         common_keybindings(app, action);
+
+        let window_area: Rect = app.window_area;
 
         let Some(states) = app.states_mut() else {
             return;
@@ -85,6 +87,10 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
             Action::Delete => {
                 board.marking_cells = false;
                 board.clear_marked_cells()
+            }
+            Action::Tab => {
+                states.skirmish.side_panel = !states.skirmish.side_panel;
+                board.change_resize(&window_area, states.skirmish.side_panel);
             }
             _ => (),
         }

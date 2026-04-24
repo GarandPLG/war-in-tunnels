@@ -33,8 +33,14 @@ pub struct BoardState {
 }
 
 impl BoardState {
-    pub fn new(area: &Rect, map_width: usize, map_height: usize, zoom_level: ZoomLevel) -> Self {
-        let cells_area: Rect = cells_area_helper(area);
+    pub fn new(
+        area: &Rect,
+        map_width: usize,
+        map_height: usize,
+        zoom_level: ZoomLevel,
+        side_panel: bool,
+    ) -> Self {
+        let cells_area: Rect = cells_area_helper(area, side_panel);
 
         let cell_width: usize = zoom_level.get_cell_size(CellSizes::Width);
         let cell_height: usize = zoom_level.get_cell_size(CellSizes::Height);
@@ -114,6 +120,10 @@ impl BoardState {
         }
     }
 
+    pub fn get_ref_cell(&self, row: usize, col: usize) -> &CellWidget {
+        &self.cells[row][col]
+    }
+
     fn get_mut_cell(&mut self, row: usize, col: usize) -> &mut CellWidget {
         &mut self.cells[row][col]
     }
@@ -188,6 +198,10 @@ impl BoardState {
         if map_size > size { map_size - size } else { 0 }
     }
 
+    pub fn get_focused_cell(&self) -> &FocusedCell {
+        &self.focused_cell
+    }
+
     pub fn is_focused_cell_visible(&self) -> bool {
         let vertical_offset: usize = self.vertical_offset.get_value();
         let horizontal_offset: usize = self.horizontal_offset.get_value();
@@ -209,14 +223,14 @@ impl BoardState {
         true
     }
 
-    pub fn change_resize(&mut self, area: &Rect) {
-        self.cells_area = cells_area_helper(area);
+    pub fn change_resize(&mut self, area: &Rect, side_panel: bool) {
+        self.cells_area = cells_area_helper(area, side_panel);
 
         self.cols = (self.cells_area.width / self.cell_width as u16) as usize;
         self.rows = (self.cells_area.height / self.cell_height as u16) as usize;
 
-        let h_max_offset: usize = Self::max_offset(self.map_height, self.cols);
-        let v_max_offset: usize = Self::max_offset(self.map_width, self.rows);
+        let v_max_offset: usize = Self::max_offset(self.map_height, self.rows);
+        let h_max_offset: usize = Self::max_offset(self.map_width, self.cols);
 
         self.horizontal_offset =
             Offset::new(Some(self.horizontal_offset.get_value()), Some(h_max_offset));

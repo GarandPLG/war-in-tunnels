@@ -60,7 +60,10 @@ impl App {
                     let Some(state) = self.states_mut() else {
                         panic!("State issue")
                     };
-                    state.skirmish.board.change_resize(&window_area);
+                    state
+                        .skirmish
+                        .board
+                        .change_resize(&window_area, state.skirmish.side_panel);
                 }
             }
         }

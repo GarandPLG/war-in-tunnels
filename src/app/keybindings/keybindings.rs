@@ -43,6 +43,10 @@ pub enum Action {
     ZoomIn,
     /// Zoom the view out.
     ZoomOut,
+    /// Open side panel.
+    Tab,
+    /// Toggle skirmish board/skills view.
+    ShiftTab,
     /// Mute music.
     Mute,
     /// Volume up.
@@ -71,6 +75,8 @@ pub enum Group {
     Zoom,
     /// Music related bindings.
     Music,
+    /// Opens/Closes/Toggles elements in current view.
+    Opener,
     /// Quit related bindings.
     Quit,
 }
@@ -281,6 +287,24 @@ static KEYBINDINGS: &[KeyBinding] = &[
         group: Group::Music,
         symbol: "n",
         description: "🔉",
+    },
+    KeyBinding {
+        action: Action::Tab,
+        code: KeyCode::Tab,
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Opener,
+        symbol: "Tab",
+        description: "Toggle side panel",
+    },
+    KeyBinding {
+        action: Action::ShiftTab,
+        code: KeyCode::Tab,
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::SHIFT,
+        group: Group::Opener,
+        symbol: "Shift + Tab",
+        description: "Toggle Map/Skills window",
     },
     KeyBinding {
         action: Action::WildCard('_'),

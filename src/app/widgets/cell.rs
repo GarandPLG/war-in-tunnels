@@ -1,14 +1,14 @@
 use crate::app::states::skirmish_states::{
     ZoomLevel,
-    structures::{Stone, Structures},
-    units::{OptionalUnit, Units},
+    structures::{Stone, Structure, Structures},
+    units::{Unit, Units},
 };
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span, ToSpan},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, BorderType, Borders, Paragraph, Widget},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -50,6 +50,14 @@ impl CellWidget {
     pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) -> &mut Self {
         self.zoom_level = zoom_level;
         self
+    }
+
+    pub fn get_structure(&self) -> Structures {
+        self.structure
+    }
+
+    pub fn get_unit_option(&self) -> Option<Units> {
+        self.unit
     }
 
     pub fn set_structure(&mut self, sctructure: Structures) -> &mut Self {
@@ -102,7 +110,7 @@ impl CellWidget {
         self.zoom_level.get_cell_text_area(
             self.structure.get_tag(),
             self.structure.get_level(),
-            self.unit.try_get_tag(),
+            self.unit.get_tag(),
         )
     }
 
@@ -111,6 +119,7 @@ impl CellWidget {
             .borders(Borders::ALL)
             .style(Style::default().fg(self.fg_color()))
             .title(self.display_coords())
+            .border_type(BorderType::Rounded)
     }
 }
 

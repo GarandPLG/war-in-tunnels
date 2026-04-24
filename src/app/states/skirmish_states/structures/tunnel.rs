@@ -42,4 +42,8 @@ impl Structure for Tunnel {
     fn get_stress(&self) -> u8 {
         self.stress
     }
+
+    fn get_name(&self) -> &'static str {
+        "Tunnel"
+    }
 }
