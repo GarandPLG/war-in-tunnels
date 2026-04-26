@@ -56,12 +56,12 @@ impl CellWidget {
         self.structure
     }
 
-    pub fn get_unit_option(&self) -> Option<Units> {
+    pub fn get_option_unit(&self) -> Option<Units> {
         self.unit
     }
 
-    pub fn set_structure(&mut self, sctructure: Structures) -> &mut Self {
-        self.structure = sctructure;
+    pub fn set_structure(&mut self, structure: Structures) -> &mut Self {
+        self.structure = structure;
         self
     }
 

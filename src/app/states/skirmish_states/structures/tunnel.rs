@@ -4,6 +4,7 @@ use ratatui::style::Color;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Tunnel {
     durability: u16,
+    max_durability: u16,
     stress: u8,
     roof_support: bool,
     rail: bool,
@@ -14,6 +15,7 @@ impl Tunnel {
     pub fn new() -> Self {
         Self {
             durability: 500,
+            max_durability: 500,
             stress: 25,
             roof_support: false,
             rail: false,
@@ -37,6 +39,10 @@ impl Structure for Tunnel {
 
     fn get_durability(&self) -> u16 {
         self.durability
+    }
+
+    fn get_max_durability(&self) -> u16 {
+        self.max_durability
     }
 
     fn get_stress(&self) -> u8 {

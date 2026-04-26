@@ -40,6 +40,10 @@ impl Structure for Structures {
         self.structure().get_durability()
     }
 
+    fn get_max_durability(&self) -> u16 {
+        self.structure().get_max_durability()
+    }
+
     fn get_stress(&self) -> u8 {
         self.structure().get_stress()
     }

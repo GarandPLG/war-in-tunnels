@@ -6,5 +6,6 @@ pub trait Structure {
     fn get_level(&self) -> char;
     fn get_stress(&self) -> u8;
     fn get_durability(&self) -> u16;
+    fn get_max_durability(&self) -> u16;
     fn get_name(&self) -> &'static str;
 }

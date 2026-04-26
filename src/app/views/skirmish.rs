@@ -2,7 +2,7 @@ use crate::app::{
     App,
     helpers::block_title_helper,
     keybindings::{Action, count_largest_group},
-    states::skirmish_states::{structures::Structure, units::Unit},
+    states::skirmish_states::BoardState,
     widgets::{BoardWidget, KeybindingsWidget, SidePanelWidget},
 };
 use ratatui::{
@@ -57,6 +57,7 @@ pub fn skirmish_main_area_layout(area: Rect, side_panel: bool) -> [Rect; 2] {
 
 pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
     let Some(states) = app.states() else { return };
+    let board: &BoardState = &states.skirmish.board;
 
     let [title_area, main_area, keybindings_area] = skirmish_layout(area);
 
@@ -115,33 +116,25 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         });
         // .centered(
         //     Constraint::Length(
-        //         (states.skirmish.board.cell_width * states.skirmish.board.cols) as u16,
+        //         (board.cell_width * board.cols) as u16,
         //     ),
         //     Constraint::Length(
-        //         (states.skirmish.board.cell_height * states.skirmish.board.rows) as u16,
+        //         (board.cell_height * board.rows) as u16,
         //     ),
         // );
 
-        BoardWidget::new(&states.skirmish.board).render(cells_area, buf);
+        BoardWidget::new(&board).render(cells_area, buf);
 
         if states.skirmish.side_panel {
-            let row: usize = states.skirmish.board.get_focused_cell().get_row();
-            let col: usize = states.skirmish.board.get_focused_cell().get_col();
-            let coords: (usize, usize) = (row, col);
-            let structure_name: &str = states
-                .skirmish
-                .board
-                .get_ref_cell(row, col)
-                .get_structure()
-                .get_name();
-            let unit_name: &str = states
-                .skirmish
-                .board
-                .get_ref_cell(row, col)
-                .get_unit_option()
-                .get_name();
+            let row: usize = board.get_focused_cell().get_row();
+            let col: usize = board.get_focused_cell().get_col();
 
-            SidePanelWidget::new(coords, structure_name, unit_name).render(side_panel_area, buf);
+            SidePanelWidget::new(
+                (row, col),
+                &board.get_ref_cell(row, col).get_structure(),
+                &board.get_ref_cell(row, col).get_option_unit(),
+            )
+            .render(side_panel_area, buf);
         }
     }
 
