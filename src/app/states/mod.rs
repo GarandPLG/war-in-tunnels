@@ -9,5 +9,5 @@ pub use main_menu::MainMenuState;
 pub use perk_decks::{PerkDecks, PerkDecksState};
 pub use settings::SettingsState;
 pub use skills_config::SkillsConfigState;
-pub use skirmish::{GameMode, Players, SkirmishState};
+pub use skirmish::SkirmishState;
 pub use skirmish_states::{FocusedCell, Offset};

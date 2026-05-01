@@ -72,7 +72,7 @@ impl<'a> SidePanelWidget<'a> {
         let s: &Structures = self.structure;
         let durability: u16 = s.get_durability();
         let max_durability: u16 = s.get_max_durability();
-        let durability_percent: u16 = durability * 100 / max_durability;
+        let durability_percent: u32 = durability as u32 * 100u32 / max_durability as u32;
         let stress: u8 = s.get_stress();
         let level: char = s.get_level();
 

@@ -1,4 +1,4 @@
-use crate::app::states::{Players, skirmish_states::units::Unit};
+use crate::app::states::skirmish_states::{Players, units::Unit};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MinerUnit {

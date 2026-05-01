@@ -1,5 +1,8 @@
 use crate::app::{
-    states::{GameMode, PerkDecks, skirmish_states::ZoomLevel},
+    states::{
+        PerkDecks,
+        skirmish_states::{GameMode, ZoomLevel},
+    },
     threads::Soundtrack,
     view::View,
 };

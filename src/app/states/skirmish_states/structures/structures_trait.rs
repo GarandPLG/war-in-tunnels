@@ -1,3 +1,4 @@
+use crate::app::states::skirmish_states::Players;
 use ratatui::style::Color;
 
 pub trait Structure {
@@ -8,4 +9,5 @@ pub trait Structure {
     fn get_durability(&self) -> u16;
     fn get_max_durability(&self) -> u16;
     fn get_name(&self) -> &'static str;
+    fn get_owner(&self) -> Players;
 }

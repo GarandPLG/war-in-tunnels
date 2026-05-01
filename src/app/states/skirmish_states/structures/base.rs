@@ -1,4 +1,4 @@
-use crate::app::states::{Players, skirmish_states::structures::Structure};
+use crate::app::states::skirmish_states::{Players, structures::Structure};
 use ratatui::style::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -20,10 +20,6 @@ impl BaseBuilding {
             level: b'1',
         }
     }
-
-    pub fn get_owner(&self) -> Players {
-        self.owner
-    }
 }
 
 impl Structure for BaseBuilding {
@@ -35,6 +31,7 @@ impl Structure for BaseBuilding {
         match self.owner {
             Players::Player => Color::LightBlue,
             Players::Enemy => Color::LightRed,
+            Players::Unclaimed => Color::LightGreen,
         }
     }
 
@@ -56,5 +53,9 @@ impl Structure for BaseBuilding {
 
     fn get_name(&self) -> &'static str {
         "Base"
+    }
+
+    fn get_owner(&self) -> Players {
+        self.owner
     }
 }

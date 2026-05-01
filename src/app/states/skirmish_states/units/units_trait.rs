@@ -1,4 +1,4 @@
-use crate::app::states::Players;
+use crate::app::states::skirmish_states::Players;
 
 pub trait Unit {
     fn get_owner(&self) -> Players;

@@ -1,4 +1,4 @@
-use crate::app::states::{GameMode, PerkDecks};
+use crate::app::states::{PerkDecks, skirmish_states::GameMode};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SettingsState {

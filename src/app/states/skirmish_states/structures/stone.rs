@@ -1,4 +1,4 @@
-use crate::app::states::skirmish_states::structures::Structure;
+use crate::app::states::skirmish_states::{Players, structures::Structure};
 use ratatui::style::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -45,5 +45,9 @@ impl Structure for Stone {
 
     fn get_name(&self) -> &'static str {
         "Stone"
+    }
+
+    fn get_owner(&self) -> Players {
+        Players::Unclaimed
     }
 }

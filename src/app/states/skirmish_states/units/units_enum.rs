@@ -1,6 +1,6 @@
-use crate::app::states::{
+use crate::app::states::skirmish_states::{
     Players,
-    skirmish_states::units::{MinerUnit, Unit},
+    units::{MinerUnit, Unit},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,6 +40,6 @@ impl Unit for Option<Units> {
     }
 
     fn get_owner(&self) -> Players {
-        self.map_or(Players::Enemy, |u| u.get_owner())
+        self.map_or(Players::Unclaimed, |u| u.get_owner())
     }
 }

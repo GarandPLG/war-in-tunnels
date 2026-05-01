@@ -1,4 +1,7 @@
-use crate::app::states::skirmish_states::structures::{BaseBuilding, Stone, Structure, Tunnel};
+use crate::app::states::skirmish_states::{
+    Players,
+    structures::{BaseBuilding, Stone, Structure, Tunnel},
+};
 use ratatui::style::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -46,5 +49,9 @@ impl Structure for Structures {
 
     fn get_stress(&self) -> u8 {
         self.structure().get_stress()
+    }
+
+    fn get_owner(&self) -> Players {
+        self.structure().get_owner()
     }
 }

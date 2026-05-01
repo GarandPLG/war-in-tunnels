@@ -1,9 +1,9 @@
 use crate::app::{
     helpers::cells_area_helper,
     states::{
-        FocusedCell, Offset, Players,
+        FocusedCell, Offset,
         skirmish_states::{
-            CellSizes, MoveFocusedCell, ZoomLevel,
+            CellSizes, MoveFocusedCell, Players, ZoomLevel,
             structures::{BaseBuilding, Stone, Structures},
             units::{MinerUnit, Units},
         },
