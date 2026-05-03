@@ -35,6 +35,7 @@ impl GameStates {
                     false,
                 ),
                 side_panel: false,
+                turn_counter: 0,
             },
             perk_decks: PerkDecksState {
                 id: 2,

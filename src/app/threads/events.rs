@@ -1,29 +1,20 @@
-use ratatui::crossterm::event::KeyEvent;
-use ratatui::crossterm::event::{Event, read};
+use ratatui::crossterm::event::{Event, KeyEvent, read};
 use std::sync::mpsc::Sender;
 
-pub enum AppEvent {
-    Input(KeyEvent),
-    Resize(u16, u16),
-}
-
-/// Reads *all* crossterm events and forwards the ones we care about.
-pub fn handle_events(tx: Sender<AppEvent>) {
+pub fn handle_ct_events(input_tx: Sender<KeyEvent>, resize_tx: Sender<(u16, u16)>) {
     loop {
         match read() {
-            Ok(ev) => match ev {
-                Event::Key(key) => {
-                    if tx.send(AppEvent::Input(key)).is_err() {
-                        break;
-                    }
+            Ok(Event::Key(k)) => {
+                if input_tx.send(k).is_err() {
+                    break;
                 }
-                Event::Resize(cols, rows) => {
-                    if tx.send(AppEvent::Resize(cols, rows)).is_err() {
-                        break;
-                    }
+            }
+            Ok(Event::Resize(cols, rows)) => {
+                if resize_tx.send((cols, rows)).is_err() {
+                    break;
                 }
-                _ => {}
-            },
+            }
+            Ok(_) => {}
             Err(_) => continue,
         }
     }
