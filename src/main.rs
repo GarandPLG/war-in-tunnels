@@ -10,11 +10,13 @@ use std::{
 use war_in_tunnels::{
     app::{
         App,
-        threads::{AppEvent, AudioCmd, handle_audio, handle_events},
+        threads::{AppEvent, AudioCmd, handle_audio, handle_events, spawn_tick_thread},
     },
     cli::{Cli, get_args},
     logs::init_logger,
 };
+
+const TICK_MS: u64 = 33;
 
 /// Starts the terminal UI application.
 ///
@@ -34,7 +36,11 @@ fn main() -> Result<()> {
     // });
 
     thread::spawn(move || {
-        handle_events(app_event_tx);
+        handle_events(app_event_tx.clone());
+    });
+
+    thread::spawn(move || {
+        spawn_tick_thread(app_event_tx, TICK_MS);
     });
 
     let (audio_tx, audio_rx) = channel::<AudioCmd>();

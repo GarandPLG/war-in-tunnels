@@ -65,6 +65,7 @@ impl App {
                         .board
                         .change_resize(&window_area, state.skirmish.side_panel);
                 }
+                AppEvent::Tick => self.update()?,
             }
         }
 
@@ -88,6 +89,13 @@ impl App {
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         handle_keybindings(self, key_event);
+        Ok(())
+    }
+
+    fn update(&mut self) -> Result<()> {
+        if let Some(state) = self.states_mut() {
+            state.skirmish.update(&self.args);
+        }
         Ok(())
     }
 }

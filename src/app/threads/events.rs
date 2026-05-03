@@ -5,6 +5,7 @@ use std::sync::mpsc::Sender;
 pub enum AppEvent {
     Input(KeyEvent),
     Resize(u16, u16),
+    Tick,
 }
 
 /// Reads *all* crossterm events and forwards the ones we care about.
