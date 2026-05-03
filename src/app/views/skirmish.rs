@@ -72,7 +72,8 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
                     "Skills points: {} ({}/{}) | ",
                     1, 20, states.settings.skill_points_limit
                 ),
-                format!("Perk Deck: {}/9", 5),
+                format!("Perk Deck: {}/9 | ", 5),
+                format!("Tick: {}", states.skirmish.turn_counter),
             ]),
         ]);
 

@@ -1,17 +1,13 @@
 use crate::{
     app::{
         GameStates, handle_keybindings,
-        threads::{AppEvent, AudioCmd},
+        threads::{AppChannels, AudioCmd},
         view::View,
     },
     cli::Cli,
 };
 use ratatui::{DefaultTerminal, Frame, crossterm::event::KeyEvent, layout::Rect};
-use std::{
-    io::Result,
-    sync::mpsc::{Receiver, RecvTimeoutError, Sender},
-    time::Duration,
-};
+use std::{io::Result, sync::mpsc::Sender, thread::sleep, time::Duration};
 
 pub struct App {
     pub exit: bool,
@@ -42,31 +38,29 @@ impl App {
         self.states.as_mut()
     }
 
-    pub fn run(&mut self, terminal: &mut DefaultTerminal, rx: Receiver<AppEvent>) -> Result<()> {
+    pub fn run(&mut self, terminal: &mut DefaultTerminal, channels: AppChannels) -> Result<()> {
         while !self.exit {
             terminal.draw(|frame: &mut Frame<'_>| self.draw(frame))?;
 
-            let event = match rx.recv_timeout(Duration::from_millis(100)) {
-                Ok(ev) => ev,
-                Err(RecvTimeoutError::Timeout) => {
-                    continue;
-                }
-                Err(_) => break,
-            };
-            match event {
-                AppEvent::Input(key_event) => self.handle_key_event(key_event)?,
-                AppEvent::Resize(_, _) => {
-                    let window_area: Rect = self.window_area;
-                    let Some(state) = self.states_mut() else {
-                        panic!("State issue")
-                    };
+            if let Ok(key) = channels.input_rx.try_recv() {
+                self.handle_key_event(key)?;
+            }
+
+            if let Ok((_, _)) = channels.resize_rx.try_recv() {
+                let window_area: Rect = self.window_area;
+                if let Some(state) = self.states_mut() {
                     state
                         .skirmish
                         .board
                         .change_resize(&window_area, state.skirmish.side_panel);
                 }
-                AppEvent::Tick => self.update()?,
             }
+
+            if let Ok(()) = channels.tick_rx.try_recv() {
+                self.update()?;
+            }
+
+            sleep(Duration::from_millis(10));
         }
 
         Ok(())
@@ -94,8 +88,9 @@ impl App {
 
     fn update(&mut self) -> Result<()> {
         if let Some(state) = self.states_mut() {
-            state.skirmish.update(&self.args);
+            state.skirmish.tick_update();
         }
+
         Ok(())
     }
 }

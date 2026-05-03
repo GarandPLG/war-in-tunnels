@@ -1,10 +1,13 @@
-use crate::app::{
-    states::{
-        PerkDecks,
-        skirmish_states::{GameMode, ZoomLevel},
+use crate::{
+    app::{
+        states::{
+            PerkDecks,
+            skirmish_states::{GameMode, ZoomLevel},
+        },
+        threads::Soundtrack,
+        view::View,
     },
-    threads::Soundtrack,
-    view::View,
+    logs::init_logger,
 };
 use clap::{Error, Parser, error::ErrorKind, value_parser};
 use std::num::ParseFloatError;
@@ -15,7 +18,7 @@ use std::num::ParseFloatError;
 /// The `clap` attributes describe the flag name, help text, default value,
 /// and any validation constraints.  The struct derives `Parser` so that
 /// `Cli::parse()` can be called directly to obtain a populated instance.
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(version, about = "War in Tunnels", long_about = "War in Tunnels")]
 pub struct Cli {
     /// The initial view/window to display.
@@ -169,7 +172,13 @@ pub struct Cli {
 /// handles argument validation and displays helpful error messages if
 /// the user supplies invalid input.
 pub fn get_args() -> Cli {
-    Cli::parse()
+    let args: Cli = Cli::parse();
+
+    if args.log {
+        init_logger();
+    }
+
+    args
 }
 
 /// Parses a string into a floating‑point XP modifier and validates that it

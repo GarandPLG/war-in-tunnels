@@ -1,4 +1,4 @@
-use crate::{app::states::skirmish_states::BoardState, cli::Cli};
+use crate::app::states::skirmish_states::BoardState;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SkirmishState {
@@ -10,8 +10,8 @@ pub struct SkirmishState {
 }
 
 impl SkirmishState {
-    pub fn update(&mut self, cli: &Cli) {
-        self.board.advance_turn();
+    pub fn tick_update(&mut self) {
+        // self.board.advance_turn();
 
         // if self.board.is_victory() {}
 
