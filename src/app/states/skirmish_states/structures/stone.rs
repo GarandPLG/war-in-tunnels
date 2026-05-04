@@ -4,7 +4,6 @@ use ratatui::style::Color;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Stone {
     durability: u16,
-    max_durability: u16,
     stress: u8,
 }
 
@@ -12,7 +11,6 @@ impl Stone {
     pub fn new() -> Self {
         Self {
             durability: 1000,
-            max_durability: 1000,
             stress: 0,
         }
     }
@@ -36,7 +34,7 @@ impl Structure for Stone {
     }
 
     fn get_max_durability(&self) -> u16 {
-        self.max_durability
+        1000
     }
 
     fn get_stress(&self) -> u8 {

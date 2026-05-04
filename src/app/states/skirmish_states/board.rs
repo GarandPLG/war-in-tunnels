@@ -4,7 +4,7 @@ use crate::app::{
         FocusedCell, Offset,
         skirmish_states::{
             CellSizes, MoveFocusedCell, Players, ZoomLevel,
-            structures::{BaseBuilding, Stone, Structures},
+            structures::{BaseBuilding, Ore, Stone, Structures},
             units::{MinerUnit, Units},
         },
     },
@@ -58,12 +58,12 @@ impl BoardState {
         let horizontal_offset: Offset = Offset::new(None, Some(h_max_offset));
 
         let focused_cell: FocusedCell =
-            FocusedCell::new((map_height) / 2, 2, map_height, map_width);
+            FocusedCell::new((map_height) / 2, 3, map_height, map_width);
 
         let mut cells: Vec<Vec<CellWidget>> = Vec::new();
 
-        let player_base_coords: (usize, usize) = ((map_height) / 2, 1);
-        let enemy_base_coords: (usize, usize) = ((map_height) / 2, map_width - 2);
+        let player_base_coords: (usize, usize) = ((map_height) / 2, 2);
+        let enemy_base_coords: (usize, usize) = ((map_height) / 2, map_width - 3);
 
         for row in 0..map_height {
             let mut rows: Vec<CellWidget> = Vec::new();
@@ -71,12 +71,19 @@ impl BoardState {
             for col in 0..map_width {
                 let selected: bool = row == focused_cell.get_row() && col == focused_cell.get_col();
                 let player_base: bool = row == player_base_coords.0 && col == player_base_coords.1;
+                let player_ore: bool =
+                    row == player_base_coords.0 && col == player_base_coords.1 - 1;
                 let enemy_base: bool = row == enemy_base_coords.0 && col == enemy_base_coords.1;
+                let enemy_ore: bool = row == enemy_base_coords.0 && col == enemy_base_coords.1 + 1;
 
                 let structure: Structures = if player_base {
                     Structures::Base(BaseBuilding::new(Players::Player))
                 } else if enemy_base {
                     Structures::Base(BaseBuilding::new(Players::Enemy))
+                } else if player_ore {
+                    Structures::Ore(Ore::new(Players::Player))
+                } else if enemy_ore {
+                    Structures::Ore(Ore::new(Players::Enemy))
                 } else {
                     Structures::Stone(Stone::new())
                 };

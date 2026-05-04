@@ -4,8 +4,8 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub fn handle_tick_event(tx: Sender<()>, interval_ms: u8) {
-    let interval: Duration = Duration::from_millis(interval_ms as u64);
+pub fn handle_tick_event(tx: Sender<()>, tick_ms: u8) {
+    let interval: Duration = Duration::from_millis(tick_ms as u64);
     loop {
         if tx.send(()).is_err() {
             break;

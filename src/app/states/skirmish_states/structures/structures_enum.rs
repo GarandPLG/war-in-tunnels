@@ -1,6 +1,6 @@
 use crate::app::states::skirmish_states::{
     Players,
-    structures::{BaseBuilding, Stone, Structure, Tunnel},
+    structures::{BaseBuilding, Ore, Stone, Structure, Tunnel},
 };
 use ratatui::style::Color;
 
@@ -9,6 +9,7 @@ pub enum Structures {
     Base(BaseBuilding),
     Tunnel(Tunnel),
     Stone(Stone),
+    Ore(Ore),
 }
 
 impl Structures {
@@ -18,6 +19,7 @@ impl Structures {
             Self::Base(b) => b,
             Self::Tunnel(t) => t,
             Self::Stone(s) => s,
+            Self::Ore(o) => o,
         }
     }
 }

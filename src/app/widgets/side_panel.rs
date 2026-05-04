@@ -68,6 +68,7 @@ impl<'a> SidePanelWidget<'a> {
         }
     }
 
+    // TODO: Relocate this to Structure trait implementations
     fn structure_text(&self) -> Vec<Line<'_>> {
         let s: &Structures = self.structure;
         let durability: u16 = s.get_durability();
@@ -99,6 +100,7 @@ impl<'a> SidePanelWidget<'a> {
         lines
     }
 
+    // TODO: Relocate this to Unit trait implementations
     fn unit_text(&self) -> Vec<Line<'_>> {
         let u: &Option<Units> = self.unit;
         let owner: Span<'_> = u.get_owner().get_span();
