@@ -1,14 +1,13 @@
 use ratatui::{Terminal, crossterm::event::KeyEvent, prelude::CrosstermBackend};
 use std::{
     io::{Result, Stdout},
-    mem::replace,
-    sync::mpsc::{Receiver, Sender, channel},
+    sync::mpsc::channel,
     thread,
 };
 use war_in_tunnels::{
     app::{
         App,
-        threads::{AppChannels, AudioCmd, handle_audio, handle_ct_events, handle_tick_event},
+        threads::{AudioCmd, handle_audio, handle_ct_events, handle_tick_event},
     },
     cli::{Cli, get_args},
 };
@@ -23,24 +22,21 @@ const TICK_MS: u8 = 33;
 fn main() -> Result<()> {
     let args: Cli = get_args();
 
-    let mut channels: AppChannels = AppChannels::new();
+    let (input_tx, input_rx) = channel::<KeyEvent>();
+    let (resize_tx, resize_rx) = channel::<(u16, u16)>();
+    let (tick_tx, tick_rx) = channel::<()>();
+    let (audio_tx, audio_rx) = channel::<AudioCmd>();
 
-    let input_tx: Sender<KeyEvent> = channels.input_tx.clone();
-    let resize_tx: Sender<(u16, u16)> = channels.resize_tx.clone();
     thread::spawn(move || handle_ct_events(input_tx, resize_tx));
-
-    let tick_tx: Sender<()> = channels.tick_tx.clone();
     thread::spawn(move || handle_tick_event(tick_tx, TICK_MS));
-
-    let audio_rx: Receiver<AudioCmd> = replace(&mut channels.audio_rx, channel().1);
     thread::spawn(move || {
-        handle_audio(audio_rx, args.mute, args.sound_track);
+        handle_audio(audio_rx, args.mute, args.soundtrack);
     });
 
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
-    let mut app: App = App::new(args, channels.audio_tx.clone());
+    let mut app: App = App::new(args, audio_tx);
 
-    let app_result: Result<()> = app.run(&mut terminal, channels);
+    let app_result: Result<()> = app.run(&mut terminal, input_rx, resize_rx, tick_rx);
 
     ratatui::restore();
 

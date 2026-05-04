@@ -1,13 +1,14 @@
 use crate::{
-    app::{
-        GameStates, handle_keybindings,
-        threads::{AppChannels, AudioCmd},
-        view::View,
-    },
+    app::{GameStates, handle_keybindings, threads::AudioCmd, view::View},
     cli::Cli,
 };
 use ratatui::{DefaultTerminal, Frame, crossterm::event::KeyEvent, layout::Rect};
-use std::{io::Result, sync::mpsc::Sender, thread::sleep, time::Duration};
+use std::{
+    io::Result,
+    sync::mpsc::{Receiver, Sender},
+    thread::sleep,
+    time::Duration,
+};
 
 pub struct App {
     pub exit: bool,
@@ -38,15 +39,21 @@ impl App {
         self.states.as_mut()
     }
 
-    pub fn run(&mut self, terminal: &mut DefaultTerminal, channels: AppChannels) -> Result<()> {
+    pub fn run(
+        &mut self,
+        terminal: &mut DefaultTerminal,
+        input_rx: Receiver<KeyEvent>,
+        resize_rx: Receiver<(u16, u16)>,
+        tick_rx: Receiver<()>,
+    ) -> Result<()> {
         while !self.exit {
             terminal.draw(|frame: &mut Frame<'_>| self.draw(frame))?;
 
-            if let Ok(key) = channels.input_rx.try_recv() {
+            if let Ok(key) = input_rx.try_recv() {
                 self.handle_key_event(key)?;
             }
 
-            if let Ok((_, _)) = channels.resize_rx.try_recv() {
+            if let Ok((_, _)) = resize_rx.try_recv() {
                 let window_area: Rect = self.window_area;
                 if let Some(state) = self.states_mut() {
                     state
@@ -56,7 +63,7 @@ impl App {
                 }
             }
 
-            if let Ok(()) = channels.tick_rx.try_recv() {
+            if let Ok(()) = tick_rx.try_recv() {
                 self.update()?;
             }
 

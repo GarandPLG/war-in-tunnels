@@ -148,7 +148,7 @@ pub struct Cli {
             default_value_t = Soundtrack::Default,
             value_enum
         )]
-    pub sound_track: Soundtrack,
+    pub soundtrack: Soundtrack,
 
     /// Mute soundtrack (default: disabled).
     #[arg(
