@@ -42,4 +42,8 @@ impl Unit for Option<Units> {
     fn get_owner(&self) -> Players {
         self.map_or(Players::Unclaimed, |u| u.get_owner())
     }
+
+    fn is_unit(&self) -> bool {
+        self.map_or(false, |u| u.is_unit())
+    }
 }

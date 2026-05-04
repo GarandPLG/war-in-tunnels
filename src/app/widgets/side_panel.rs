@@ -8,8 +8,7 @@ use crate::app::{
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Margin, Rect},
-    style::{Color, Stylize},
-    text::{Line, Span},
+    style::Color,
     widgets::{Block, BorderType, Borders, Padding, Paragraph, Widget},
 };
 
@@ -61,51 +60,11 @@ impl<'a> SidePanelWidget<'a> {
     }
 
     fn get_area_constraints(&self) -> [Constraint; 2] {
-        if !self.unit.get_name().is_empty() {
+        if self.unit.is_unit() {
             [Constraint::Percentage(50), Constraint::Percentage(50)]
         } else {
             [Constraint::Percentage(100), Constraint::Percentage(0)]
         }
-    }
-
-    // TODO: Relocate this to Structure trait implementations
-    fn structure_text(&self) -> Vec<Line<'_>> {
-        let s: &Structures = self.structure;
-        let durability: u16 = s.get_durability();
-        let max_durability: u16 = s.get_max_durability();
-        let durability_percent: u32 = durability as u32 * 100u32 / max_durability as u32;
-        let stress: u8 = s.get_stress();
-        let level: char = s.get_level();
-
-        let mut lines: Vec<Line<'_>> = vec![
-            Line::from_iter([
-                "Durability: ".gray(),
-                durability.to_string().cyan(),
-                "/".gray(),
-                max_durability.to_string().cyan(),
-                " ( ".gray(),
-                durability_percent.to_string().cyan(),
-                "% )".gray(),
-            ]),
-            Line::from_iter(["Stress: ".gray(), stress.to_string().cyan(), "%".gray()]),
-        ];
-
-        if level != ' ' {
-            lines.push(Line::from_iter([
-                "Level: ".gray(),
-                level.to_string().cyan(),
-            ]));
-        }
-
-        lines
-    }
-
-    // TODO: Relocate this to Unit trait implementations
-    fn unit_text(&self) -> Vec<Line<'_>> {
-        let u: &Option<Units> = self.unit;
-        let owner: Span<'_> = u.get_owner().get_span();
-
-        vec![Line::from_iter(vec!["Owner: ".gray(), owner])]
     }
 }
 
@@ -121,13 +80,13 @@ impl Widget for SidePanelWidget<'_> {
         let [structure_area, unit_area] =
             Layout::vertical(self.get_area_constraints()).areas(inner_area);
 
-        Paragraph::new(self.structure_text())
+        Paragraph::new(self.structure.text())
             .alignment(Alignment::Left)
             .block(self.get_inner_block(self.structure.get_name().to_string(), Color::Cyan))
             .render(structure_area, buf);
 
-        if !self.unit.get_name().is_empty() {
-            Paragraph::new(self.unit_text())
+        if self.unit.is_unit() {
+            Paragraph::new(self.unit.text())
                 .alignment(Alignment::Left)
                 .block(self.get_inner_block(self.unit.get_name().to_string(), Color::Green))
                 .render(unit_area, buf);

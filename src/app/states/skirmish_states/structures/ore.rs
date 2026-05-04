@@ -1,22 +1,26 @@
 use crate::app::states::skirmish_states::{Players, structures::Structure};
-use ratatui::style::Color;
+use ratatui::{
+    style::{Color, Stylize},
+    text::Line,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Ore {
     owner: Players,
     ore_amount: u16,
-    // ore_max_amount: u16,
     durability: u16,
     stress: u8,
+    level: u8,
 }
 
 impl Ore {
-    pub fn new(owner: Players) -> Self {
+    pub fn new(owner: Players, level: u8) -> Self {
         Self {
             owner,
-            ore_amount: 1000,
+            ore_amount: 5000,
             durability: 1000,
             stress: 0,
+            level,
         }
     }
 
@@ -25,7 +29,12 @@ impl Ore {
     }
 
     pub fn get_max_ore_amount(&self) -> u16 {
-        1000
+        5000
+    }
+
+    pub fn set_owner(&mut self, new_owner: Players) -> &mut Self {
+        self.owner = new_owner;
+        self
     }
 }
 
@@ -47,7 +56,11 @@ impl Structure for Ore {
     }
 
     fn get_level(&self) -> char {
-        ' '
+        if self.level != 0 {
+            (self.level + b'0') as char
+        } else {
+            ' '
+        }
     }
 
     fn get_max_durability(&self) -> u16 {
@@ -64,5 +77,18 @@ impl Structure for Ore {
 
     fn get_stress(&self) -> u8 {
         self.stress
+    }
+
+    fn text(&self) -> Vec<Line<'_>> {
+        let mut lines: Vec<Line<'_>> = Structure::base_text(self);
+
+        lines.push(Line::from_iter([
+            "Ore: ".gray(),
+            self.get_ore_amount().to_string().cyan(),
+            "/".gray(),
+            self.get_max_ore_amount().to_string().cyan(),
+        ]));
+
+        lines
     }
 }

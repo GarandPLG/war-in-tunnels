@@ -81,9 +81,9 @@ impl BoardState {
                 } else if enemy_base {
                     Structures::Base(BaseBuilding::new(Players::Enemy))
                 } else if player_ore {
-                    Structures::Ore(Ore::new(Players::Player))
+                    Structures::Ore(Ore::new(Players::Player, 1))
                 } else if enemy_ore {
-                    Structures::Ore(Ore::new(Players::Enemy))
+                    Structures::Ore(Ore::new(Players::Enemy, 1))
                 } else {
                     Structures::Stone(Stone::new())
                 };

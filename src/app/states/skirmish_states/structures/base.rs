@@ -15,7 +15,7 @@ impl BaseBuilding {
             durability: 1500,
             stress: 0,
             owner,
-            level: b'1',
+            level: 1,
         }
     }
 }
@@ -34,7 +34,7 @@ impl Structure for BaseBuilding {
     }
 
     fn get_level(&self) -> char {
-        self.level as char
+        (self.level + b'0') as char
     }
 
     fn get_durability(&self) -> u16 {

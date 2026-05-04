@@ -2,7 +2,7 @@ use crate::app::states::skirmish_states::{
     Players,
     structures::{BaseBuilding, Ore, Stone, Structure, Tunnel},
 };
-use ratatui::style::Color;
+use ratatui::{style::Color, text::Line};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Structures {
@@ -55,5 +55,9 @@ impl Structure for Structures {
 
     fn get_owner(&self) -> Players {
         self.structure().get_owner()
+    }
+
+    fn text(&self) -> Vec<Line<'_>> {
+        self.structure().text()
     }
 }
