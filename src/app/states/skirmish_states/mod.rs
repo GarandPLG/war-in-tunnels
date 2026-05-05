@@ -4,6 +4,7 @@ mod game_mode;
 mod offset;
 mod players;
 pub mod structures;
+pub mod tasks;
 pub mod units;
 pub mod zoom_level;
 

@@ -1,7 +1,7 @@
 mod miner;
+mod unit_trait;
 mod units_enum;
-mod units_trait;
 
 pub use miner::MinerUnit;
+pub use unit_trait::Unit;
 pub use units_enum::Units;
-pub use units_trait::Unit;
