@@ -12,7 +12,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Padding, Paragraph, Widget},
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SidePanelWidget<'a> {
     coords: (usize, usize),
     structure: &'a Structures,

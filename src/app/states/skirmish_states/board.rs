@@ -12,7 +12,7 @@ use crate::app::{
 };
 use ratatui::layout::Rect;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BoardState {
     cells_area: Rect,
     pub cell_width: usize,

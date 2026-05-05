@@ -27,7 +27,9 @@ fn main() -> Result<()> {
 
     thread::spawn(move || handle_ct_events(input_tx, resize_tx));
     thread::spawn(move || handle_tick_event(tick_tx));
-    thread::spawn(move || handle_audio(audio_rx, args.mute, args.soundtrack));
+    if !args.disable_audio {
+        thread::spawn(move || handle_audio(audio_rx, args.mute, args.soundtrack));
+    }
 
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
     let mut app: App = App::new(args, audio_tx);

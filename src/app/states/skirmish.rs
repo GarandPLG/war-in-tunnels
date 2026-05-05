@@ -1,6 +1,6 @@
 use crate::app::states::skirmish_states::BoardState;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SkirmishState {
     pub id: usize,
     pub name: &'static str,

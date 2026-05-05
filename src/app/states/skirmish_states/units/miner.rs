@@ -1,13 +1,21 @@
 use crate::app::states::skirmish_states::{Players, units::Unit};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MinerUnit {
     owner: Players,
+    hp: u16,
+    can_dig: bool,
+    digging_power: f32,
 }
 
 impl MinerUnit {
     pub fn new(owner: Players) -> Self {
-        Self { owner }
+        Self {
+            owner,
+            hp: 100,
+            can_dig: true,
+            digging_power: 0.55,
+        }
     }
 }
 
@@ -22,5 +30,21 @@ impl Unit for MinerUnit {
 
     fn get_name(&self) -> &'static str {
         "Miner"
+    }
+
+    fn get_hp(&self) -> u16 {
+        self.hp
+    }
+
+    fn get_max_hp(&self) -> u16 {
+        100
+    }
+
+    fn get_can_dig(&self) -> bool {
+        self.can_dig
+    }
+
+    fn get_digging_power(&self) -> f32 {
+        self.digging_power
     }
 }

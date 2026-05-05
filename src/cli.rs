@@ -150,6 +150,14 @@ pub struct Cli {
         )]
     pub soundtrack: Soundtrack,
 
+    /// Disable soundtrack (default: disabled).
+    #[arg(
+        long,
+        help = "Disable soundtrack (default: disable)",
+        default_value_t = false
+    )]
+    pub disable_audio: bool,
+
     /// Mute soundtrack (default: disabled).
     #[arg(
         long,

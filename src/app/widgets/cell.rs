@@ -11,7 +11,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph, Widget},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CellWidget {
     row: usize,
     col: usize,
