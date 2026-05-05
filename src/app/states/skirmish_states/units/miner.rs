@@ -1,4 +1,4 @@
-use crate::app::states::skirmish_states::{Players, units::Unit};
+use crate::app::states::skirmish_states::{Players, tasks::Tasks, units::Unit};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MinerUnit {
@@ -6,6 +6,7 @@ pub struct MinerUnit {
     hp: u16,
     can_dig: bool,
     digging_power: f32,
+    // tasks: Vec<Tasks>,
 }
 
 impl MinerUnit {
@@ -15,6 +16,7 @@ impl MinerUnit {
             hp: 100,
             can_dig: true,
             digging_power: 0.55,
+            // tasks: Vec::new(),
         }
     }
 }
