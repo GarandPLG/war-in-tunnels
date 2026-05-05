@@ -12,8 +12,6 @@ use war_in_tunnels::{
     cli::{Cli, get_args},
 };
 
-const TICK_MS: u8 = 33;
-
 /// Starts the terminal UI application.
 ///
 /// The function follows the steps outlined in the module‑level documentation.
@@ -28,7 +26,7 @@ fn main() -> Result<()> {
     let (audio_tx, audio_rx) = channel::<AudioCmd>();
 
     thread::spawn(move || handle_ct_events(input_tx, resize_tx));
-    thread::spawn(move || handle_tick_event(tick_tx, TICK_MS));
+    thread::spawn(move || handle_tick_event(tick_tx));
     thread::spawn(move || handle_audio(audio_rx, args.mute, args.soundtrack));
 
     let mut terminal: Terminal<CrosstermBackend<Stdout>> = ratatui::init();
