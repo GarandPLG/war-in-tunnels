@@ -53,7 +53,7 @@ impl<'a> SidePanelWidget<'a> {
 
     fn get_inner_block<'b>(&self, title: String, color: Color) -> Block<'b> {
         Block::default()
-            .borders(Borders::LEFT | Borders::TOP)
+            .borders(Borders::TOP)
             .title(block_single_title_helper(title, color))
             .title_alignment(Alignment::Center)
             .padding(Padding::symmetric(1, 1))

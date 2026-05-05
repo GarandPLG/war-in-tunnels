@@ -47,7 +47,7 @@ pub fn skirmish_layout(area: Rect) -> [Rect; 3] {
 
 pub fn skirmish_main_area_layout(area: Rect, side_panel: bool) -> [Rect; 2] {
     let constraint: [Constraint; 2] = if side_panel {
-        [Constraint::Percentage(80), Constraint::Percentage(20)]
+        [Constraint::Fill(1), Constraint::Length(39)]
     } else {
         [Constraint::Percentage(100), Constraint::Percentage(0)]
     };
