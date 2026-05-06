@@ -56,7 +56,10 @@ pub fn skirmish_main_area_layout(area: Rect, side_panel: bool) -> [Rect; 2] {
 }
 
 pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
-    let Some(states) = app.states() else { return };
+    let Some(states) = app.states_ref() else {
+        return;
+    };
+
     let board: &BoardState = &states.skirmish.board;
 
     let [title_area, main_area, keybindings_area] = skirmish_layout(area);

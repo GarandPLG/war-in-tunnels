@@ -10,16 +10,16 @@ use std::{
     time::Duration,
 };
 
-pub struct App {
+pub struct App<'a> {
     pub exit: bool,
     pub view: View,
     pub window_area: Rect,
     pub args: Cli,
-    pub states: Option<GameStates>,
+    pub states: Option<GameStates<'a>>,
     pub audio_tx: Sender<AudioCmd>,
 }
 
-impl App {
+impl<'a> App<'a> {
     pub fn new(args: Cli, audio_tx: Sender<AudioCmd>) -> Self {
         Self {
             exit: false,
@@ -31,11 +31,11 @@ impl App {
         }
     }
 
-    pub fn states(&self) -> Option<&GameStates> {
+    pub fn states_ref(&self) -> Option<&GameStates<'a>> {
         self.states.as_ref()
     }
 
-    pub fn states_mut(&mut self) -> Option<&mut GameStates> {
+    pub fn states_mut(&mut self) -> Option<&mut GameStates<'a>> {
         self.states.as_mut()
     }
 

@@ -3,7 +3,7 @@ use crate::app::{
     states::{
         FocusedCell, Offset,
         skirmish_states::{
-            CellSizes, MoveFocusedCell, Players, ZoomLevel,
+            CellSizes, MarkedCells, MoveFocusedCell, Players, ZoomLevel,
             structures::{BaseBuilding, Ore, Stone, Structures},
             units::{MinerUnit, Units},
         },
@@ -14,7 +14,7 @@ use ratatui::layout::Rect;
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct BoardState {
+pub struct BoardState<'a> {
     cells_area: Rect,
     pub cell_width: usize,
     pub cell_height: usize,
@@ -29,11 +29,12 @@ pub struct BoardState {
     focused_cell: FocusedCell,
     player_base_coords: (usize, usize),
     enemy_base_coords: (usize, usize),
-    pub marking_cells: bool,
-    marked_cells: VecDeque<(usize, usize)>,
+    // pub marking_cells: bool,
+    // marked_cells: VecDeque<(usize, usize)>,
+    pub marked_cells: MarkedCells<'a>,
 }
 
-impl BoardState {
+impl BoardState<'_> {
     pub fn new(
         area: &Rect,
         map_width: usize,
@@ -105,8 +106,7 @@ impl BoardState {
             cells.push(rows);
         }
 
-        let marking_cells: bool = false;
-        let marked_cells: VecDeque<(usize, usize)> = VecDeque::new();
+        let marked_cells: MarkedCells<'_> = MarkedCells::new();
 
         Self {
             cells_area,
@@ -123,7 +123,6 @@ impl BoardState {
             focused_cell,
             player_base_coords,
             enemy_base_coords,
-            marking_cells,
             marked_cells,
         }
     }
@@ -136,17 +135,22 @@ impl BoardState {
         &mut self.cells[row][col]
     }
 
-    pub fn get_marked_cells(&self) -> Vec<&CellWidget> {
+    pub fn get_marked_cells_widgets(&self) -> VecDeque<&CellWidget> {
         self.marked_cells
+            .marked_cells
             .iter()
             .map(move |&(row, col)| &self.cells[row][col])
             .collect()
     }
 
-    pub fn toggle_marking(&mut self) {
-        self.marking_cells = !self.marking_cells;
+    pub fn get_marked_cells(&self) -> VecDeque<(usize, usize)> {
+        self.marked_cells.marked_cells.clone()
+    }
 
-        if self.marking_cells {
+    pub fn toggle_marking(&mut self) {
+        self.marked_cells.marking_cells = !self.marked_cells.marking_cells;
+
+        if self.marked_cells.marking_cells {
             self.start_marking_cells();
         } else {
             self.clear_marked_cells();
@@ -160,17 +164,27 @@ impl BoardState {
             cell.set_marked(true);
         }
 
-        self.marked_cells.push_back((new_cell.0, new_cell.1));
+        self.marked_cells
+            .marked_cells
+            .push_back((new_cell.0, new_cell.1));
     }
 
     pub fn undo_marked_cell(&mut self) {
-        if self.marked_cells.len() < 2 {
+        if self.marked_cells.marked_cells.len() < 2 {
             return;
         }
 
-        let old: (usize, usize) = self.marked_cells[self.marked_cells.len() - 1];
-        let new: (usize, usize) = self.marked_cells[self.marked_cells.len() - 2];
-        let old_is_unique: bool = self.marked_cells.iter().filter(|x| **x == old).count() == 1;
+        let old: (usize, usize) =
+            self.marked_cells.marked_cells[self.marked_cells.marked_cells.len() - 1];
+        let new: (usize, usize) =
+            self.marked_cells.marked_cells[self.marked_cells.marked_cells.len() - 2];
+        let old_is_unique: bool = self
+            .marked_cells
+            .marked_cells
+            .iter()
+            .filter(|x| **x == old)
+            .count()
+            == 1;
 
         let old_cell: &mut CellWidget = self.get_mut_cell(old.0, old.1).set_selected(false);
         if old_is_unique {
@@ -179,7 +193,7 @@ impl BoardState {
 
         self.get_mut_cell(new.0, new.1).set_selected(true);
 
-        self.marked_cells.pop_back();
+        self.marked_cells.marked_cells.pop_back();
 
         self.focused_cell.set_focused_cell(new);
     }
@@ -191,15 +205,15 @@ impl BoardState {
         let cell: &mut CellWidget = self.get_mut_cell(row, col);
         cell.set_marked(true);
 
-        self.marked_cells.push_back((row, col));
+        self.marked_cells.marked_cells.push_back((row, col));
     }
 
     pub fn clear_marked_cells(&mut self) {
-        for (row, col) in self.marked_cells.clone() {
+        for (row, col) in self.marked_cells.marked_cells.clone() {
             self.get_mut_cell(row, col).set_marked(false);
         }
 
-        self.marked_cells.clear();
+        self.marked_cells.marked_cells.clear();
     }
 
     fn max_offset(map_size: usize, size: usize) -> usize {
@@ -285,7 +299,7 @@ impl BoardState {
             .set_selected(false);
         self.get_mut_cell(new_cell.0, new_cell.1).set_selected(true);
 
-        if self.marking_cells {
+        if self.marked_cells.marking_cells {
             self.set_marked_cell(new_cell);
         }
     }

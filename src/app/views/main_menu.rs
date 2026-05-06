@@ -33,7 +33,9 @@ fn main_menu_layout(area: Rect) -> [Rect; 2] {
 }
 
 pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
-    let Some(states) = app.states() else { return };
+    let Some(states) = app.states_ref() else {
+        return;
+    };
 
     let [main_menu_area, keybindings_area] = main_menu_layout(area);
 

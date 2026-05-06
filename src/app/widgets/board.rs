@@ -7,7 +7,7 @@ use ratatui::{
 use std::rc::Rc;
 
 pub struct BoardWidget<'a> {
-    state: &'a BoardState,
+    state: &'a BoardState<'a>,
 }
 
 impl<'a> BoardWidget<'a> {

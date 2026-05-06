@@ -13,7 +13,7 @@ pub enum View {
     SkillsConfig,
 }
 
-impl Widget for &mut App {
+impl Widget for &mut App<'_> {
     fn render(self, area: Rect, buf: &mut Buffer)
     where
         Self: Sized,
