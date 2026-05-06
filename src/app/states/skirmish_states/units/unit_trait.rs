@@ -40,7 +40,7 @@ pub trait Unit {
                 max_hp.green(),
                 " ( ".gray(),
                 hp_percent.green(),
-                "% )".green(),
+                "% )".gray(),
             ]),
         ]);
 

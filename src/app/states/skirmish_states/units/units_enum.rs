@@ -9,7 +9,7 @@ pub enum Units {
 }
 
 impl Units {
-    fn unit(&self) -> &dyn Unit {
+    fn u(&self) -> &dyn Unit {
         match self {
             Self::Miner(m) => m,
         }
@@ -18,31 +18,31 @@ impl Units {
 
 impl Unit for Units {
     fn get_tag(&self) -> char {
-        self.unit().get_tag()
+        self.u().get_tag()
     }
 
     fn get_name(&self) -> &'static str {
-        self.unit().get_name()
+        self.u().get_name()
     }
 
     fn get_owner(&self) -> Players {
-        self.unit().get_owner()
+        self.u().get_owner()
     }
 
     fn get_hp(&self) -> u16 {
-        self.unit().get_hp()
+        self.u().get_hp()
     }
 
     fn get_max_hp(&self) -> u16 {
-        self.unit().get_max_hp()
+        self.u().get_max_hp()
     }
 
     fn get_can_dig(&self) -> bool {
-        self.unit().get_can_dig()
+        self.u().get_can_dig()
     }
 
     fn get_digging_power(&self) -> f32 {
-        self.unit().get_digging_power()
+        self.u().get_digging_power()
     }
 }
 

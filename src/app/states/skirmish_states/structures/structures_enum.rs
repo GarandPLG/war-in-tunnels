@@ -17,7 +17,7 @@ pub enum Structures {
 
 impl Structures {
     #[inline]
-    fn structure(&self) -> &dyn Structure {
+    fn s(&self) -> &dyn Structure {
         match self {
             Self::Base(b) => b,
             Self::Tunnel(t) => t,
@@ -29,46 +29,50 @@ impl Structures {
 
 impl Structure for Structures {
     fn get_color(&self) -> Color {
-        self.structure().get_color()
+        self.s().get_color()
     }
 
     fn get_tag(&self) -> char {
-        self.structure().get_tag()
+        self.s().get_tag()
     }
 
     fn get_level(&self) -> char {
-        self.structure().get_level()
+        self.s().get_level()
     }
 
     fn get_name(&self) -> &'static str {
-        self.structure().get_name()
+        self.s().get_name()
     }
 
     fn get_durability(&self) -> u16 {
-        self.structure().get_durability()
+        self.s().get_durability()
     }
 
     fn get_max_durability(&self) -> u16 {
-        self.structure().get_max_durability()
+        self.s().get_max_durability()
     }
 
     fn get_stress(&self) -> u8 {
-        self.structure().get_stress()
+        self.s().get_stress()
     }
 
     fn get_owner(&self) -> Players {
-        self.structure().get_owner()
+        self.s().get_owner()
     }
 
     fn text(&self) -> Vec<Line<'_>> {
-        let owner: Players = self.structure().get_owner();
-        let mut lines: Vec<Line<'_>> = self.structure().text();
+        match self.s().get_owner() {
+            Players::Unclaimed => self.s().text(),
+            Players::Player | Players::Enemy => {
+                let mut lines: Vec<Line<'_>> = self.s().text();
 
-        match owner {
-            Players::Unclaimed => {}
-            _ => lines.push(Line::from_iter(["Owner: ".gray(), owner.get_span()])),
+                lines.push(Line::from_iter([
+                    "Owner: ".gray(),
+                    self.s().get_owner().get_span(),
+                ]));
+
+                lines
+            }
         }
-
-        lines
     }
 }
