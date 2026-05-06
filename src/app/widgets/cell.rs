@@ -11,7 +11,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph, Widget},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CellWidget {
     row: usize,
     col: usize,
@@ -57,7 +57,7 @@ impl CellWidget {
     }
 
     pub fn get_option_unit(&self) -> Option<Units> {
-        self.unit
+        self.unit.clone()
     }
 
     pub fn set_structure(&mut self, structure: Structures) -> &mut Self {

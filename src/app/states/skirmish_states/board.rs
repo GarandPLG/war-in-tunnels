@@ -11,6 +11,7 @@ use crate::app::{
     widgets::CellWidget,
 };
 use ratatui::layout::Rect;
+use std::collections::VecDeque;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BoardState {
@@ -29,7 +30,7 @@ pub struct BoardState {
     player_base_coords: (usize, usize),
     enemy_base_coords: (usize, usize),
     pub marking_cells: bool,
-    marked_cells: Vec<(usize, usize)>,
+    marked_cells: VecDeque<(usize, usize)>,
 }
 
 impl BoardState {
@@ -105,7 +106,7 @@ impl BoardState {
         }
 
         let marking_cells: bool = false;
-        let marked_cells: Vec<(usize, usize)> = Vec::new();
+        let marked_cells: VecDeque<(usize, usize)> = VecDeque::new();
 
         Self {
             cells_area,
@@ -159,7 +160,7 @@ impl BoardState {
             cell.set_marked(true);
         }
 
-        self.marked_cells.push((new_cell.0, new_cell.1));
+        self.marked_cells.push_back((new_cell.0, new_cell.1));
     }
 
     pub fn undo_marked_cell(&mut self) {
@@ -178,7 +179,7 @@ impl BoardState {
 
         self.get_mut_cell(new.0, new.1).set_selected(true);
 
-        self.marked_cells.pop();
+        self.marked_cells.pop_back();
 
         self.focused_cell.set_focused_cell(new);
     }
@@ -190,7 +191,7 @@ impl BoardState {
         let cell: &mut CellWidget = self.get_mut_cell(row, col);
         cell.set_marked(true);
 
-        self.marked_cells.push((row, col));
+        self.marked_cells.push_back((row, col));
     }
 
     pub fn clear_marked_cells(&mut self) {

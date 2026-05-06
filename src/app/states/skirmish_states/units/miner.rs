@@ -1,12 +1,13 @@
 use crate::app::states::skirmish_states::{Players, tasks::Tasks, units::Unit};
+use std::collections::VecDeque;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MinerUnit {
     owner: Players,
     hp: u16,
     can_dig: bool,
     digging_power: f32,
-    // tasks: Vec<Tasks>,
+    pub tasks: VecDeque<Tasks>,
 }
 
 impl MinerUnit {
@@ -16,7 +17,7 @@ impl MinerUnit {
             hp: 100,
             can_dig: true,
             digging_power: 0.55,
-            // tasks: Vec::new(),
+            tasks: VecDeque::new(),
         }
     }
 }

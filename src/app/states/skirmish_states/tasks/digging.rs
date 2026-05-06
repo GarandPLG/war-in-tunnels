@@ -1,14 +1,12 @@
-use crate::app::widgets::CellWidget;
+use std::collections::VecDeque;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DiggingTask {
-    // path: Vec<(usize, usize)>,
+    path: VecDeque<(usize, usize)>,
 }
 
 impl DiggingTask {
-    pub fn new(path: Vec<(u16, u16)>) -> Self {
-        Self {
-            // path
-        }
+    pub fn new(path: VecDeque<(usize, usize)>) -> Self {
+        Self { path }
     }
 }

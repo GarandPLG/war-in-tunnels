@@ -38,7 +38,7 @@ impl Widget for BoardWidget<'_> {
                     .cells
                     .get(row_idx + self.state.vertical_offset.get_value())
                     .and_then(|rows| rows.get(col_idx + self.state.horizontal_offset.get_value()))
-                    .map(|cell| cell.render(*cell_area, buf));
+                    .map(|cell| cell.clone().render(*cell_area, buf));
             }
         }
     }

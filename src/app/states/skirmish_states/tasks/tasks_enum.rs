@@ -1,6 +1,6 @@
 use crate::app::states::skirmish_states::tasks::DiggingTask;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Tasks {
     Digging(DiggingTask),
 }
