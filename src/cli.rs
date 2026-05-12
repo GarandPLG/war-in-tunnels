@@ -24,6 +24,7 @@ pub struct Cli {
     /// The initial view/window to display.
     #[arg(
         long,
+        short,
         help = "Default window",
         value_name = "...",
         default_value_t = View::MainMenu,
@@ -34,6 +35,7 @@ pub struct Cli {
     /// Player name shown in the UI.
     #[arg(
         long,
+        short,
         help = "Username",
         value_name = "String",
         default_value = "Player"
@@ -43,6 +45,7 @@ pub struct Cli {
     /// Game mode selection.
     #[arg(
         long,
+        short,
         help = "Game mode",
         value_name = "...",
         default_value_t = GameMode::LastManStanding,
@@ -53,6 +56,7 @@ pub struct Cli {
     /// Width of the generated map (36–100 tiles).
     #[arg(
         long,
+        short = 'M',
         help = "Map width",
         value_name = "Positive integer [36; 108]",
         default_value = "42",
@@ -63,6 +67,7 @@ pub struct Cli {
     /// Height of the generated map (11–50 tiles).
     #[arg(
         long,
+        short,
         help = "Map height",
         value_name = "Positive integer [11; 39]",
         default_value = "11",
@@ -73,6 +78,7 @@ pub struct Cli {
     /// Zoom level used for the UI.
     #[arg(
         long,
+        short,
         help = "Zoom level",
         value_name = "...",
         default_value_t = ZoomLevel::Default,
@@ -83,6 +89,7 @@ pub struct Cli {
     /// Which perk deck to use.
     #[arg(
         long,
+        short,
         help = "Perk Deck",
         value_name = "...",
         default_value_t = PerkDecks::Silesian,
@@ -123,6 +130,7 @@ pub struct Cli {
     /// Modifier applied to experience points (0.5–2.0).
     #[arg(
         long,
+        short,
         help = "XP modifier",
         value_name = "Float [0.5; 2.0]",
         default_value = "1.0",
@@ -143,6 +151,7 @@ pub struct Cli {
     /// Which soundtrack to play (default: default)
     #[arg(
             long,
+            short = 'S',
             help = "Soundtrack",
             value_name = "...",
             default_value_t = Soundtrack::Default,
@@ -153,6 +162,7 @@ pub struct Cli {
     /// Disable soundtrack (default: disabled).
     #[arg(
         long,
+        short = 'D',
         help = "Disable soundtrack (default: disable)",
         default_value_t = false
     )]
