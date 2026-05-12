@@ -61,7 +61,7 @@ fn load_soundtrack_folder(folder: &str) -> SoundtrackCache {
         };
     }
 
-    load!(Calm, "test.ogg"); // calm.ogg
+    load!(Calm, "calm.ogg"); // calm.ogg
     load!(Buildup, "test.ogg"); // buildup.ogg
     load!(Assault, "test.ogg"); // assault.ogg
     load!(Outro, "test.ogg"); // outro.ogg
