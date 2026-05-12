@@ -7,16 +7,18 @@ pub struct MinerUnit {
     hp: u16,
     can_dig: bool,
     digging_power: f32,
-    pub tasks: VecDeque<Tasks>,
+    coords: (usize, usize),
+    tasks: VecDeque<Tasks>,
 }
 
 impl MinerUnit {
-    pub fn new(owner: Players) -> Self {
+    pub fn new(owner: Players, coords: (usize, usize)) -> Self {
         Self {
             owner,
             hp: 100,
             can_dig: true,
             digging_power: 0.55,
+            coords,
             tasks: VecDeque::new(),
         }
     }
@@ -49,5 +51,13 @@ impl Unit for MinerUnit {
 
     fn get_digging_power(&self) -> f32 {
         self.digging_power
+    }
+
+    fn get_coords(&self) -> (usize, usize) {
+        self.coords
+    }
+
+    fn set_task(&mut self, task: Tasks) {
+        self.tasks.push_back(task);
     }
 }

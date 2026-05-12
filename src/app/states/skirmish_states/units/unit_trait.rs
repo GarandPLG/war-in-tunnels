@@ -1,4 +1,4 @@
-use crate::app::states::skirmish_states::Players;
+use crate::app::states::skirmish_states::{Players, tasks::Tasks};
 use ratatui::{
     style::Stylize,
     text::{Line, Span},
@@ -22,6 +22,10 @@ pub trait Unit {
     fn get_can_dig(&self) -> bool;
 
     fn get_digging_power(&self) -> f32;
+
+    fn get_coords(&self) -> (usize, usize);
+
+    fn set_task(&mut self, task: Tasks);
 
     fn base_text(&self) -> Vec<Line<'_>> {
         let owner: Span<'_> = self.get_owner().get_span();

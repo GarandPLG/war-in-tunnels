@@ -60,6 +60,14 @@ impl CellWidget {
         self.unit.clone()
     }
 
+    pub fn get_ref_option_unit(&self) -> &Option<Units> {
+        &self.unit
+    }
+
+    pub fn get_mut_option_unit(&mut self) -> &mut Option<Units> {
+        &mut self.unit
+    }
+
     pub fn set_structure(&mut self, structure: Structures) -> &mut Self {
         self.structure = structure;
         self

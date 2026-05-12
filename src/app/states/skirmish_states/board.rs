@@ -5,11 +5,13 @@ use crate::app::{
         skirmish_states::{
             CellSizes, MarkedCells, MoveFocusedCell, Players, ZoomLevel,
             structures::{BaseBuilding, Ore, Stone, Structures},
-            units::{MinerUnit, Units},
+            tasks::{DiggingTask, Tasks},
+            units::{MinerUnit, Unit, Units},
         },
     },
     widgets::CellWidget,
 };
+use log::info;
 use ratatui::layout::Rect;
 use std::collections::VecDeque;
 
@@ -87,9 +89,15 @@ impl BoardState {
                 };
 
                 let unit: Option<Units> = if player_base {
-                    Some(Units::Miner(MinerUnit::new(Players::Player)))
+                    Some(Units::Miner(MinerUnit::new(
+                        Players::Player,
+                        player_base_coords,
+                    )))
                 } else if enemy_base {
-                    Some(Units::Miner(MinerUnit::new(Players::Enemy)))
+                    Some(Units::Miner(MinerUnit::new(
+                        Players::Enemy,
+                        enemy_base_coords,
+                    )))
                 } else {
                     None
                 };
@@ -161,6 +169,8 @@ impl BoardState {
         self.marked_cells
             .marked_cells
             .push_back((new_cell.0, new_cell.1));
+
+        info!("{:?}", self.marked_cells);
     }
 
     pub fn undo_marked_cell(&mut self) {
@@ -198,8 +208,8 @@ impl BoardState {
 
         let cell: &mut CellWidget = self.get_mut_cell(row, col);
         cell.set_marked(true);
-        self.marked_cells.selected_unit = cell.get_option_unit();
 
+        self.marked_cells.selected_unit = cell.get_option_unit();
         self.marked_cells.marked_cells.push_back((row, col));
     }
 
@@ -208,6 +218,13 @@ impl BoardState {
             self.get_mut_cell(row, col).set_marked(false);
         }
 
+        let (row, col) = self.marked_cells.selected_unit.get_coords();
+        let task: Tasks = Tasks::Digging(DiggingTask::new(self.marked_cells.marked_cells.clone()));
+        let unit: &mut Option<Units> = self.get_mut_cell(row, col).get_mut_option_unit();
+
+        unit.set_task(task);
+
+        self.marked_cells.selected_unit = None;
         self.marked_cells.marked_cells.clear();
     }
 
