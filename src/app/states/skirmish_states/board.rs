@@ -27,10 +27,6 @@ pub struct BoardState {
     pub cells: Vec<Vec<CellWidget>>,
     pub zoom_level: ZoomLevel,
     focused_cell: FocusedCell,
-    player_base_coords: (usize, usize),
-    enemy_base_coords: (usize, usize),
-    // pub marking_cells: bool,
-    // marked_cells: VecDeque<(usize, usize)>,
     pub marked_cells: MarkedCells,
 }
 
@@ -121,8 +117,6 @@ impl BoardState {
             cells,
             zoom_level,
             focused_cell,
-            player_base_coords,
-            enemy_base_coords,
             marked_cells,
         }
     }
