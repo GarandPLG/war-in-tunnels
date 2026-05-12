@@ -8,15 +8,15 @@ use crate::{
 use ratatui::layout::Rect;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct GameStates<'a> {
+pub struct GameStates {
     pub main_menu: MainMenuState,
-    pub skirmish: SkirmishState<'a>,
+    pub skirmish: SkirmishState,
     pub perk_decks: PerkDecksState,
     pub skills_config: SkillsConfigState,
     pub settings: SettingsState,
 }
 
-impl GameStates<'_> {
+impl GameStates {
     pub fn new(args: &Cli, area: &Rect) -> Self {
         Self {
             main_menu: MainMenuState {

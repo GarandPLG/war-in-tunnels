@@ -14,7 +14,7 @@ use ratatui::layout::Rect;
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct BoardState<'a> {
+pub struct BoardState {
     cells_area: Rect,
     pub cell_width: usize,
     pub cell_height: usize,
@@ -31,10 +31,10 @@ pub struct BoardState<'a> {
     enemy_base_coords: (usize, usize),
     // pub marking_cells: bool,
     // marked_cells: VecDeque<(usize, usize)>,
-    pub marked_cells: MarkedCells<'a>,
+    pub marked_cells: MarkedCells,
 }
 
-impl BoardState<'_> {
+impl BoardState {
     pub fn new(
         area: &Rect,
         map_width: usize,
@@ -106,7 +106,7 @@ impl BoardState<'_> {
             cells.push(rows);
         }
 
-        let marked_cells: MarkedCells<'_> = MarkedCells::new();
+        let marked_cells: MarkedCells = MarkedCells::new();
 
         Self {
             cells_area,
@@ -204,6 +204,7 @@ impl BoardState<'_> {
 
         let cell: &mut CellWidget = self.get_mut_cell(row, col);
         cell.set_marked(true);
+        self.marked_cells.selected_unit = cell.get_option_unit();
 
         self.marked_cells.marked_cells.push_back((row, col));
     }
