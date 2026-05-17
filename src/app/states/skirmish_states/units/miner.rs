@@ -57,6 +57,10 @@ impl Unit for MinerUnit {
         self.coords
     }
 
+    fn get_tasks(&self) -> String {
+        format!("{:?}", self.tasks)
+    }
+
     fn set_task(&mut self, task: Tasks) {
         self.tasks.push_back(task);
     }

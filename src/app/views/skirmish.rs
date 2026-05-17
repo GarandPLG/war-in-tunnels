@@ -132,11 +132,17 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         if states.skirmish.side_panel {
             let row: usize = board.get_focused_cell().get_row();
             let col: usize = board.get_focused_cell().get_col();
+            let mut is_unit_marked: bool = false;
+
+            if let Some((first_row, first_col)) = board.marked_cells.marked_cells.get(0) {
+                is_unit_marked = first_row == &row && first_col == &col;
+            }
 
             SidePanelWidget::new(
                 (row, col),
                 &board.get_ref_cell(row, col).get_structure(),
-                &board.get_ref_cell(row, col).get_option_unit(),
+                &board.get_ref_cell(row, col).get_ref_option_unit(),
+                is_unit_marked,
             )
             .render(side_panel_area, buf);
         }

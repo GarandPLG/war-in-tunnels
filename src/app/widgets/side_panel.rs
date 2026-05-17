@@ -17,14 +17,21 @@ pub struct SidePanelWidget<'a> {
     coords: (usize, usize),
     structure: &'a Structures,
     unit: &'a Option<Units>,
+    is_unit_marked: bool,
 }
 
 impl<'a> SidePanelWidget<'a> {
-    pub fn new(coords: (usize, usize), structure: &'a Structures, unit: &'a Option<Units>) -> Self {
+    pub fn new(
+        coords: (usize, usize),
+        structure: &'a Structures,
+        unit: &'a Option<Units>,
+        is_unit_marked: bool,
+    ) -> Self {
         Self {
             coords,
             structure,
             unit,
+            is_unit_marked,
         }
     }
 
@@ -86,9 +93,15 @@ impl Widget for SidePanelWidget<'_> {
             .render(structure_area, buf);
 
         if self.unit.is_unit() {
+            let mut unit_name: String = self.unit.get_name().to_string();
+
+            if self.is_unit_marked {
+                unit_name = format!("> {} <", unit_name);
+            }
+
             Paragraph::new(self.unit.text())
                 .alignment(Alignment::Left)
-                .block(self.get_inner_block(self.unit.get_name().to_string(), Color::Green))
+                .block(self.get_inner_block(unit_name, Color::Green))
                 .render(unit_area, buf);
         }
     }

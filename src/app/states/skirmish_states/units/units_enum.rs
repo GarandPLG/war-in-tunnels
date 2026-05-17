@@ -58,6 +58,10 @@ impl Unit for Units {
         self.u().get_coords()
     }
 
+    fn get_tasks(&self) -> String {
+        self.u().get_tasks()
+    }
+
     fn set_task(&mut self, task: Tasks) {
         self.u_mut().set_task(task);
     }
@@ -98,6 +102,10 @@ impl Unit for Option<Units> {
 
     fn get_coords(&self) -> (usize, usize) {
         self.as_ref().map_or((0, 0), |u| u.get_coords())
+    }
+
+    fn get_tasks(&self) -> String {
+        self.as_ref().map_or("".to_string(), |u| u.get_tasks())
     }
 
     fn set_task(&mut self, task: Tasks) {

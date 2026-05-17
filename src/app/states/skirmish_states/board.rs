@@ -220,9 +220,10 @@ impl BoardState {
 
         let (row, col) = self.marked_cells.selected_unit.get_coords();
         let task: Tasks = Tasks::Digging(DiggingTask::new(self.marked_cells.marked_cells.clone()));
-        let unit: &mut Option<Units> = self.get_mut_cell(row, col).get_mut_option_unit();
 
-        unit.set_task(task);
+        self.get_mut_cell(row, col)
+            .get_mut_option_unit()
+            .set_task(task);
 
         self.marked_cells.selected_unit = None;
         self.marked_cells.marked_cells.clear();

@@ -25,6 +25,8 @@ pub trait Unit {
 
     fn get_coords(&self) -> (usize, usize);
 
+    fn get_tasks(&self) -> String;
+
     fn set_task(&mut self, task: Tasks);
 
     fn base_text(&self) -> Vec<Line<'_>> {
@@ -34,6 +36,7 @@ pub trait Unit {
         let hp_percent: u16 = hp * 100 / max_hp;
         let can_dig: bool = self.get_can_dig();
         let digging_power: f32 = self.get_digging_power();
+        let tasks: String = self.get_tasks();
 
         let mut lines: Vec<Line<'_>> = Vec::from([
             Line::from_iter(["Owner: ".gray(), owner]),
@@ -46,6 +49,7 @@ pub trait Unit {
                 hp_percent.green(),
                 "% )".gray(),
             ]),
+            Line::from_iter(["Tasks Queue: ".gray(), tasks.green()]),
         ]);
 
         if can_dig {
