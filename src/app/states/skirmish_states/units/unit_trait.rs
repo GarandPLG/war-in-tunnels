@@ -3,6 +3,7 @@ use ratatui::{
     style::Stylize,
     text::{Line, Span},
 };
+use std::collections::VecDeque;
 
 pub trait Unit {
     fn is_unit(&self) -> bool {
@@ -25,9 +26,11 @@ pub trait Unit {
 
     fn get_coords(&self) -> (usize, usize);
 
-    fn get_tasks(&self) -> String;
+    fn get_tasks(&self) -> &VecDeque<Tasks>;
 
     fn set_task(&mut self, task: Tasks);
+
+    fn get_tasks_formatted(&self) -> String;
 
     fn base_text(&self) -> Vec<Line<'_>> {
         let owner: Span<'_> = self.get_owner().get_span();
@@ -36,7 +39,7 @@ pub trait Unit {
         let hp_percent: u16 = hp * 100 / max_hp;
         let can_dig: bool = self.get_can_dig();
         let digging_power: f32 = self.get_digging_power();
-        let tasks: String = self.get_tasks();
+        let tasks: String = self.get_tasks_formatted();
 
         let mut lines: Vec<Line<'_>> = Vec::from([
             Line::from_iter(["Owner: ".gray(), owner]),

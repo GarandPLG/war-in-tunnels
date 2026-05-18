@@ -1,8 +1,13 @@
+use once_cell::sync::Lazy;
+
 use crate::app::states::skirmish_states::{
     Players,
     tasks::Tasks,
     units::{MinerUnit, Unit},
 };
+use std::collections::VecDeque;
+
+static EMPTY_TASKS: Lazy<VecDeque<Tasks>> = Lazy::new(|| VecDeque::new());
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Units {
@@ -58,8 +63,12 @@ impl Unit for Units {
         self.u().get_coords()
     }
 
-    fn get_tasks(&self) -> String {
+    fn get_tasks(&self) -> &VecDeque<Tasks> {
         self.u().get_tasks()
+    }
+
+    fn get_tasks_formatted(&self) -> String {
+        self.u().get_tasks_formatted()
     }
 
     fn set_task(&mut self, task: Tasks) {
@@ -104,8 +113,13 @@ impl Unit for Option<Units> {
         self.as_ref().map_or((0, 0), |u| u.get_coords())
     }
 
-    fn get_tasks(&self) -> String {
-        self.as_ref().map_or("".to_string(), |u| u.get_tasks())
+    fn get_tasks(&self) -> &VecDeque<Tasks> {
+        self.as_ref().map_or(&EMPTY_TASKS, |u| u.get_tasks())
+    }
+
+    fn get_tasks_formatted(&self) -> String {
+        self.as_ref()
+            .map_or("".to_string(), |u| u.get_tasks_formatted())
     }
 
     fn set_task(&mut self, task: Tasks) {

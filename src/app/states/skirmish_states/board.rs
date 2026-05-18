@@ -219,11 +219,14 @@ impl BoardState {
         }
 
         let (row, col) = self.marked_cells.selected_unit.get_coords();
+
+        // if !self.marked_cells.marked_cells.len() == 1 {
         let task: Tasks = Tasks::Digging(DiggingTask::new(self.marked_cells.marked_cells.clone()));
 
         self.get_mut_cell(row, col)
             .get_mut_option_unit()
             .set_task(task);
+        // }
 
         self.marked_cells.selected_unit = None;
         self.marked_cells.marked_cells.clear();

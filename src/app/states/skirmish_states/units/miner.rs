@@ -57,7 +57,11 @@ impl Unit for MinerUnit {
         self.coords
     }
 
-    fn get_tasks(&self) -> String {
+    fn get_tasks(&self) -> &VecDeque<Tasks> {
+        &self.tasks
+    }
+
+    fn get_tasks_formatted(&self) -> String {
         format!("{:?}", self.tasks)
     }
 
