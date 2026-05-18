@@ -92,7 +92,7 @@ impl Unit for MinerUnit {
                     Line::from_iter([
                         format!("{}. ", i + 1).gray(),
                         task.get_icon().gray(),
-                        " ".gray(),
+                        "  ".gray(),
                         self.display_coords(task.get_path_front_coords()).green(),
                         " -> ".gray(),
                         self.display_coords(task.get_path_back_coords()).yellow(),
