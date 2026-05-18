@@ -11,7 +11,6 @@ use crate::app::{
     },
     widgets::CellWidget,
 };
-use log::info;
 use ratatui::layout::Rect;
 use std::collections::VecDeque;
 
@@ -141,12 +140,12 @@ impl BoardState {
         self.marked_cells
             .marked_cells
             .iter()
-            .map(move |&(row, col)| &self.cells[row][col])
+            .map(|&(row, col)| &self.cells[row][col])
             .collect()
     }
 
-    pub fn get_marked_cells(&self) -> VecDeque<(usize, usize)> {
-        self.marked_cells.marked_cells.clone()
+    pub fn get_marked_cells(&self) -> &VecDeque<(usize, usize)> {
+        &self.marked_cells.marked_cells
     }
 
     pub fn toggle_marking(&mut self) {
@@ -170,7 +169,7 @@ impl BoardState {
             .marked_cells
             .push_back((new_cell.0, new_cell.1));
 
-        info!("{:?}", self.marked_cells);
+        // info!("{:?}", self.marked_cells.marked_cells);
     }
 
     pub fn undo_marked_cell(&mut self) {
@@ -220,13 +219,14 @@ impl BoardState {
 
         let (row, col) = self.marked_cells.selected_unit.get_coords();
 
-        // if !self.marked_cells.marked_cells.len() == 1 {
-        let task: Tasks = Tasks::Digging(DiggingTask::new(self.marked_cells.marked_cells.clone()));
+        if self.marked_cells.marked_cells.len() > 1 {
+            let task: Tasks =
+                Tasks::Digging(DiggingTask::new(self.marked_cells.marked_cells.clone()));
 
-        self.get_mut_cell(row, col)
-            .get_mut_option_unit()
-            .set_task(task);
-        // }
+            self.get_mut_cell(row, col)
+                .get_mut_option_unit()
+                .set_task(task);
+        }
 
         self.marked_cells.selected_unit = None;
         self.marked_cells.marked_cells.clear();
