@@ -1,4 +1,8 @@
-use crate::app::states::skirmish_states::{Players, tasks::Tasks, units::Unit};
+use crate::app::states::skirmish_states::{
+    Players,
+    tasks::{Task, Tasks},
+    units::Unit,
+};
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -21,6 +25,22 @@ impl MinerUnit {
             coords,
             tasks: VecDeque::new(),
         }
+    }
+
+    fn col_to_letters(&self, col: usize) -> String {
+        let mut col: usize = col + 1;
+        let mut letters: Vec<char> = Vec::new();
+
+        while col > 0 {
+            letters.push((b'A' + ((col - 1) % 26) as u8) as char);
+            col = (col - 1) / 26;
+        }
+
+        letters.iter().rev().collect()
+    }
+
+    fn display_coords(&self, coords: &(usize, usize)) -> String {
+        format!("{}{}", self.col_to_letters(coords.0), coords.1)
     }
 }
 
@@ -62,7 +82,17 @@ impl Unit for MinerUnit {
     }
 
     fn get_tasks_formatted(&self) -> String {
-        format!("{:?}", self.tasks)
+        // format!("{:?}", self.tasks)
+        let mut output: String = String::new();
+        for task in &self.tasks {
+            output.push(task.get_icon());
+            output.push(' ');
+            output += &self.display_coords(task.get_path_front_coords());
+            output += " -> ";
+            output += &self.display_coords(task.get_path_back_coords());
+        }
+
+        output
     }
 
     fn set_task(&mut self, task: Tasks) {

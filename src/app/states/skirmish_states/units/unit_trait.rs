@@ -39,6 +39,7 @@ pub trait Unit {
         let hp_percent: u16 = hp * 100 / max_hp;
         let can_dig: bool = self.get_can_dig();
         let digging_power: f32 = self.get_digging_power();
+        let have_any_tasks: bool = self.get_tasks().is_empty();
         let tasks: String = self.get_tasks_formatted();
 
         let mut lines: Vec<Line<'_>> = Vec::from([
@@ -52,7 +53,6 @@ pub trait Unit {
                 hp_percent.green(),
                 "% )".gray(),
             ]),
-            Line::from_iter(["Tasks Queue: ".gray(), tasks.green()]),
         ]);
 
         if can_dig {
@@ -60,6 +60,10 @@ pub trait Unit {
                 "Digging power: ".gray(),
                 digging_power.green(),
             ]));
+        }
+
+        if !have_any_tasks {
+            lines.push(Line::from_iter(["Tasks Queue: ".gray(), tasks.green()]));
         }
 
         lines
