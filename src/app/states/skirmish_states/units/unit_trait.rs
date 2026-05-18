@@ -30,7 +30,7 @@ pub trait Unit {
 
     fn set_task(&mut self, task: Tasks);
 
-    fn get_tasks_formatted(&self) -> String;
+    fn get_tasks_formatted(&self) -> Vec<Line<'_>>;
 
     fn base_text(&self) -> Vec<Line<'_>> {
         let owner: Span<'_> = self.get_owner().get_span();
@@ -40,7 +40,7 @@ pub trait Unit {
         let can_dig: bool = self.get_can_dig();
         let digging_power: f32 = self.get_digging_power();
         let have_any_tasks: bool = self.get_tasks().is_empty();
-        let tasks: String = self.get_tasks_formatted();
+        let tasks: Vec<Line<'_>> = self.get_tasks_formatted();
 
         let mut lines: Vec<Line<'_>> = Vec::from([
             Line::from_iter(["Owner: ".gray(), owner]),
@@ -63,7 +63,10 @@ pub trait Unit {
         }
 
         if !have_any_tasks {
-            lines.push(Line::from_iter(["Tasks Queue: ".gray(), tasks.green()]));
+            lines.push(Line::from("Tasks Queue: ".gray()));
+            for task in tasks {
+                lines.push(task);
+            }
         }
 
         lines

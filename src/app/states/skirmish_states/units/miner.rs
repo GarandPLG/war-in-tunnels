@@ -1,3 +1,5 @@
+use ratatui::{style::Stylize, text::Line};
+
 use crate::app::states::skirmish_states::{
     Players,
     tasks::{Task, Tasks},
@@ -81,18 +83,23 @@ impl Unit for MinerUnit {
         &self.tasks
     }
 
-    fn get_tasks_formatted(&self) -> String {
-        // format!("{:?}", self.tasks)
-        let mut output: String = String::new();
-        for task in &self.tasks {
-            output.push(task.get_icon());
-            output.push(' ');
-            output += &self.display_coords(task.get_path_front_coords());
-            output += " -> ";
-            output += &self.display_coords(task.get_path_back_coords());
-        }
-
-        output
+    fn get_tasks_formatted(&self) -> Vec<Line<'_>> {
+        Vec::from(
+            self.tasks
+                .iter()
+                .enumerate()
+                .map(|(i, task)| {
+                    Line::from_iter([
+                        format!("{}. ", i + 1).gray(),
+                        task.get_icon().gray(),
+                        " ".gray(),
+                        self.display_coords(task.get_path_front_coords()).green(),
+                        " -> ".gray(),
+                        self.display_coords(task.get_path_back_coords()).yellow(),
+                    ])
+                })
+                .collect::<Vec<Line<'_>>>(),
+        )
     }
 
     fn set_task(&mut self, task: Tasks) {

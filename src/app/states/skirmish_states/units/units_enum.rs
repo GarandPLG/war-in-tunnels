@@ -1,10 +1,10 @@
-use once_cell::sync::Lazy;
-
 use crate::app::states::skirmish_states::{
     Players,
     tasks::Tasks,
     units::{MinerUnit, Unit},
 };
+use once_cell::sync::Lazy;
+use ratatui::text::Line;
 use std::collections::VecDeque;
 
 static EMPTY_TASKS: Lazy<VecDeque<Tasks>> = Lazy::new(|| VecDeque::new());
@@ -67,7 +67,7 @@ impl Unit for Units {
         self.u().get_tasks()
     }
 
-    fn get_tasks_formatted(&self) -> String {
+    fn get_tasks_formatted(&self) -> Vec<Line<'_>> {
         self.u().get_tasks_formatted()
     }
 
@@ -117,9 +117,9 @@ impl Unit for Option<Units> {
         self.as_ref().map_or(&EMPTY_TASKS, |u| u.get_tasks())
     }
 
-    fn get_tasks_formatted(&self) -> String {
+    fn get_tasks_formatted(&self) -> Vec<Line<'_>> {
         self.as_ref()
-            .map_or("".to_string(), |u| u.get_tasks_formatted())
+            .map_or(Vec::new(), |u| u.get_tasks_formatted())
     }
 
     fn set_task(&mut self, task: Tasks) {
