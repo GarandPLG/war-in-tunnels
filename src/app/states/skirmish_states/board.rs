@@ -68,7 +68,8 @@ impl BoardState {
             let mut rows: Vec<CellWidget> = Vec::new();
 
             for col in 0..map_width {
-                let selected: bool = row == focused_cell.get_row() && col == focused_cell.get_col();
+                let (focused_row, focused_col) = focused_cell.get_coords();
+                let selected: bool = row == focused_row && col == focused_col;
                 let player_base: bool = row == player_base_coords.0 && col == player_base_coords.1;
                 let player_ore: bool =
                     row == player_base_coords.0 && col == player_base_coords.1 - 1;
@@ -154,11 +155,11 @@ impl BoardState {
         if self.marked_cells.marking_cells {
             self.start_marking_cells();
         } else {
-            self.clear_marked_cells();
+            self.end_marking_cells();
         }
     }
 
-    pub fn set_marked_cell(&mut self, new_cell: (usize, usize)) {
+    pub fn push_marked_cell(&mut self, new_cell: (usize, usize)) {
         let cell: &mut CellWidget = self.get_mut_cell(new_cell.0, new_cell.1);
 
         if !cell.get_marked() {
@@ -168,11 +169,9 @@ impl BoardState {
         self.marked_cells
             .marked_cells
             .push_back((new_cell.0, new_cell.1));
-
-        // info!("{:?}", self.marked_cells.marked_cells);
     }
 
-    pub fn undo_marked_cell(&mut self) {
+    pub fn pop_marked_cell(&mut self) {
         if self.marked_cells.marked_cells.len() < 2 {
             return;
         }
@@ -202,8 +201,7 @@ impl BoardState {
     }
 
     pub fn start_marking_cells(&mut self) {
-        let row: usize = self.focused_cell.get_row();
-        let col: usize = self.focused_cell.get_col();
+        let (row, col) = self.focused_cell.get_coords();
 
         let cell: &mut CellWidget = self.get_mut_cell(row, col);
         cell.set_marked(true);
@@ -212,7 +210,7 @@ impl BoardState {
         self.marked_cells.marked_cells.push_back((row, col));
     }
 
-    pub fn clear_marked_cells(&mut self) {
+    pub fn end_marking_cells(&mut self) {
         for (row, col) in self.marked_cells.marked_cells.clone() {
             self.get_mut_cell(row, col).set_marked(false);
         }
@@ -244,8 +242,7 @@ impl BoardState {
         let vertical_offset: usize = self.vertical_offset.get_value();
         let horizontal_offset: usize = self.horizontal_offset.get_value();
 
-        let row: usize = self.focused_cell.get_row();
-        let col: usize = self.focused_cell.get_col();
+        let (row, col) = self.focused_cell.get_coords();
 
         if 0usize.saturating_add(vertical_offset) > row
             || row >= self.rows.saturating_add(vertical_offset)
@@ -293,12 +290,10 @@ impl BoardState {
         self.horizontal_offset =
             Offset::new(Some(self.horizontal_offset.get_value()), Some(h_max_offset));
 
-        self.focused_cell = FocusedCell::new(
-            self.focused_cell.get_row(),
-            self.focused_cell.get_col(),
-            self.map_height,
-            self.map_width,
-        );
+        let (focused_row, focused_coll) = self.focused_cell.get_coords();
+
+        self.focused_cell =
+            FocusedCell::new(focused_row, focused_coll, self.map_height, self.map_width);
 
         for row in 0..self.map_height {
             for col in 0..self.map_width {
@@ -308,7 +303,7 @@ impl BoardState {
     }
 
     pub fn change_focused_cell(&mut self, direction: MoveFocusedCell) {
-        let old_cell: (usize, usize) = (self.focused_cell.get_row(), self.focused_cell.get_col());
+        let old_cell: (usize, usize) = self.focused_cell.get_coords();
         let new_cell: (usize, usize) = self.focused_cell.move_focused_cell(direction);
 
         self.get_mut_cell(old_cell.0, old_cell.1)
@@ -316,7 +311,7 @@ impl BoardState {
         self.get_mut_cell(new_cell.0, new_cell.1).set_selected(true);
 
         if self.marked_cells.marking_cells {
-            self.set_marked_cell(new_cell);
+            self.push_marked_cell(new_cell);
         }
     }
 }

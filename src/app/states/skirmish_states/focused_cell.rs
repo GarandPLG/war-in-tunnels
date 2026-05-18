@@ -23,12 +23,8 @@ impl FocusedCell {
         }
     }
 
-    pub fn get_row(&self) -> usize {
-        self.row
-    }
-
-    pub fn get_col(&self) -> usize {
-        self.col
+    pub fn get_coords(&self) -> (usize, usize) {
+        (self.row, self.col)
     }
 
     pub fn move_focused_cell(&mut self, direction: MoveFocusedCell) -> (usize, usize) {

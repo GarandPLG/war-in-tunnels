@@ -83,10 +83,10 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
                 ZoomLevel::ZoomedOut => {}
             },
             Action::Space => board.toggle_marking(),
-            Action::Backspace => board.undo_marked_cell(),
+            Action::Backspace => board.pop_marked_cell(),
             Action::Delete => {
                 board.marked_cells.marking_cells = false;
-                board.clear_marked_cells()
+                board.end_marking_cells()
             }
             Action::Tab => {
                 states.skirmish.side_panel = !states.skirmish.side_panel;
