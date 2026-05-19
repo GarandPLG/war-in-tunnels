@@ -155,7 +155,7 @@ impl BoardState {
         if self.marked_cells.marking_cells {
             self.start_marking_cells();
         } else {
-            self.end_marking_cells();
+            self.end_marking_cells(false);
         }
     }
 
@@ -210,14 +210,14 @@ impl BoardState {
         self.marked_cells.marked_cells.push_back((row, col));
     }
 
-    pub fn end_marking_cells(&mut self) {
+    pub fn end_marking_cells(&mut self, del: bool) {
         for (row, col) in self.marked_cells.marked_cells.clone() {
             self.get_mut_cell(row, col).set_marked(false);
         }
 
         let (row, col) = self.marked_cells.selected_unit.get_coords();
 
-        if self.marked_cells.marked_cells.len() > 1 {
+        if self.marked_cells.marked_cells.len() > 1 && !del {
             let task: Tasks =
                 Tasks::Digging(DiggingTask::new(self.marked_cells.marked_cells.clone()));
 

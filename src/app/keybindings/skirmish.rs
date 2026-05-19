@@ -86,7 +86,7 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
             Action::Backspace => board.pop_marked_cell(),
             Action::Delete => {
                 board.marked_cells.marking_cells = false;
-                board.end_marking_cells()
+                board.end_marking_cells(true)
             }
             Action::Tab => {
                 states.skirmish.side_panel = !states.skirmish.side_panel;
