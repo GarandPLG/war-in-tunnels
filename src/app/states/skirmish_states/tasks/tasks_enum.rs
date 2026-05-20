@@ -13,6 +13,13 @@ impl Tasks {
             Self::Digging(d) => d,
         }
     }
+
+    #[inline]
+    fn t_mut(&mut self) -> &mut dyn Task {
+        match self {
+            Self::Digging(d) => d,
+        }
+    }
 }
 
 impl Task for Tasks {
@@ -30,5 +37,17 @@ impl Task for Tasks {
 
     fn get_path_back_coords(&self) -> &(usize, usize) {
         self.t().get_path_back_coords()
+    }
+
+    fn get_progress(&self) -> f32 {
+        self.t().get_progress()
+    }
+
+    fn is_finished(&self) -> bool {
+        self.t().is_finished()
+    }
+
+    fn progress(&mut self) {
+        self.t_mut().progress();
     }
 }

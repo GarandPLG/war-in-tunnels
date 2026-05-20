@@ -211,6 +211,7 @@ impl BoardState {
     }
 
     pub fn end_marking_cells(&mut self, del: bool) {
+        // let todo_taks_tyle = Tasks::Digging(DiggingTask::);
         for (row, col) in self.marked_cells.marked_cells.clone() {
             self.get_mut_cell(row, col).set_marked(false);
         }
@@ -218,8 +219,10 @@ impl BoardState {
         let (row, col) = self.marked_cells.selected_unit.get_coords();
 
         if self.marked_cells.marked_cells.len() > 1 && !del {
-            let task: Tasks =
-                Tasks::Digging(DiggingTask::new(self.marked_cells.marked_cells.clone()));
+            let path: VecDeque<(usize, usize)> = self.marked_cells.marked_cells.clone();
+            let tick_increase: f32 = self.marked_cells.selected_unit.get_digging_power();
+
+            let task: Tasks = Tasks::Digging(DiggingTask::new(path, tick_increase));
 
             self.get_mut_cell(row, col)
                 .get_mut_option_unit()
@@ -312,6 +315,24 @@ impl BoardState {
 
         if self.marked_cells.marking_cells {
             self.push_marked_cell(new_cell);
+        }
+    }
+
+    fn get_active_tasks(&self) -> Vec<&Tasks> {
+        self.cells
+            .iter()
+            .flat_map(|row| row.iter())
+            .filter_map(|cell| {
+                cell.get_ref_option_unit()
+                    .as_ref()
+                    .and_then(|unit| unit.get_tasks().front())
+            })
+            .collect()
+    }
+
+    pub fn advance_turn(&mut self) {
+        for task in self.get_active_tasks() {
+            // task.progress()
         }
     }
 }

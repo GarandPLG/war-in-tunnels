@@ -11,7 +11,7 @@ pub struct SkirmishState {
 
 impl SkirmishState {
     pub fn tick_update(&mut self) {
-        // self.board.advance_turn();
+        self.board.advance_turn();
 
         // if self.board.is_victory() {}
 
