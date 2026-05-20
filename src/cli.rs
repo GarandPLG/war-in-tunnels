@@ -56,7 +56,7 @@ pub struct Cli {
     /// Width of the generated map (36–100 tiles).
     #[arg(
         long,
-        short = 'M',
+        short = 'W',
         help = "Map width",
         value_name = "Positive integer [36; 108]",
         default_value = "42",
@@ -67,7 +67,7 @@ pub struct Cli {
     /// Height of the generated map (11–50 tiles).
     #[arg(
         long,
-        short,
+        short = 'H',
         help = "Map height",
         value_name = "Positive integer [11; 39]",
         default_value = "11",
@@ -100,6 +100,7 @@ pub struct Cli {
     /// Starting amount of wood (1–150).
     #[arg(
         long,
+        short = 'w',
         help = "Starting wood",
         value_name = "Positive integer [1; 150]",
         default_value = "50",
@@ -110,6 +111,7 @@ pub struct Cli {
     /// Starting amount of iron (1–150).
     #[arg(
         long,
+        short = 'i',
         help = "Starting iron",
         value_name = "Positive integer [1; 150]",
         default_value = "25",
@@ -120,6 +122,7 @@ pub struct Cli {
     /// Maximum amount of units (49–149).
     #[arg(
         long,
+        short = 'L',
         help = "Supply limit",
         value_name = "Positive integer [49; 149]",
         default_value = "99",
@@ -141,6 +144,7 @@ pub struct Cli {
     /// Upper bound for skill points that can be earned (90–690).
     #[arg(
         long,
+        short = 'P',
         help = "Skill points limit",
         value_name = "Positive integer [90; 690]",
         default_value = "120",
@@ -171,6 +175,7 @@ pub struct Cli {
     /// Mute soundtrack (default: disabled).
     #[arg(
         long,
+        short = 'm',
         help = "Mute soundtrack (default: disabled)",
         default_value_t = false
     )]
@@ -179,6 +184,7 @@ pub struct Cli {
     /// Enable logging to a file (default: disabled).
     #[arg(
         long,
+        short = 'l',
         help = "Enable logging to file (default: disabled)",
         default_value_t = false
     )]
