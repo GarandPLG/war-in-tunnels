@@ -16,6 +16,15 @@ impl DiggingTask {
             tick_increase,
         }
     }
+
+    pub fn pop_front(&mut self) {
+        self.path.pop_front();
+        self.progress = 0.0;
+    }
+
+    pub fn current_target(&self) -> Option<(usize, usize)> {
+        self.path.front().copied()
+    }
 }
 
 impl Task for DiggingTask {

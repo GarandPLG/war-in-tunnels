@@ -4,8 +4,8 @@ use crate::app::{
         FocusedCell, Offset,
         skirmish_states::{
             CellSizes, MarkedCells, MoveFocusedCell, Players, ZoomLevel,
-            structures::{BaseBuilding, Ore, Stone, Structures},
-            tasks::{DiggingTask, Tasks},
+            structures::{BaseBuilding, Ore, Stone, Structures, Tunnel},
+            tasks::{DiggingTask, Task, Tasks},
             units::{MinerUnit, Unit, Units},
         },
     },
@@ -219,7 +219,14 @@ impl BoardState {
         let (row, col) = self.marked_cells.selected_unit.get_coords();
 
         if self.marked_cells.marked_cells.len() > 1 && !del {
-            let path: VecDeque<(usize, usize)> = self.marked_cells.marked_cells.clone();
+            let path: VecDeque<(usize, usize)> = self
+                .marked_cells
+                .marked_cells
+                .iter()
+                .skip(1)
+                .cloned()
+                .collect();
+
             let tick_increase: f32 = self.marked_cells.selected_unit.get_digging_power();
 
             let task: Tasks = Tasks::Digging(DiggingTask::new(path, tick_increase));
@@ -318,21 +325,101 @@ impl BoardState {
         }
     }
 
-    fn get_active_tasks(&self) -> Vec<&Tasks> {
-        self.cells
-            .iter()
-            .flat_map(|row| row.iter())
-            .filter_map(|cell| {
-                cell.get_ref_option_unit()
-                    .as_ref()
-                    .and_then(|unit| unit.get_tasks().front())
-            })
-            .collect()
-    }
+    // fn get_active_tasks(&self) -> Vec<&Tasks> {
+    //     self.cells
+    //         .iter()
+    //         .flat_map(|row| row.iter())
+    //         .filter_map(|cell| {
+    //             cell.get_ref_option_unit()
+    //                 .as_ref()
+    //                 .and_then(|unit| unit.get_ref_tasks().front())
+    //         })
+    //         .collect()
+    //     // for row in self.marked_cells.marked_cells {
+
+    //     // }
+    // }
 
     pub fn advance_turn(&mut self) {
-        for task in self.get_active_tasks() {
-            // task.progress()
+        for row in 0..self.map_height {
+            for col in 0..self.map_width {
+                /* ---------------------------------------------------------
+                 * 1️⃣  Take the unit out of the current cell (if any).  This
+                 *    gives us an *owned* `Units`, so we no longer hold a
+                 *    mutable reference into `self`.
+                 * ------------------------------------------------------- */
+                let maybe_unit: Option<Units> =
+                    self.get_mut_cell(row, col).get_mut_option_unit().take();
+
+                let Some(mut unit) = maybe_unit else {
+                    continue; // no unit in this cell
+                };
+
+                /* ---------------------------------------------------------
+                 * 2️⃣  Look at the unit’s task queue.  We need a mutable
+                 *    reference to the *front* task only while we are
+                 *    processing it.  The mutable borrow is confined to a
+                 *    small inner block so that it ends before we move the
+                 *    unit itself.
+                 * ------------------------------------------------------- */
+                if let Some(task) = unit.get_mut_tasks().front_mut() {
+                    // `Tasks` currently only has the Digging variant.
+                    // If new variants appear later, you can handle them here.
+                    let maybe_target: Option<(usize, usize)> = {
+                        // -------------------------------------------------
+                        // Mutable borrow of the task lives only inside this
+                        // block.  When the block ends, `dig` is dropped.
+                        // -------------------------------------------------
+                        let dig: &mut DiggingTask = match task {
+                            Tasks::Digging(d) => d,
+                        };
+
+                        dig.progress();
+
+                        // Remember the coordinates of the next tunnel cell.
+                        let target: Option<(usize, usize)> = dig.current_target();
+
+                        // If we actually moved, the current step of the
+                        // digging task is finished – pop it from the queue.
+                        if target.is_some() {
+                            dig.pop_front();
+                        }
+
+                        target
+                    }; // ← `dig` (and the mutable borrow) ends here
+
+                    if let Some((t_row, t_col)) = maybe_target {
+                        /* -------------------------------------------------
+                         * 3️⃣  We have a target – create the tunnel, move the
+                         *    unit, and clean up the source cell.
+                         * ------------------------------------------------- */
+
+                        // a) create the tunnel in the target cell
+                        self.get_mut_cell(t_row, t_col)
+                            .set_structure(Structures::Tunnel(Tunnel::new()));
+
+                        // b) (optional) keep the old coordinates – they are
+                        //    no longer needed but kept for possible future use
+                        let _old_coords: (usize, usize) = unit.get_coords();
+
+                        // c) move the unit into the target cell
+                        *self.get_mut_cell(t_row, t_col).get_mut_option_unit() = Some(unit);
+
+                        // d) the source cell is already empty because of the
+                        //    earlier `take()`.  Nothing else to do.
+                    } else {
+                        // No reachable target – put the unit back where it was.
+                        self.get_mut_cell(row, col)
+                            .get_mut_option_unit()
+                            .replace(unit);
+                    }
+                } else {
+                    // The unit has no tasks – simply put it back.
+                    self.get_mut_cell(row, col)
+                        .get_mut_option_unit()
+                        .replace(unit);
+                }
+            }
         }
     }
 }

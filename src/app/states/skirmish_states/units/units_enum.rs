@@ -3,11 +3,8 @@ use crate::app::states::skirmish_states::{
     tasks::Tasks,
     units::{MinerUnit, Unit},
 };
-use once_cell::sync::Lazy;
 use ratatui::text::Line;
 use std::collections::VecDeque;
-
-static EMPTY_TASKS: Lazy<VecDeque<Tasks>> = Lazy::new(|| VecDeque::new());
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Units {
@@ -16,14 +13,14 @@ pub enum Units {
 
 impl Units {
     #[inline]
-    fn u(&self) -> &dyn Unit {
+    pub fn u(&self) -> &dyn Unit {
         match self {
             Self::Miner(m) => m,
         }
     }
 
     #[inline]
-    fn u_mut(&mut self) -> &mut dyn Unit {
+    pub fn u_mut(&mut self) -> &mut dyn Unit {
         match self {
             Self::Miner(m) => m,
         }
@@ -63,8 +60,12 @@ impl Unit for Units {
         self.u().get_coords()
     }
 
-    fn get_tasks(&self) -> &VecDeque<Tasks> {
-        self.u().get_tasks()
+    fn get_ref_tasks(&self) -> &VecDeque<Tasks> {
+        self.u().get_ref_tasks()
+    }
+
+    fn get_mut_tasks(&mut self) -> &mut VecDeque<Tasks> {
+        self.u_mut().get_mut_tasks()
     }
 
     fn get_tasks_formatted(&self) -> Vec<Line<'_>> {
@@ -113,8 +114,16 @@ impl Unit for Option<Units> {
         self.as_ref().map_or((0, 0), |u| u.get_coords())
     }
 
-    fn get_tasks(&self) -> &VecDeque<Tasks> {
-        self.as_ref().map_or(&EMPTY_TASKS, |u| u.get_tasks())
+    fn get_ref_tasks(&self) -> &VecDeque<Tasks> {
+        self.as_ref()
+            .expect("attempted to get referenced tasks from `None`")
+            .get_ref_tasks()
+    }
+
+    fn get_mut_tasks(&mut self) -> &mut VecDeque<Tasks> {
+        self.as_mut()
+            .expect("attempted to get mutable tasks from `None`")
+            .get_mut_tasks()
     }
 
     fn get_tasks_formatted(&self) -> Vec<Line<'_>> {

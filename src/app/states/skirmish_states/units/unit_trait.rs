@@ -26,7 +26,9 @@ pub trait Unit {
 
     fn get_coords(&self) -> (usize, usize);
 
-    fn get_tasks(&self) -> &VecDeque<Tasks>;
+    fn get_ref_tasks(&self) -> &VecDeque<Tasks>;
+
+    fn get_mut_tasks(&mut self) -> &mut VecDeque<Tasks>;
 
     fn set_task(&mut self, task: Tasks);
 
@@ -39,7 +41,7 @@ pub trait Unit {
         let hp_percent: u16 = hp * 100 / max_hp;
         let can_dig: bool = self.get_can_dig();
         let digging_power: f32 = self.get_digging_power();
-        let have_any_tasks: bool = self.get_tasks().is_empty();
+        let have_any_tasks: bool = self.get_ref_tasks().is_empty();
         let tasks: Vec<Line<'_>> = self.get_tasks_formatted();
 
         let mut lines: Vec<Line<'_>> = Vec::from([

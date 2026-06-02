@@ -79,8 +79,12 @@ impl Unit for MinerUnit {
         self.coords
     }
 
-    fn get_tasks(&self) -> &VecDeque<Tasks> {
+    fn get_ref_tasks(&self) -> &VecDeque<Tasks> {
         &self.tasks
+    }
+
+    fn get_mut_tasks(&mut self) -> &mut VecDeque<Tasks> {
+        &mut self.tasks
     }
 
     fn get_tasks_formatted(&self) -> Vec<Line<'_>> {
