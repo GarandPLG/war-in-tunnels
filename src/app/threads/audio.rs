@@ -1,7 +1,8 @@
 use clap::ValueEnum;
 use once_cell::sync::Lazy;
 use rodio::{
-    Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source, cpal::BufferSize, source::Amplify,
+    Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source, cpal::BufferSize,
+    decoder::LoopedDecoder, source::Amplify,
 };
 use std::{
     collections::HashMap,
@@ -69,10 +70,10 @@ fn load_soundtrack_folder(folder: &str) -> SoundtrackCache {
     cache
 }
 
-fn load_audio(
+pub fn load_audio(
     soundtrack: &Soundtrack,
     part: &SoundrackParts,
-) -> Amplify<Decoder<BufReader<Cursor<Vec<u8>>>>> {
+) -> Amplify<LoopedDecoder<BufReader<Cursor<Vec<u8>>>>> {
     {
         let guard: RwLockReadGuard<'_, HashMap<Soundtrack, Arc<HashMap<SoundrackParts, Vec<u8>>>>> =
             PRELOADED_SOUNDTRACKS
@@ -86,7 +87,7 @@ fn load_audio(
         if let Some(soundtrack_cache) = guard.get(soundtrack) {
             let data: &Vec<u8> = soundtrack_cache.get(part).expect("part missing in cache");
 
-            return Decoder::new(BufReader::new(Cursor::new(data.clone())))
+            return Decoder::new_looped(BufReader::new(Cursor::new(data.clone())))
                 .expect("decoder issue")
                 .amplify(0.20);
         }
@@ -107,7 +108,7 @@ fn load_audio(
         if let Some(soundtrack_cache) = guard.get(soundtrack) {
             let data: &Vec<u8> = soundtrack_cache.get(part).expect("part missing in cache");
 
-            return Decoder::new(BufReader::new(Cursor::new(data.clone())))
+            return Decoder::new_looped(BufReader::new(Cursor::new(data.clone())))
                 .expect("decoder issue")
                 .amplify(0.20);
         }
@@ -123,7 +124,7 @@ fn load_audio(
 
         guard.insert(*soundtrack, Arc::clone(&new_cache));
 
-        Decoder::new(BufReader::new(Cursor::new(data.clone())))
+        Decoder::new_looped(BufReader::new(Cursor::new(data.clone())))
             .expect("decoder issue")
             .amplify(0.20)
     }
@@ -146,35 +147,29 @@ pub fn handle_audio(rx: Receiver<AudioCmd>, mute: bool, soundtrack: Soundtrack) 
     let mut current_part: SoundrackParts = SoundrackParts::Calm;
     player.append(load_audio(&current_soundtrack, &current_part));
 
-    loop {
-        for cmd in rx.try_iter() {
-            match cmd {
-                AudioCmd::Mute => {
-                    player.set_volume(if player.volume() == 0.0 { volume } else { 0.0 });
-                }
-                AudioCmd::VolumeUp => {
-                    volume = (volume + 0.1).min(1.0);
-                    player.set_volume(volume);
-                }
-                AudioCmd::VolumeDown => {
-                    volume = (volume - 0.1).max(0.0);
-                    player.set_volume(volume);
-                }
-                AudioCmd::ChangePart(part) => {
-                    current_part = part;
-                    player.append(load_audio(&current_soundtrack, &current_part));
-                    player.skip_one();
-                }
-                AudioCmd::ChangeSoundtrack(st) => {
-                    current_soundtrack = st;
-                    player.append(load_audio(&current_soundtrack, &current_part));
-                    player.skip_one();
-                }
+    for cmd in rx {
+        match cmd {
+            AudioCmd::Mute => {
+                player.set_volume(if player.volume() == 0.0 { volume } else { 0.0 });
             }
-        }
-
-        if player.empty() {
-            player.append(load_audio(&current_soundtrack, &current_part));
+            AudioCmd::VolumeUp => {
+                volume = (volume + 0.1).min(1.0);
+                player.set_volume(volume);
+            }
+            AudioCmd::VolumeDown => {
+                volume = (volume - 0.1).max(0.0);
+                player.set_volume(volume);
+            }
+            AudioCmd::ChangePart(part) => {
+                current_part = part;
+                player.append(load_audio(&current_soundtrack, &current_part));
+                player.skip_one();
+            }
+            AudioCmd::ChangeSoundtrack(st) => {
+                current_soundtrack = st;
+                player.append(load_audio(&current_soundtrack, &current_part));
+                player.skip_one();
+            }
         }
     }
 }

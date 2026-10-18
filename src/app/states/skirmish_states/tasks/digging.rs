@@ -1,5 +1,5 @@
 use crate::app::states::skirmish_states::tasks::Task;
-use std::{collections::VecDeque, ops::Add};
+use std::collections::VecDeque;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DiggingTask {
@@ -49,7 +49,7 @@ impl Task for DiggingTask {
     }
 
     fn progress(&mut self) {
-        let _ = self.progress.add(self.tick_increase).max(0.0).min(100.0);
+        self.progress = (self.progress + self.tick_increase).clamp(0.0, 100.0);
     }
 
     fn is_finished(&self) -> bool {

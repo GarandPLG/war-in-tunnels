@@ -88,6 +88,8 @@ Projektowane wykonanie: `advance_turn` skanuje komórki, wyjmuje jednostkę prze
 
 Główny wątek wysyła `AudioCmd`; osobny wątek obsługuje głośność, mute, część i soundtrack. Cache wykorzystuje `Lazy`, `RwLock`, `Arc` i bajty OGG. Calm ładuje `calm.ogg`; Buildup, Assault i Outro korzystają obecnie z `test.ogg`. Błędy urządzenia, odczytu i dekodowania mogą zakończyć wątek przez `expect`.
 
+Rodio zapętla źródło przez `Decoder::new_looped`. Wątek sterujący blokuje się na odbiorniku (`for cmd in rx`), zamiast aktywnie sprawdzać komendy i koniec utworu. Zmiana części lub soundtracku dopisuje zapętlone źródło i pomija bieżące przez `skip_one`. Zamknięcie kanału kończy wątek. Test `audio_repeats_after_end_of_file` sprawdza przekroczenie końca rzeczywistego pliku OGG bez urządzenia audio.
+
 `flake.nix` dostarcza devShell dla `x86_64-linux`, domyślny pakiet z `default.nix` i pakiet `.#develop` budowany przez Naersk. Obie ścieżki pakowania kopiują soundtracki do `$out/bin` i zmieniają nazwę binarki na `war-in-tunnels`. `default.nix` ma stały `cargoHash`; po zmianie zależności wymaga osobnej weryfikacji. Samo `cargo test` nie sprawdza pakowania.
 
 ## Punkty wymagające uwagi przed dalszą implementacją
@@ -95,12 +97,12 @@ Główny wątek wysyła `AudioCmd`; osobny wątek obsługuje głośność, mute,
 To obserwacje statyczne, nie lista napraw wykonanych w tej sesji:
 
 - **Symulacja wyłączona:** `SkirmishState::tick_update` nie wywołuje `advance_turn`.
-- **Postęp zadania:** `DiggingTask::progress` oblicza nową wartość i ją odrzuca (`let _ = ...`); nie aktualizuje pola `progress`.
+- **Postęp zadania:** naprawiono zapisywanie przyrostu i ograniczenie do 0–100; zachowanie jest objęte testami w `tests/tasks.rs`. Nie oznacza to uruchomienia symulacji.
 - **Ruch w szkicu symulacji:** `advance_turn` pobiera cel bez warunku osiągnięcia postępu, nie aktualizuje współrzędnych jednostki i nie usuwa zakończonego zadania z kolejki. Jednostka przeniesiona na późniejszą komórkę może zostać obsłużona ponownie w tym samym skanowaniu. Zapis celu może nadpisać inną jednostkę i strukturę. Przed aktywacją potrzebne są reguły kolizji i testy pojedynczej tury.
 - **Zaznaczenie:** jednostka startowa jest zapamiętywana oddzielnie; przy uruchomieniu ruchu trzeba sprawdzić ważność jej pozycji i zachowanie dla pustej komórki oraz jednostki przeciwnika.
-- **Audio:** pętla `handle_audio` wymaga sprawdzenia zużycia CPU przy braku komend; testy Cargo nie weryfikują urządzenia ani odtwarzania.
+- **Audio:** usunięto aktywne odpytywanie; pomiar CPU na docelowym urządzeniu i odsłuch pozostają do wykonania. Test dekodera nie weryfikuje urządzenia audio.
 - **Granice UI:** małe terminale, resize i trzy poziomy zoomu wymagają interaktywnego sprawdzenia. Indeksowanie planszy zakłada poprawne współrzędne.
-- **Pokrycie:** brak testów jednostkowych/integracyjnych i konfiguracji CI w analizowanym drzewie. Clippy zgłasza 54 ostrzeżenia; nie uruchamiać automatycznych poprawek poza zakresem zadania.
+- **Pokrycie:** 23 testy CLI, sterowania, renderowania, planszy, zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Brak testów pełnej symulacji i konfiguracji CI. Clippy zgłasza 51 ostrzeżeń; nie uruchamiać automatycznych poprawek poza zakresem zadania.
 
 ## Gdzie zacząć konkretną zmianę
 

@@ -25,7 +25,7 @@ nix develop -c cargo run -- --disable-audio --view skirmish
 
 Ostatnie polecenie wymaga interaktywnego terminala. `shellHook` sam wykonuje `cargo run -- -h`, więc wejście do środowiska także kompiluje program i drukuje pomoc. Formatowanie stosuj wyłącznie do uzgodnionych zmian; nie używaj automatycznego `clippy --fix` do porządkowania całego repozytorium.
 
-Stan bazowy: testy i formatowanie przechodzą; testów jest zero, Clippy zgłasza 54 ostrzeżenia dla biblioteki. Nie traktuj tego jako potwierdzenia działania rozgrywki. Nowa nietrywialna logika wymaga małego testu regresji. Nie dodawaj zależności ani warstw abstrakcji bez potrzeby.
+Stan bazowy po dodaniu zestawu testów: 23 testy i formatowanie przechodzą; Clippy zgłasza 51 ostrzeżeń dla biblioteki. Zakres i polecenia opisano w [TESTING.md](TESTING.md). Nie traktuj tego jako potwierdzenia działania pełnej rozgrywki. Nowa nietrywialna logika wymaga małego testu regresji. Nie dodawaj zależności ani warstw abstrakcji bez potrzeby.
 
 Audio wymaga ALSA i urządzenia odtwarzania; do pracy nad TUI używaj `--disable-audio`. `--mute` nadal uruchamia wątek audio. Ścieżki zasobów i pakowanie sprawdzaj osobno przy zmianach audio/Nix. Rozróżniaj lokalny build Cargo, pakiet `.#develop` i domyślny pakiet Nix.
 

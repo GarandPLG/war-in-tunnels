@@ -51,7 +51,7 @@ impl BoardState {
         let h_max_offset: usize = Self::max_offset(map_width, cols);
 
         let vertical_offset: Offset = Offset::new(
-            Some((map_height - rows as usize + 1) / 2),
+            Some(map_height.saturating_sub(rows).div_ceil(2)),
             Some(v_max_offset),
         );
         let horizontal_offset: Offset = Offset::new(None, Some(h_max_offset));
