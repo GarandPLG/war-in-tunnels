@@ -8,6 +8,10 @@ pub struct Stone {
 }
 
 impl Stone {
+    pub fn take_damage(&mut self, damage: u16) {
+        self.durability = self.durability.saturating_sub(damage);
+    }
+
     pub fn new() -> Self {
         Self {
             durability: 1000,

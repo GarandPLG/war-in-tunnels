@@ -25,15 +25,16 @@ nix develop -c cargo run -- --disable-audio --view skirmish
 
 Ostatnie polecenie wymaga interaktywnego terminala. `shellHook` sam wykonuje `cargo run -- -h`, więc wejście do środowiska także kompiluje program i drukuje pomoc. Formatowanie stosuj wyłącznie do uzgodnionych zmian; nie używaj automatycznego `clippy --fix` do porządkowania całego repozytorium.
 
-Stan bazowy po dodaniu zestawu testów: 23 testy i formatowanie przechodzą; Clippy zgłasza 51 ostrzeżeń dla biblioteki. Zakres i polecenia opisano w [TESTING.md](TESTING.md). Nie traktuj tego jako potwierdzenia działania pełnej rozgrywki. Nowa nietrywialna logika wymaga małego testu regresji. Nie dodawaj zależności ani warstw abstrakcji bez potrzeby.
+Stan bazowy po dodaniu postępu kolejki: 45 testów i formatowanie przechodzą; Clippy zgłasza 50 ostrzeżeń dla biblioteki i 4 ostrzeżenia testów o jawnych `-> ()`, zgodnych z poniższą zasadą typowania. Zakres i polecenia opisano w [TESTING.md](TESTING.md). Nie traktuj tego jako potwierdzenia działania pełnej rozgrywki. Nowa nietrywialna logika wymaga małego testu regresji. Nie dodawaj zależności ani warstw abstrakcji bez potrzeby.
 
 Audio wymaga ALSA i urządzenia odtwarzania; do pracy nad TUI używaj `--disable-audio`. `--mute` nadal uruchamia wątek audio. Ścieżki zasobów i pakowanie sprawdzaj osobno przy zmianach audio/Nix. Rozróżniaj lokalny build Cargo, pakiet `.#develop` i domyślny pakiet Nix.
 
 ## Konwencje kodu
 
+- Jawne adnotacje typów są OBOWIĄZKOWE w nowym i zmienianym kodzie: przy zmiennych i stałych, polach struktur, parametrach funkcji i domknięć oraz typach zwracanych (także `-> ()` dla funkcji bez wyniku). Nie polegaj na inferencji typu tam, gdzie można podać typ jawnie. Dotyczy to również testów. Jest to zasada jawnego typowania; rzutowania wartości (`as`, `From`, `TryFrom`) stosuj tylko wtedy, gdy potrzebna jest rzeczywista konwersja.
 - Rust 2024, jedna biblioteka i jeden binarny punkt wejścia; bez workspace.
 - Wykorzystuj istniejące `App`, `GameStates`, `BoardState`, akcje i widgety.
 - Współrzędne planszy to `(row, col)`, indeksowanie `cells[row][col]`; rozmiar mapy i rozmiar widocznego obszaru to różne wartości.
 - `CellWidget` przechowuje także dane gry. Zmiana modelu komórki dotyka planszy, jednostek, struktur i panelu bocznego.
 - Lista skrótów w widokach oraz tabela `KEYBINDINGS` muszą odpowiadać obsłudze akcji.
-- Nie włączaj `advance_turn` bez sprawdzenia opisanych w mapie problemów symulacji.
+- `advance_turn` jest wywoływane przez tick potyczki. Zachowaj jedną aktualizację na jednostkę na tick, aktualność jej współrzędnych, kolejność zadań i ochronę zajętych pól. Regresje sprawdzaj przez `tests/digging.rs`.

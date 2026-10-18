@@ -1,6 +1,7 @@
 use crate::app::states::skirmish_states::{
     ZoomLevel,
     structures::{Stone, Structure, Structures},
+    tasks::Tasks,
     units::{Unit, Units},
 };
 use ratatui::{
@@ -115,11 +116,30 @@ impl CellWidget {
     }
 
     fn get_text_area(&self) -> Vec<Line<'_>> {
-        self.zoom_level.get_cell_text_area(
+        let mut lines: Vec<Line<'_>> = self.zoom_level.get_cell_text_area(
             self.structure.get_tag(),
             self.structure.get_level(),
-            self.unit.get_tag(),
-        )
+            self.unit
+                .get_tag()
+                .to_string()
+                .fg(self.unit.get_owner().get_color()),
+        );
+        if let Structures::Stone(stone) = self.structure
+            && stone.get_durability() < stone.get_max_durability()
+        {
+            let percent: u32 =
+                u32::from(stone.get_durability()) * 100 / u32::from(stone.get_max_durability());
+            let middle = lines.len() / 2;
+            lines[middle] = Line::from(format!("{percent}%")).cyan();
+        }
+        if let Some(unit) = &self.unit
+            && let Some(Tasks::Moving(task)) = unit.get_ref_tasks().front()
+            && let Some(percent) = task.get_movement_progress()
+        {
+            let middle = lines.len() / 2;
+            lines[middle] = Line::from(format!("{percent}%")).fg(unit.get_owner().get_color());
+        }
+        lines
     }
 
     fn get_block(&self) -> Block<'_> {

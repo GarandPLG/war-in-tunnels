@@ -79,6 +79,10 @@ impl Unit for MinerUnit {
         self.coords
     }
 
+    fn set_coords(&mut self, coords: (usize, usize)) {
+        self.coords = coords;
+    }
+
     fn get_ref_tasks(&self) -> &VecDeque<Tasks> {
         &self.tasks
     }
@@ -92,15 +96,23 @@ impl Unit for MinerUnit {
             self.tasks
                 .iter()
                 .enumerate()
-                .map(|(i, task)| {
-                    Line::from_iter([
-                        format!("{}. ", i + 1).gray(),
-                        task.get_icon().gray(),
-                        "  ".gray(),
-                        self.display_coords(task.get_path_front_coords()).green(),
-                        " -> ".gray(),
-                        self.display_coords(task.get_path_back_coords()).yellow(),
-                    ])
+                .flat_map(|(i, task): (usize, &Tasks)| -> [Line<'_>; 2] {
+                    [
+                        Line::from_iter([
+                            format!("{}. ", i + 1).gray(),
+                            task.get_icon().gray(),
+                            "  ".gray(),
+                            self.display_coords(task.get_path_front_coords()).green(),
+                            " -> ".gray(),
+                            self.display_coords(task.get_path_back_coords()).yellow(),
+                        ]),
+                        Line::from(format!(
+                            "   Step: {}% | Total: {}%",
+                            task.get_progress() as u16,
+                            task.get_total_progress() as u16,
+                        ))
+                        .cyan(),
+                    ]
                 })
                 .collect::<Vec<Line<'_>>>(),
         )

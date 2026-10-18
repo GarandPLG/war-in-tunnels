@@ -60,6 +60,10 @@ impl Unit for Units {
         self.u().get_coords()
     }
 
+    fn set_coords(&mut self, coords: (usize, usize)) {
+        self.u_mut().set_coords(coords);
+    }
+
     fn get_ref_tasks(&self) -> &VecDeque<Tasks> {
         self.u().get_ref_tasks()
     }
@@ -112,6 +116,12 @@ impl Unit for Option<Units> {
 
     fn get_coords(&self) -> (usize, usize) {
         self.as_ref().map_or((0, 0), |u| u.get_coords())
+    }
+
+    fn set_coords(&mut self, coords: (usize, usize)) {
+        if let Some(unit) = self.as_mut() {
+            unit.set_coords(coords);
+        }
     }
 
     fn get_ref_tasks(&self) -> &VecDeque<Tasks> {

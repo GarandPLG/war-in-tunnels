@@ -1,5 +1,5 @@
 use clap::ValueEnum;
-use ratatui::text::Line;
+use ratatui::text::{Line, Span};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum ZoomLevel {
@@ -25,22 +25,30 @@ impl ZoomLevel {
         }
     }
 
-    pub fn get_cell_text_area(
+    pub fn get_cell_text_area<'a>(
         &self,
         tag: char,
         structure_level: char,
-        unit: char,
-    ) -> Vec<Line<'_>> {
+        unit: Span<'a>,
+    ) -> Vec<Line<'a>> {
         match self {
             ZoomLevel::ZoomedIn => vec![
-                Line::from(format!(" {}       {} ", structure_level, unit)),
+                Line::from(vec![
+                    Span::raw(format!(" {}       ", structure_level)),
+                    unit,
+                    Span::raw(" "),
+                ]),
                 Line::from(format!("           ")),
                 Line::from(format!("     {}     ", tag)),
                 Line::from(format!("           ")),
                 Line::from(format!("           ")),
             ],
             ZoomLevel::Default => vec![
-                Line::from(format!(" {}   {} ", structure_level, unit)),
+                Line::from(vec![
+                    Span::raw(format!(" {}   ", structure_level)),
+                    unit,
+                    Span::raw(" "),
+                ]),
                 Line::from(format!("   {}   ", tag)),
                 Line::from(format!("       ")),
             ],

@@ -1,4 +1,4 @@
-use crate::app::states::skirmish_states::tasks::Task;
+use crate::app::states::skirmish_states::tasks::{MovingTask, Task};
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -6,11 +6,13 @@ pub struct DiggingTask {
     path: VecDeque<(usize, usize)>,
     progress: f32,
     tick_increase: f32,
+    total_steps: usize,
 }
 
 impl DiggingTask {
     pub fn new(path: VecDeque<(usize, usize)>, tick_increase: f32) -> Self {
         Self {
+            total_steps: path.len(),
             path,
             progress: 0.0,
             tick_increase,
@@ -20,6 +22,15 @@ impl DiggingTask {
     pub fn pop_front(&mut self) {
         self.path.pop_front();
         self.progress = 0.0;
+    }
+
+    pub fn from_moving(task: MovingTask, tick_increase: f32) -> Self {
+        Self {
+            path: task.get_path().clone(),
+            progress: 0.0,
+            tick_increase,
+            total_steps: task.get_total_steps(),
+        }
     }
 
     pub fn current_target(&self) -> Option<(usize, usize)> {
@@ -46,6 +57,10 @@ impl Task for DiggingTask {
 
     fn get_progress(&self) -> f32 {
         self.progress
+    }
+
+    fn get_total_steps(&self) -> usize {
+        self.total_steps
     }
 
     fn progress(&mut self) {

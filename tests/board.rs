@@ -118,17 +118,18 @@ fn cancelling_path_clears_marks_without_queuing_task() {
 #[test]
 fn backtracking_revisited_cell_preserves_earlier_mark() {
     let mut board = board();
+    board.change_focused_cell(MoveFocusedCell::Left);
     board.toggle_marking();
     board.change_focused_cell(MoveFocusedCell::Right);
     board.change_focused_cell(MoveFocusedCell::Left);
     board.pop_marked_cell();
-    assert_eq!(board.get_focused_cell().get_coords(), (5, 4));
-    assert!(board.get_ref_cell(5, 3).get_marked());
-    board.pop_marked_cell();
-    board.pop_marked_cell();
     assert_eq!(board.get_focused_cell().get_coords(), (5, 3));
+    assert!(board.get_ref_cell(5, 2).get_marked());
+    board.pop_marked_cell();
+    board.pop_marked_cell();
+    assert_eq!(board.get_focused_cell().get_coords(), (5, 2));
     assert_eq!(board.get_marked_cells().len(), 1);
-    assert!(!board.get_ref_cell(5, 4).get_marked());
+    assert!(!board.get_ref_cell(5, 3).get_marked());
 }
 
 #[test]

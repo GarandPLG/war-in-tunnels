@@ -4,8 +4,8 @@ use crate::app::{
         FocusedCell, Offset,
         skirmish_states::{
             CellSizes, MarkedCells, MoveFocusedCell, Players, ZoomLevel,
-            structures::{BaseBuilding, Ore, Stone, Structures, Tunnel},
-            tasks::{DiggingTask, Task, Tasks},
+            structures::{BaseBuilding, Ore, Stone, Structure, Structures, Tunnel},
+            tasks::{DiggingTask, MovingTask, Task, Tasks},
             units::{MinerUnit, Unit, Units},
         },
     },
@@ -160,6 +160,9 @@ impl BoardState {
     }
 
     pub fn push_marked_cell(&mut self, new_cell: (usize, usize)) {
+        if self.marked_cells.marked_cells.back() == Some(&new_cell) {
+            return;
+        }
         let cell: &mut CellWidget = self.get_mut_cell(new_cell.0, new_cell.1);
 
         if !cell.get_marked() {
@@ -203,15 +206,36 @@ impl BoardState {
     pub fn start_marking_cells(&mut self) {
         let (row, col) = self.focused_cell.get_coords();
 
-        let cell: &mut CellWidget = self.get_mut_cell(row, col);
-        cell.set_marked(true);
-
-        self.marked_cells.selected_unit = cell.get_option_unit();
-        self.marked_cells.marked_cells.push_back((row, col));
+        let selected_unit: Option<Units> = self.get_ref_cell(row, col).get_option_unit();
+        if selected_unit.get_owner() != Players::Player || !selected_unit.get_can_dig() {
+            self.marked_cells.marking_cells = false;
+            return;
+        }
+        // Extend queued work from its final destination, not the miner's current cell.
+        let start: (usize, usize) = selected_unit
+            .get_ref_tasks()
+            .back()
+            .and_then(|task| task.get_path().back())
+            .copied()
+            .unwrap_or((row, col));
+        self.focused_cell.set_focused_cell(start);
+        let start: (usize, usize) = self.focused_cell.get_coords();
+        self.get_mut_cell(row, col).set_selected(false);
+        self.get_mut_cell(start.0, start.1)
+            .set_selected(true)
+            .set_marked(true);
+        if !self.is_focused_cell_visible() {
+            self.vertical_offset
+                .set_value(start.0.saturating_sub(self.rows / 2));
+            self.horizontal_offset
+                .set_value(start.1.saturating_sub(self.cols / 2));
+        }
+        self.marked_cells.selected_unit = selected_unit;
+        self.marked_cells.marked_cells.push_back(start);
     }
 
     pub fn end_marking_cells(&mut self, del: bool) {
-        // let todo_taks_tyle = Tasks::Digging(DiggingTask::);
+        self.marked_cells.marking_cells = false;
         for (row, col) in self.marked_cells.marked_cells.clone() {
             self.get_mut_cell(row, col).set_marked(false);
         }
@@ -219,7 +243,7 @@ impl BoardState {
         let (row, col) = self.marked_cells.selected_unit.get_coords();
 
         if self.marked_cells.marked_cells.len() > 1 && !del {
-            let path: VecDeque<(usize, usize)> = self
+            let path: Vec<(usize, usize)> = self
                 .marked_cells
                 .marked_cells
                 .iter()
@@ -229,11 +253,20 @@ impl BoardState {
 
             let tick_increase: f32 = self.marked_cells.selected_unit.get_digging_power();
 
-            let task: Tasks = Tasks::Digging(DiggingTask::new(path, tick_increase));
-
-            self.get_mut_cell(row, col)
-                .get_mut_option_unit()
-                .set_task(task);
+            let tasks: VecDeque<Tasks> = path
+                .chunk_by(|a, b| self.is_walkable(*a) == self.is_walkable(*b))
+                .map(|segment| {
+                    let path = segment.iter().copied().collect();
+                    if self.is_walkable(segment[0]) {
+                        Tasks::Moving(MovingTask::new(path))
+                    } else {
+                        Tasks::Digging(DiggingTask::new(path, tick_increase))
+                    }
+                })
+                .collect();
+            if let Some(unit) = self.get_mut_cell(row, col).get_mut_option_unit().as_mut() {
+                unit.get_mut_tasks().extend(tasks);
+            }
         }
 
         self.marked_cells.selected_unit = None;
@@ -242,6 +275,18 @@ impl BoardState {
 
     fn max_offset(map_size: usize, size: usize) -> usize {
         if map_size > size { map_size - size } else { 0 }
+    }
+
+    fn is_walkable(&self, (row, col): (usize, usize)) -> bool {
+        self.cells
+            .get(row)
+            .and_then(|cells| cells.get(col))
+            .is_some_and(|cell| {
+                matches!(
+                    cell.get_structure(),
+                    Structures::Tunnel(_) | Structures::Base(_)
+                )
+            })
     }
 
     pub fn get_focused_cell(&self) -> &FocusedCell {
@@ -325,101 +370,94 @@ impl BoardState {
         }
     }
 
-    // fn get_active_tasks(&self) -> Vec<&Tasks> {
-    //     self.cells
-    //         .iter()
-    //         .flat_map(|row| row.iter())
-    //         .filter_map(|cell| {
-    //             cell.get_ref_option_unit()
-    //                 .as_ref()
-    //                 .and_then(|unit| unit.get_ref_tasks().front())
-    //         })
-    //         .collect()
-    //     // for row in self.marked_cells.marked_cells {
-
-    //     // }
-    // }
-
     pub fn advance_turn(&mut self) {
-        for row in 0..self.map_height {
-            for col in 0..self.map_width {
-                /* ---------------------------------------------------------
-                 * 1️⃣  Take the unit out of the current cell (if any).  This
-                 *    gives us an *owned* `Units`, so we no longer hold a
-                 *    mutable reference into `self`.
-                 * ------------------------------------------------------- */
-                let maybe_unit: Option<Units> =
-                    self.get_mut_cell(row, col).get_mut_option_unit().take();
+        // Snapshot positions so moving to a later cell cannot grant another turn.
+        let active: Vec<(usize, usize)> = self
+            .cells
+            .iter()
+            .enumerate()
+            .flat_map(|(row, cells)| {
+                cells.iter().enumerate().filter_map(move |(col, cell)| {
+                    cell.get_ref_option_unit()
+                        .as_ref()
+                        .filter(|unit| !unit.get_ref_tasks().is_empty())
+                        .map(|_| (row, col))
+                })
+            })
+            .collect();
 
-                let Some(mut unit) = maybe_unit else {
-                    continue; // no unit in this cell
-                };
+        for (row, col) in active {
+            // Keep the route's origin stable while the player is drawing it.
+            if self.marked_cells.marking_cells
+                && self.marked_cells.selected_unit.get_coords() == (row, col)
+            {
+                continue;
+            }
+            let mut unit: Units = self
+                .get_mut_cell(row, col)
+                .get_mut_option_unit()
+                .take()
+                .unwrap();
+            let mut task: Tasks = unit.get_mut_tasks().pop_front().unwrap();
+            let mut destination = (row, col);
 
-                /* ---------------------------------------------------------
-                 * 2️⃣  Look at the unit’s task queue.  We need a mutable
-                 *    reference to the *front* task only while we are
-                 *    processing it.  The mutable borrow is confined to a
-                 *    small inner block so that it ends before we move the
-                 *    unit itself.
-                 * ------------------------------------------------------- */
-                if let Some(task) = unit.get_mut_tasks().front_mut() {
-                    // `Tasks` currently only has the Digging variant.
-                    // If new variants appear later, you can handle them here.
-                    let maybe_target: Option<(usize, usize)> = {
-                        // -------------------------------------------------
-                        // Mutable borrow of the task lives only inside this
-                        // block.  When the block ends, `dig` is dropped.
-                        // -------------------------------------------------
-                        let dig: &mut DiggingTask = match task {
-                            Tasks::Digging(d) => d,
-                        };
+            if let Some((target_row, target_col)) = task.get_path().front().copied() {
+                let adjacent: bool = row
+                    .abs_diff(target_row)
+                    .saturating_add(col.abs_diff(target_col))
+                    == 1;
+                if target_row >= self.map_height || target_col >= self.map_width || !adjacent {
+                    // Discard invalid routes rather than teleporting or indexing outside the map.
+                    *self.get_mut_cell(row, col).get_mut_option_unit() = Some(unit);
+                    continue;
+                }
 
-                        dig.progress();
-
-                        // Remember the coordinates of the next tunnel cell.
-                        let target: Option<(usize, usize)> = dig.current_target();
-
-                        // If we actually moved, the current step of the
-                        // digging task is finished – pop it from the queue.
-                        if target.is_some() {
-                            dig.pop_front();
+                let cell: &mut CellWidget = self.get_mut_cell(target_row, target_col);
+                if cell.get_ref_option_unit().is_none() {
+                    let structure: Structures = cell.get_structure();
+                    // Previously planned stone may already be a tunnel when this task starts.
+                    task = match (task, structure) {
+                        (Tasks::Digging(dig), Structures::Tunnel(_) | Structures::Base(_)) => {
+                            Tasks::Moving(MovingTask::from_digging(dig))
                         }
-
-                        target
-                    }; // ← `dig` (and the mutable borrow) ends here
-
-                    if let Some((t_row, t_col)) = maybe_target {
-                        /* -------------------------------------------------
-                         * 3️⃣  We have a target – create the tunnel, move the
-                         *    unit, and clean up the source cell.
-                         * ------------------------------------------------- */
-
-                        // a) create the tunnel in the target cell
-                        self.get_mut_cell(t_row, t_col)
-                            .set_structure(Structures::Tunnel(Tunnel::new()));
-
-                        // b) (optional) keep the old coordinates – they are
-                        //    no longer needed but kept for possible future use
-                        let _old_coords: (usize, usize) = unit.get_coords();
-
-                        // c) move the unit into the target cell
-                        *self.get_mut_cell(t_row, t_col).get_mut_option_unit() = Some(unit);
-
-                        // d) the source cell is already empty because of the
-                        //    earlier `take()`.  Nothing else to do.
-                    } else {
-                        // No reachable target – put the unit back where it was.
-                        self.get_mut_cell(row, col)
-                            .get_mut_option_unit()
-                            .replace(unit);
+                        (Tasks::Moving(moving), Structures::Stone(_)) => Tasks::Digging(
+                            DiggingTask::from_moving(moving, unit.get_digging_power()),
+                        ),
+                        (task, _) => task,
+                    };
+                    match (&mut task, structure) {
+                        (Tasks::Digging(dig), Structures::Stone(mut stone)) => {
+                            let max: f32 = f32::from(stone.get_max_durability());
+                            let before: u16 = (dig.get_progress() * max / 100.0) as u16;
+                            dig.progress();
+                            let after: u16 = (dig.get_progress() * max / 100.0) as u16;
+                            stone.take_damage(after.saturating_sub(before));
+                            if stone.get_durability() == 0 {
+                                cell.set_structure(Structures::Tunnel(Tunnel::new()));
+                                destination = (target_row, target_col);
+                                dig.pop_front();
+                            } else {
+                                cell.set_structure(Structures::Stone(stone));
+                            }
+                        }
+                        (Tasks::Moving(moving), Structures::Tunnel(_) | Structures::Base(_)) => {
+                            moving.progress();
+                            if moving.is_finished() {
+                                destination = (target_row, target_col);
+                                moving.pop_front();
+                            }
+                        }
+                        _ => {}
                     }
-                } else {
-                    // The unit has no tasks – simply put it back.
-                    self.get_mut_cell(row, col)
-                        .get_mut_option_unit()
-                        .replace(unit);
+                }
+                if !task.get_path().is_empty() {
+                    unit.get_mut_tasks().push_front(task);
                 }
             }
+            unit.set_coords(destination);
+            *self
+                .get_mut_cell(destination.0, destination.1)
+                .get_mut_option_unit() = Some(unit);
         }
     }
 }

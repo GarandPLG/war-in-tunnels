@@ -1,6 +1,6 @@
 # Mapa kodu i przepływu
 
-Migawka: 2026-10-18. Projekt `war_in_tunnels` 0.1.0 to prototyp terminalowego RTS. Działają menu, prezentacja planszy, nawigacja, zaznaczanie ścieżki i obsługa audio; pełna symulacja nie jest podłączona do zegara.
+Migawka: 2026-10-18. Projekt `war_in_tunnels` 0.1.0 to prototyp terminalowego RTS. Działają menu, plansza, nawigacja, zlecanie i wykonywanie kopania oraz audio. Zegar obsługuje zadania jednostek; ekonomia i walka pozostają poza zakresem obecnej symulacji.
 
 ## Moduły i odpowiedzialność
 
@@ -14,7 +14,7 @@ Wszystkie ścieżki poniżej są względem katalogu głównego repozytorium.
 | Zbiór stanów | `src/app/state.rs`, `src/app/states/` | `GameStates`, menu, potyczka, ustawienia, perki, umiejętności |
 | Routing widoku | `src/app/view.rs`, `src/app/views/` | `View`, implementacja `Widget for &mut App`, layouty i ekrany |
 | Wejście | `src/app/keybind.rs`, `src/app/keybindings/` | Routing według widoku, `KEYBINDINGS`, `Action`, `Group`, mapowanie zdarzeń |
-| Plansza | `src/app/states/skirmish_states/board.rs` | Tworzenie mapy, kamera, zoom, focus, zaznaczenia, zlecanie i szkic wykonywania zadań |
+| Plansza | `src/app/states/skirmish_states/board.rs` | Tworzenie mapy, kamera, zoom, focus, zaznaczenia, zlecanie i wykonywanie zadań |
 | Współrzędne | `focused_cell.rs`, `offset.rs`, `marked_cells.rs`, `zoom_level.rs` w `skirmish_states/` | Granice kursora i przewijania, ścieżka zaznaczenia, rozmiar komórek |
 | Obiekty gry | `skirmish_states/structures/`, `units/`, `tasks/` | Traity `Structure`, `Unit`, `Task` i delegujące enumy `Structures`, `Units`, `Tasks` |
 | Widgety | `src/app/widgets/` | Plansza, komórka, panel boczny i legenda klawiszy |
@@ -47,7 +47,7 @@ flowchart TD
     LOOP -->|exit lub błąd| RESTORE[ratatui::restore]
 ```
 
-Kanały to standardowe `std::sync::mpsc`. Stan gry mutuje główny wątek. Każdy obrót pętli najpierw rysuje, następnie próbuje odebrać po jednym zdarzeniu z każdego kanału. Aktualizacja potyczki odbywa się niezależnie od wybranego ekranu. `tick_update` obecnie tylko zwiększa `turn_counter`; `self.board.advance_turn()` jest zakomentowane.
+Kanały to standardowe `std::sync::mpsc`. Stan gry mutuje główny wątek. Każdy obrót pętli najpierw rysuje, następnie próbuje odebrać po jednym zdarzeniu z każdego kanału. Aktualizacja potyczki odbywa się niezależnie od wybranego ekranu. `tick_update` wykonuje `board.advance_turn()` i zwiększa `turn_counter`.
 
 `GameStates::new` tworzy wszystkie stany jednocześnie. `SettingsState` przechowuje parametry z CLI; samo istnienie parametrów ekonomii, XP i trybu gry nie oznacza zaimplementowanych mechanik. `View` zawiera MainMenu, Skirmish, PerkDecks i SkillsConfig. Dwa ostatnie używają `default_view` z napisem „Work in progress”; ustawienia nie mają osobnego wariantu `View`.
 
@@ -70,7 +70,7 @@ flowchart LR
 
 `BoardState.cells: Vec<Vec<CellWidget>>` łączy model i prezentację: komórka zawiera strukturę, opcjonalną jednostkę, pozycję i flagi UI. `BoardWidget` wybiera widoczne komórki przez offsety i layout; `CellWidget` odpowiada za ich tekst i styl. Panel boczny prezentuje dane zaznaczenia. Zoom wpływa na wielkość komórek i liczbę widocznych wierszy/kolumn; resize i przełączanie panelu zmieniają granice offsetów.
 
-Mapa powstaje deterministycznie: kamień, baza gracza w `(map_height / 2, 2)`, baza przeciwnika w `(map_height / 2, map_width - 3)`, sąsiadujące złoża i po jednym górniku w bazie. CLI domyślnie wybiera mapę 42 × 11; dopuszczalne zakresy to szerokość 36–108 i wysokość 11–39. Dostępne struktury to Base, Ore, Stone, Tunnel; jedyna jednostka to Miner, jedyne zadanie to Digging.
+Mapa powstaje deterministycznie: kamień, baza gracza w `(map_height / 2, 2)`, baza przeciwnika w `(map_height / 2, map_width - 3)`, sąsiadujące złoża i po jednym górniku w bazie. CLI domyślnie wybiera mapę 42 × 11; dopuszczalne zakresy to szerokość 36–108 i wysokość 11–39. Dostępne struktury to Base, Ore, Stone, Tunnel; jedyna jednostka to Miner. Zadania to Digging i Moving, implementujące wspólny trait Task.
 
 ## Klawisze i zlecanie kopania
 
@@ -80,9 +80,19 @@ Mapa powstaje deterministycznie: kamień, baza gracza w `(map_height / 2, 2)`, b
 4. Akcje wspólne realizują wyjście, powrót do menu i komendy audio.
 5. W potyczce ruch zmienia focus i ewentualnie kamerę; zoom przelicza rozmiary; Tab przełącza panel.
 6. Spacja przełącza zaznaczanie. `start_marking_cells` zapamiętuje jednostkę z komórki początkowej; ruch dopisuje współrzędne do kolejki. Backspace cofa ścieżkę, Delete ją anuluje.
-7. `end_marking_cells(false)` pomija pierwsze pole, tworzy `DiggingTask` z pozostałej ścieżki i siły kopania oraz przekazuje zadanie jednostce.
+7. `end_marking_cells(false)` pomija pierwsze pole i dzieli trasę na kolejne jednorodne odcinki: `MovingTask` dla tuneli/baz i `DiggingTask` dla kamienia. Dodaje je do kolejki w kolejności ścieżki; w panelu zadania mają ikony `→` i `⛏`.
 
-Projektowane wykonanie: `advance_turn` skanuje komórki, wyjmuje jednostkę przez `take()`, obsługuje pierwsze zadanie i przenosi jednostkę na cel, zastępując strukturę tunelem. Ten przepływ istnieje w kodzie, ale nie jest obecnie wywoływany przez tick.
+`start_marking_cells` dopuszcza wyłącznie własnego górnika. Jeśli ma już zadania, nowa ścieżka zaczyna się na końcu ostatniego zadania. Jednostka wybrana do rysowania wstrzymuje wykonywanie zadań do zatwierdzenia lub anulowania trasy; powtarzany ruch przy granicy nie dopisuje kolejnych kopii tej samej kratki.
+
+`advance_turn` najpierw zbiera pozycje pracujących jednostek, aby każda była aktualizowana tylko raz. Wyjmuje jednostkę i pierwsze zadanie, sprawdza granice, sąsiedztwo i zajętość celu. Przy kamieniu różnica skumulowanego postępu zadania daje obrażenia: `digging_power` 0.55 oznacza około 5.5 durability na tick przy maksymalnym durability 1000. Zaokrąglenie skumulowanej wartości zachowuje część ułamkową. Pełne kopanie trwa około 182 ticków (6 sekund). `Stone::take_damage` nie pozwala zejść poniżej zera.
+
+Po zniszczeniu kamienia cel staje się tunelem i jednostka wchodzi do niego w tym samym ticku w ramach `Digging`. `MovingTask` obsługuje przejście do istniejącego tunelu lub pustej bazy: wymaga 91 ticków (3003 ms przy `TICK_MS = 33`), nie zmienia durability. Jego licznik `ticks` resetuje się dla każdego kroku; blokada lub rysowanie trasy wstrzymuje naliczanie. Jeśli teren zmieni się od zaplanowania trasy (np. kamień został już wykopany albo ścieżka wraca przez nowy tunel), `advance_turn` zmienia typ bieżącego zadania według aktualnego celu, zachowując pozostałą ścieżkę i kolejkę.
+
+Ruch aktualizuje współrzędne jednostki i usuwa krok ścieżki. Zakończone zadanie znika, następne może wykonać się od kolejnego ticka. Zajęty cel lub ruda blokuje pracę bez niszczenia obiektu. Pusta ścieżka jest usuwana, a cel poza mapą lub niesąsiadujący anuluje bieżące zadanie bez teleportacji. Uszkodzony kamień pokazuje pozostałą wytrzymałość w procentach na planszy; panel boczny pokazuje dokładne durability. Znacznik jednostki jest osobnym stylowanym `Span` z kolorem `Players::get_color()`, niezależnym od koloru tunelu i zaznaczenia komórki.
+
+Postęp bieżącego kroku jest udostępniany przez `MovingTask::get_movement_progress()`: brak wartości przed rozpoczęciem ruchu, procent obliczany z tego samego `MOVEMENT_TICKS`, który wyznacza czas przejścia. `CellWidget` odczytuje go wyłącznie z aktywnego `Tasks::Moving` i pokazuje na środku kratki jednostki w kolorze jej właściciela. W normalnym i powiększonym widoku pozostaje widoczny osobny znacznik jednostki; w pomniejszonym procent zastępuje znak struktury na czas ruchu. Zakończenie kroku resetuje wskaźnik. `DiggingTask` przechowuje wyłącznie postęp kopania, bez licznika podróży.
+
+`Task::get_progress()` oznacza postęp bieżącej kratki, a `get_total_progress()` uwzględnia wykonane kratki i bieżący etap. Oba typy zadań zapamiętują początkową długość trasy w `total_steps`; `from_digging` i `from_moving` zachowują ją przy zmianie typu. `MinerUnit::get_tasks_formatted()` prezentuje każde zadanie w dwóch wierszach: trasa oraz `Step: …% | Total: …%`. Wartość całkowita jest liczona według liczby kratek, nie szacowanego czasu pozostałego do końca.
 
 ## Audio i pakowanie
 
@@ -96,13 +106,11 @@ Rodio zapętla źródło przez `Decoder::new_looped`. Wątek sterujący blokuje 
 
 To obserwacje statyczne, nie lista napraw wykonanych w tej sesji:
 
-- **Symulacja wyłączona:** `SkirmishState::tick_update` nie wywołuje `advance_turn`.
-- **Postęp zadania:** naprawiono zapisywanie przyrostu i ograniczenie do 0–100; zachowanie jest objęte testami w `tests/tasks.rs`. Nie oznacza to uruchomienia symulacji.
-- **Ruch w szkicu symulacji:** `advance_turn` pobiera cel bez warunku osiągnięcia postępu, nie aktualizuje współrzędnych jednostki i nie usuwa zakończonego zadania z kolejki. Jednostka przeniesiona na późniejszą komórkę może zostać obsłużona ponownie w tym samym skanowaniu. Zapis celu może nadpisać inną jednostkę i strukturę. Przed aktywacją potrzebne są reguły kolizji i testy pojedynczej tury.
-- **Zaznaczenie:** jednostka startowa jest zapamiętywana oddzielnie; przy uruchomieniu ruchu trzeba sprawdzić ważność jej pozycji i zachowanie dla pustej komórki oraz jednostki przeciwnika.
+- **Blokady:** jednostki czekają przed zajętym polem i rudą. Nie ma automatycznego omijania przeszkód ani rozwiązywania sytuacji, w której dwie jednostki wzajemnie blokują przejście.
+- **Zaznaczenie:** wybrany górnik czeka podczas rysowania trasy; inne jednostki wykonują zadania normalnie.
 - **Audio:** usunięto aktywne odpytywanie; pomiar CPU na docelowym urządzeniu i odsłuch pozostają do wykonania. Test dekodera nie weryfikuje urządzenia audio.
 - **Granice UI:** małe terminale, resize i trzy poziomy zoomu wymagają interaktywnego sprawdzenia. Indeksowanie planszy zakłada poprawne współrzędne.
-- **Pokrycie:** 23 testy CLI, sterowania, renderowania, planszy, zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Brak testów pełnej symulacji i konfiguracji CI. Clippy zgłasza 51 ostrzeżeń; nie uruchamiać automatycznych poprawek poza zakresem zadania.
+- **Pokrycie:** 45 testów CLI, sterowania, renderowania, planszy, wykonywania zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Brak testów pełnej rozgrywki i konfiguracji CI. Clippy zgłasza 50 ostrzeżeń biblioteki oraz 4 ostrzeżenia o wymaganych jawnych `-> ()` w testach; nie uruchamiać automatycznych poprawek poza zakresem zadania.
 
 ## Gdzie zacząć konkretną zmianę
 

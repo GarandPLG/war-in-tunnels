@@ -26,6 +26,8 @@ pub trait Unit {
 
     fn get_coords(&self) -> (usize, usize);
 
+    fn set_coords(&mut self, coords: (usize, usize));
+
     fn get_ref_tasks(&self) -> &VecDeque<Tasks>;
 
     fn get_mut_tasks(&mut self) -> &mut VecDeque<Tasks>;

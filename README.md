@@ -87,6 +87,20 @@ cargo run -- -h
 - `Cargo.toml` – zależności Rust (ratatui, clap, log, simplelog, rodio, once_cell).
 - `flake.nix` – opis flake, zależności Nix, profile build i develop.
 
+## Kopanie
+
+W potyczce gracz zaczyna z jednym górnikiem `Miner` w swojej bazie. Ustaw kursor na jednostce (z początkowej pozycji wystarczy strzałka w lewo), naciśnij spację, wytycz ścieżkę strzałkami i zatwierdź spacją. Backspace cofa ostatni krok, Delete anuluje rysowanie.
+
+Górnik wykonuje zadania kolejno. Kamień stopniowo traci durability; po wykopaniu zmienia się w tunel, do którego jednostka wchodzi w tym samym ticku. Pełna kratka kamienia zajmuje około 6 sekund. Procent pozostałej wytrzymałości widać na uszkodzonej kratce; Tab otwiera panel z dokładną wartością dla pola pod kursorem. Przejście do istniejącego tunelu lub niezajętej bazy trwa około 3 sekund na kratkę. Znacznik jednostki ma kolor właściciela: niebieski dla gracza, czerwony dla przeciwnika.
+
+Podczas przechodzenia na kratce jednostki pojawia się procent ukończenia bieżącego kroku, np. `50%`. Wskaźnik resetuje się po przejściu i znika, gdy jednostka nie podróżuje. Jest widoczny na wszystkich poziomach zoomu, w kolorze właściciela jednostki.
+
+Zatwierdzona ścieżka dzieli się automatycznie na zadania `Moving` (`→`, gotowe tunele i bazy) oraz `Digging` (`⛏`, kamień). Jednostka wykonuje je kolejno; po wykopaniu kamienia wejście do nowego tunelu pozostaje częścią kopania.
+
+W kolejce pod Tab każde zadanie pokazuje `Step` (postęp bieżącej kratki) oraz `Total` (postęp całego zadania według liczby kratek, z uwzględnieniem częściowo wykonanego etapu). Zadania oczekujące mają oba wskaźniki na 0%.
+
+Możesz zaznaczyć pracującego górnika ponownie: rysowanie kolejnego zadania zacznie się na końcu jego dotychczasowej kolejki. Podczas rysowania wybrana jednostka wstrzymuje pracę. Zajęte pole lub złoże rudy zatrzymuje wykonywanie ścieżki; ten typ zadania kopie tylko kamień.
+
 ## Dźwięk
 
 Ścieżki dźwiękowe znajdują się w folderze `soundtracks`. Biblioteka **rodio** odtwarza je w oddzielnym wątku. Dostępne flagi pozwalają wybrać konkretną ścieżkę, wyciszyć lub całkowicie wyłączyć dźwięk.

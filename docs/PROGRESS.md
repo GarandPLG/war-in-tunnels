@@ -1,5 +1,73 @@
 # Dziennik prac
 
+## 2026-10-18 — przekazanie kontekstu na kolejną sesję
+
+Użytkownik zaakceptował aktualny stan. Nie ma ustalonego kolejnego zadania. Na start kolejnej sesji przeczytaj `docs/AGENTS.md`, `docs/CODE_MAP.md` i `docs/TESTING.md`; instrukcje w `docs/` mogą wymagać jawnego wskazania agentowi.
+
+Stan końcowy: zoptymalizowane audio, wykonywanie kopania i ruchu w osobnych zadaniach, 3-sekundowy krok, kolor jednostki według właściciela, procent ruchu na kratce oraz postęp etapu i całości zadania pod Tab. Ostatni pełny zestaw: 45 testów zaliczonych, kompilacja i formatowanie poprawne. Ostrzeżenia Clippy: 50 biblioteki oraz 4 stylistyczne uwagi o wymaganym jawnym `-> ()` w testach.
+
+Uwagi do dalszej pracy:
+
+- `Total` jest postępem według liczby kratek, nie przewidywanym czasem zakończenia. Przy zmianie rodzaju zadania zachowuje liczbę wykonanych etapów, ale postęp bieżącego etapu jest resetowany.
+- Zajęte pole lub ruda zatrzymuje jednostkę; brak omijania przeszkód. Rysowanie trasy pauzuje wybraną jednostkę. Potyczka nadal otrzymuje ticki także poza jej ekranem.
+- Kolejka w panelu zajmuje dwa wiersze na zadanie. Długie kolejki w małym terminalu mogą zostać ucięte; przewijania panelu nie dodano.
+- Przed wydaniem pozostają ręczne sprawdzenie TUI na różnych rozmiarach terminala, odsłuch i pomiar CPU audio oraz budowa pakietów Nix. Zmiany zależności z tej sesji mogą wymagać aktualizacji `cargoHash` w `default.nix`; nie było to weryfikowane.
+- Zmiany pozostają niezatwierdzone w Git, w tym nowe `tasks/moving.rs` i `tests/digging.rs`. Przed commitem sprawdź pełne `git status`, aby uwzględnić także pliki nieśledzone. Nie wykonano commita ani publikacji.
+
+W tym kroku zmieniono wyłącznie dokumentację; nie rozpoczynano nowych poprawek ani refaktoryzacji. Końcowe `nix develop -c cargo check --all-targets` zakończone sukcesem; testów nie powtarzano po zmianie samej dokumentacji.
+
+## 2026-10-18 — postęp zadań w panelu i obowiązkowe adnotacje typów
+
+Kolejka pod Tab pokazuje osobno postęp bieżącej kratki (`Step`) i całego zadania (`Total`). Całość jest liczona według początkowej liczby kratek: wykonane etapy plus ułamek bieżącego. Oba typy zadań przechowują `total_steps`, zachowywane także przy zmianie Moving/Digging wskutek zmiany terenu. Zadania oczekujące pokazują 0%, zakończone osiągają 100%; pusta trasa nie powoduje dzielenia przez zero.
+
+Dodano do `docs/AGENTS.md` obowiązek jawnych adnotacji typów w nowym i zmienianym kodzie, włącznie z testami, parametrami domknięć i wynikami funkcji. Rozróżniono adnotacje typów od rzeczywistych konwersji wartości; nie wykonywano masowego przepisywania wcześniejszego kodu.
+
+Dodano 4 testy: postęp całego kopania między etapami, zachowanie początkowej liczby etapów przy konwersji typu, formatowanie kopania i oczekującego ruchu oraz renderowanie panelu Tab z aktywnym ruchem (`Step: 50% | Total: 75%`) i kolejnym zadaniem na 0%. Zaktualizowano README i dokumentację.
+
+Weryfikacja przez `nix develop -c`: `cargo check --all-targets`, `cargo test --all-targets` (45 zaliczonych), `cargo fmt --all -- --check` i `cargo clippy --all-targets` zakończone sukcesem. Clippy raportuje 50 dotychczasowych ostrzeżeń biblioteki i 4 ostrzeżenia `unused_unit` w testach za jawne `-> ()`, wymagane nową konwencją. Nie wykonywano ręcznej sesji terminala ani budowy pakietów Nix.
+
+## 2026-10-18 — osobne zadanie Moving
+
+Dodano `MovingTask` i wariant `Tasks::Moving`. Przeniesiono do niego licznik 3-sekundowego przejścia, procentowy postęp i reset dla każdej kratki. `DiggingTask` zawiera teraz tylko stan kopania. Eksporty i delegowanie wspólnego traitu `Task` obsługują oba warianty.
+
+Zatwierdzona spacją ścieżka jest dzielona na odcinki `Moving` (tunele/bazy) i `Digging` (kamień), z zachowaniem kolejności. Kolejka pokazuje odpowiednio ikony `→` i `⛏`. Wykonywanie ruchu nie uszkadza struktur; wejście do świeżo wykopanego tunelu nadal następuje w ramach kopania. Gdy teren zmieni się od planowania lub jednostka wraca przez właśnie wykopane kratki, typ aktywnego zadania dopasowuje się do aktualnego celu bez utraty reszty trasy. TUI pobiera timer tylko z `Moving`.
+
+Dostosowano test timera do `MovingTask`. Dodano regresje podziału mieszanej ścieżki i wykonania całej kolejki, zachowania durability podczas ruchu, powrotu przez świeżo wykopany tunel i zmiany typu zadania po zmianie terenu. Zaktualizowano README, mapę i instrukcje agentów.
+
+Weryfikacja przez `nix develop -c`: `cargo check --all-targets`, `cargo test --all-targets` (41 zaliczonych), `cargo fmt --all -- --check` i `cargo clippy --all-targets` zakończone sukcesem. Clippy nadal zgłasza 50 ostrzeżeń biblioteki. Bez nowych zależności. Nie wykonywano ręcznej sesji TUI ani budowy pakietów Nix.
+
+## 2026-10-18 — procentowy wskaźnik przejścia
+
+Dodano na kratce poruszającej się jednostki procent ukończenia bieżącego kroku, w kolorze właściciela. Wskaźnik korzysta z istniejącego licznika ruchu, a czas przejścia i wyświetlane procenty mają wspólną stałą `MOVEMENT_TICKS`. Po wejściu na następną kratkę wskaźnik resetuje się; bez ruchu nie jest wyświetlany. W pomniejszonym widoku na czas ruchu zastępuje znak struktury, w pozostałych nie zasłania znacznika jednostki. Pauza ruchu zatrzymuje również postęp wskaźnika.
+
+Dodano test rozdzielenia postępu kopania i ruchu oraz resetu po kroku. Test TUI sprawdza 50% w połowie przejścia na wszystkich poziomach zoomu, zachowanie koloru `M`, reset na kolejnym polu i zniknięcie wskaźnika po ukończeniu zadania. Zaktualizowano README i dokumentację.
+
+Weryfikacja przez `nix develop -c`: `cargo check --all-targets`, `cargo test --all-targets` (37 zaliczonych), `cargo fmt --all -- --check` i `cargo clippy --all-targets` zakończone sukcesem. Clippy nadal zgłasza 50 ostrzeżeń biblioteki. Nie wykonywano ręcznych oględzin terminala; renderowanie sprawdzono buforem Ratatui.
+
+## 2026-10-18 — czas podróży i kolor znacznika jednostki
+
+Przejście do istniejącego tunelu lub pustej bazy trwa teraz 91 ticków, czyli około 3 sekund przy ticku 33 ms. Licznik ruchu znajduje się w zadaniu i resetuje po każdym wykonanym kroku. Zajęty cel oraz rysowanie trasy wstrzymują naliczanie. Wejście do świeżo wykopanego tunelu nadal odbywa się w ticku zniszczenia kamienia.
+
+Znacznik jednostki w normalnym i powiększonym widoku jest osobnym `Span` w kolorze właściciela (`Players::get_color`), również na tunelu oraz przy zaznaczeniu lub oznaczeniu komórki. Dotychczasowy układ komórki i kolor jej obramowania pozostają zachowane.
+
+Dostosowano testy ruchu, kolejek i blokad do nowego czasu. Dodano regresję natychmiastowego wejścia po kopaniu oraz test koloru znacznika dla obu graczy, dwóch poziomów zoomu i wszystkich kombinacji zaznaczenia/oznaczenia. Łącznie 35 testów przechodzi. Zaktualizowano README oraz dokumentację agentów.
+
+Weryfikacja przez `nix develop -c`: `cargo check --all-targets`, `cargo test --all-targets`, `cargo fmt --all -- --check` i `cargo clippy --all-targets` zakończone sukcesem. Clippy nadal raportuje 50 ostrzeżeń biblioteki. Nie wykonywano ręcznego pomiaru czasu ani oględzin terminala; czas zweryfikowano tickami, kolory buforem Ratatui. W pomniejszonym widoku nadal wyświetlany jest wyłącznie znacznik struktury.
+
+## 2026-10-18 — wykonywanie kopania przez jednostki
+
+Podłączono `BoardState::advance_turn` do ticków potyczki. Zastąpiono szkic symulacji przetwarzaniem jednej aktualizacji każdej aktywnej jednostki na tick. Górnik stopniowo uszkadza kamień, po osiągnięciu zera tworzy tunel i przechodzi do niego. Ruch aktualizuje współrzędne jednostki, usuwa wykonany krok i po zakończeniu ścieżki usuwa zadanie. Kolejne zadania wykonują się w kolejności; tunele i niezajęte bazy można przechodzić bez kopania.
+
+Kamień pokazuje pozostałą wytrzymałość procentowo na wszystkich poziomach zoomu, a istniejący panel boczny pod Tab odświeża dokładne durability. Użyto istniejącej siły kopania 0.55% maksymalnej wytrzymałości na tick, z zachowaniem części ułamkowej obrażeń (około 6 sekund na pełną kratkę).
+
+Zaznaczenie spacją działa tylko dla własnego górnika. Podczas rysowania wybrany górnik czeka; nowa ścieżka przedłuża koniec jego kolejki. Pominięto powtarzanie tej samej kratki przy ruchu na granicy mapy. Zajęte pola i ruda blokują ruch, nie są nadpisywane. Błędne cele spoza mapy lub niesąsiadujące anulują bieżące zadanie bez utraty jednostki.
+
+Dodano 10 testów w `tests/digging.rs`: rzeczywisty przepływ klawiszy i ticków, utrata durability i ukończenie kopania, ruch w obu kierunkach tylko raz na tick, kolejki i ich przedłużanie przez zaznaczenie, aktualność współrzędnych, zajęte pola, ochrona rudy, błędne/puste ścieżki, własność jednostek, pauza przy rysowaniu i renderowanie procentów oraz dokładnych wartości. Dostosowano test cofania ścieżki do wyboru rzeczywistego górnika.
+
+Weryfikacja przez `nix develop -c`: `cargo check --all-targets`, `cargo test --all-targets` (33 zaliczone), `cargo fmt --all -- --check` i `cargo clippy --all-targets` zakończone sukcesem. Clippy zgłasza 50 ostrzeżeń dla biblioteki. Zaktualizowano README, mapę, instrukcje agentów i opis testów. Nie dodano zależności.
+
+Nie wykonywano ręcznej sesji w terminalu, odsłuchu ani budowy pakietów Nix; renderowanie sprawdzono przez TestBackend. Omijanie przeszkód, wydobycie rudy, ekonomia i walka pozostają poza zakresem tej zmiany.
+
 ## 2026-10-18 — przeniesienie testu audio
 
 Przeniesiono `audio_repeats_after_end_of_file` z `src/app/threads/audio.rs` do `tests/audio.rs`, bez zmiany jego asercji. Udostępniono `load_audio` przez `app::threads`, aby test integracyjny nadal sprawdzał produkcyjną funkcję dekodowania. Zaktualizowano `docs/TESTING.md`.
