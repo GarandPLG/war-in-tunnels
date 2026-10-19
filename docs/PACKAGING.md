@@ -4,6 +4,8 @@ Workflow `.gitea/workflows/packages.yml` uruchamia się po pushu i dla pull requ
 
 Obsługiwana architektura to x86_64. Są to formaty dystrybucji Linux, nie kompilacje Windows/macOS.
 
+Job AUR instaluje `nodejs` przed checkoutem: runner 0.6.1 uruchamia akcje JavaScript poleceniem `node`, którego obraz `archlinux:base-devel` nie zawiera. Jest to zależność CI (checkout i upload-artifact), nie zależność gry ani PKGBUILD.
+
 | Format | Budowanie i kontrola |
 |---|---|
 | `.deb` | Rust 1.99.1 w Debian Bookworm, `dpkg-deb`, odczyt metadanych i uruchomienie rozpakowanej binarki z `--version` |

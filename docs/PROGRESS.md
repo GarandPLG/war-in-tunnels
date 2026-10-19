@@ -1,5 +1,11 @@
 # Dziennik prac
 
+## 2026-10-19 — Node.js wymagany przez akcje joba AUR
+
+Log Gitea wykazał brak `node` podczas uruchamiania checkout@v4 i jego kroku post. Arch base-devel nie zawiera Node.js, a runner 0.6.1 wywołuje akcje JavaScript przez `node` w kontenerze. Dodano `nodejs` do instalacji zależności przed checkoutem oraz kontrolę `node --version`. Node.js jest zależnością CI, nie paczki gry. Poprzednia próba lokalna weryfikowała makepkg, lecz nie uruchamiała akcji JavaScript; uzupełniono ten brak.
+
+Weryfikacja w jednorazowym Arch base-devel: zainstalowano Node.js, `node --version` zwróciło v26.12.0; sprawdzono `node --check` rzeczywistych entrypointów checkout@v4 i upload-artifact@v3. Uruchomienie checkoutu doszło do oczekiwanego błędu brakującego inputu token (bez poświadczeń i klonowania repozytorium), potwierdzając poprawny start akcji. `nix develop -c cargo check --all-targets --locked` i `git diff --check` przeszły. Nie powtarzano budowania gry ani nie uruchamiano pełnego workflow na serwerze; transport artefaktów pozostaje do potwierdzenia na Gitea.
+
 ## 2026-10-19 — testowe paczki Linux poza Nix
 
 Dodano `.gitea/workflows/packages.yml` dla push i pull request: job Debian kompiluje Rust 1.99.1 i tworzy deb, rpm, AppImage oraz Flatpak; job Arch kompiluje i testuje lokalny przepis AUR przez makepkg jako użytkownik builder. Workflow zapisuje artefakty przez 7 dni, nie tworzy wydań, tagów ani publikacji AUR/Flathub. Zależności i toolchain Cargo mają cache; Flatpak i Arch nie mają jeszcze trwałego cache. Obsługiwana architektura: x86_64.

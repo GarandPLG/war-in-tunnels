@@ -74,7 +74,9 @@ jobs:
     container: archlinux:base-devel
     steps:
       - name: Install Arch dependencies
-        run: pacman -Syu --noconfirm --needed git rust cargo pkgconf alsa-lib python zstd
+        run: |
+          pacman -Syu --noconfirm --needed git nodejs rust cargo pkgconf alsa-lib python zstd
+          node --version
       - name: Checkout
         uses: https://github.com/actions/checkout@v4
       - name: Build AUR recipe from this commit
