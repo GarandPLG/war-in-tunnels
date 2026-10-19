@@ -18,6 +18,6 @@ pub use tunnel::Tunnel;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BuildingTerrain {
-  Stone,
-  Ore,
+    Stone,
+    Ore,
 }

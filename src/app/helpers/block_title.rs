@@ -1,6 +1,6 @@
 use ratatui::{
-  style::{Color, Style, Stylize},
-  text::{Line, Span},
+    style::{Color, Style, Stylize},
+    text::{Line, Span},
 };
 
 /// Creates a styled title `Line` for a UI block.
@@ -9,27 +9,27 @@ use ratatui::{
 /// the spans, so the returned `Line` owns all its data and does not borrow from
 /// the caller.
 pub fn block_title_helper(
-  texts: &[(String, Color)],
-  separator: Option<&'static str>,
+    texts: &[(String, Color)],
+    separator: Option<&'static str>,
 ) -> Line<'static> {
-  let mut line: Line<'static> = Line::default();
+    let mut line: Line<'static> = Line::default();
 
-  line.spans.push(Span::from("[ ").gray());
+    line.spans.push(Span::from("[ ").gray());
 
-  for (i, (text, color)) in texts.iter().enumerate() {
-    let span: Span<'_> = Span::styled(text.clone(), Style::new().fg(*color));
-    line.spans.push(span);
+    for (i, (text, color)) in texts.iter().enumerate() {
+        let span: Span<'_> = Span::styled(text.clone(), Style::new().fg(*color));
+        line.spans.push(span);
 
-    if let Some(sep) = separator {
-      if i + 1 < texts.len() {
-        line.spans.push(Span::from(sep).gray());
-      }
+        if let Some(sep) = separator {
+            if i + 1 < texts.len() {
+                line.spans.push(Span::from(sep).gray());
+            }
+        }
     }
-  }
 
-  line.spans.push(Span::from(" ]").gray());
+    line.spans.push(Span::from(" ]").gray());
 
-  line
+    line
 }
 
 /// Convenience wrapper for a single‑title line.
@@ -38,5 +38,5 @@ pub fn block_title_helper(
 /// forwards it to `block_title_helper`. Because `block_title_helper` clones the
 /// string, the temporary slice is safe.
 pub fn block_single_title_helper(text: String, color: Color) -> Line<'static> {
-  block_title_helper(&[(text, color)], None)
+    block_title_helper(&[(text, color)], None)
 }

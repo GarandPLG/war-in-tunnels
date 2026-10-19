@@ -1,166 +1,165 @@
 use crate::app::states::skirmish_states::{
-  ZoomLevel,
-  structures::{Stone, Structure, Structures},
-  tasks::Tasks,
-  units::{Unit, Units},
+    ZoomLevel,
+    structures::{Stone, Structure, Structures},
+    tasks::Tasks,
+    units::{Unit, Units},
 };
 use ratatui::{
-  buffer::Buffer,
-  layout::{Alignment, Rect},
-  style::{Color, Style, Stylize},
-  text::{Line, Span, ToSpan},
-  widgets::{Block, BorderType, Borders, Paragraph, Widget},
+    buffer::Buffer,
+    layout::{Alignment, Rect},
+    style::{Color, Style, Stylize},
+    text::{Line, Span, ToSpan},
+    widgets::{Block, BorderType, Borders, Paragraph, Widget},
 };
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CellWidget {
-  row: usize,
-  col: usize,
-  selected: bool,
-  zoom_level: ZoomLevel,
-  structure: Structures,
-  marked: bool,
-  unit: Option<Units>,
+    row: usize,
+    col: usize,
+    selected: bool,
+    zoom_level: ZoomLevel,
+    structure: Structures,
+    marked: bool,
+    unit: Option<Units>,
 }
 
 impl CellWidget {
-  pub fn new(
-    row: usize,
-    col: usize,
-    zoom_level: ZoomLevel,
-    selected: bool,
-    structure: Structures,
-    unit: Option<Units>,
-  ) -> Self {
-    Self {
-      row,
-      col,
-      selected,
-      zoom_level,
-      marked: false,
-      structure,
-      unit,
-    }
-  }
-
-  pub fn set_selected(&mut self, selected: bool) -> &mut Self {
-    self.selected = selected;
-    self
-  }
-
-  pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) -> &mut Self {
-    self.zoom_level = zoom_level;
-    self
-  }
-
-  pub fn get_structure(&self) -> Structures {
-    self.structure
-  }
-
-  pub fn get_option_unit(&self) -> Option<Units> {
-    self.unit.clone()
-  }
-
-  pub fn get_ref_option_unit(&self) -> &Option<Units> {
-    &self.unit
-  }
-
-  pub fn get_mut_option_unit(&mut self) -> &mut Option<Units> {
-    &mut self.unit
-  }
-
-  pub fn set_structure(&mut self, structure: Structures) -> &mut Self {
-    self.structure = structure;
-    self
-  }
-
-  pub fn get_marked(&self) -> bool {
-    self.marked
-  }
-
-  pub fn set_marked(&mut self, marked: bool) -> &mut Self {
-    self.marked = marked;
-    self
-  }
-
-  fn col_to_letters(&self) -> String {
-    let mut col: usize = self.col + 1;
-    let mut letters: Vec<char> = Vec::new();
-
-    while col > 0 {
-      letters.push((b'A' + ((col - 1) % 26) as u8) as char);
-      col = (col - 1) / 26;
+    pub fn new(
+        row: usize,
+        col: usize,
+        zoom_level: ZoomLevel,
+        selected: bool,
+        structure: Structures,
+        unit: Option<Units>,
+    ) -> Self {
+        Self {
+            row,
+            col,
+            selected,
+            zoom_level,
+            marked: false,
+            structure,
+            unit,
+        }
     }
 
-    letters.iter().rev().collect()
-  }
+    pub fn set_selected(&mut self, selected: bool) -> &mut Self {
+        self.selected = selected;
+        self
+    }
 
-  fn display_coords(&self) -> Span<'_> {
-    if self.selected || self.structure != Structures::Stone(Stone::new()) || self.marked {
-      format!("{}{}", self.col_to_letters(), self.row).green()
-    } else {
-      "".to_span()
+    pub fn set_zoom_level(&mut self, zoom_level: ZoomLevel) -> &mut Self {
+        self.zoom_level = zoom_level;
+        self
     }
-  }
 
-  fn fg_color(&self) -> Color {
-    if self.marked && self.selected {
-      Color::Magenta
-    } else if self.marked && !self.selected {
-      Color::LightMagenta
-    } else if !self.marked && self.selected {
-      Color::LightYellow
-    } else {
-      self.structure.get_color()
+    pub fn get_structure(&self) -> Structures {
+        self.structure
     }
-  }
 
-  fn get_text_area(&self) -> Vec<Line<'_>> {
-    let mut lines: Vec<Line<'_>> = self.zoom_level.get_cell_text_area(
-      self.structure.get_tag(),
-      self.structure.get_level(),
-      self
-        .unit
-        .get_tag()
-        .to_string()
-        .fg(self.unit.get_owner().get_color()),
-    );
-    if let Structures::Stone(stone) = self.structure
-      && stone.get_durability() < stone.get_max_durability()
-    {
-      let percent: u32 =
-        u32::from(stone.get_durability()) * 100 / u32::from(stone.get_max_durability());
-      let middle = lines.len() / 2;
-      lines[middle] = Line::from(format!("{percent}%")).cyan();
+    pub fn get_option_unit(&self) -> Option<Units> {
+        self.unit.clone()
     }
-    if let Structures::MineConstruction(site) = self.structure {
-      let middle: usize = lines.len() / 2;
-      lines[middle] = Line::from(format!("{}%", site.progress_percent())).cyan();
-    }
-    if let Some(unit) = &self.unit
-      && let Some(Tasks::Moving(task)) = unit.get_ref_tasks().front()
-      && let Some(percent) = task.get_movement_progress()
-    {
-      let middle = lines.len() / 2;
-      lines[middle] = Line::from(format!("{percent}%")).fg(unit.get_owner().get_color());
-    }
-    lines
-  }
 
-  fn get_block(&self) -> Block<'_> {
-    Block::default()
-      .borders(Borders::ALL)
-      .style(Style::default().fg(self.fg_color()))
-      .title(self.display_coords())
-      .border_type(BorderType::Rounded)
-  }
+    pub fn get_ref_option_unit(&self) -> &Option<Units> {
+        &self.unit
+    }
+
+    pub fn get_mut_option_unit(&mut self) -> &mut Option<Units> {
+        &mut self.unit
+    }
+
+    pub fn set_structure(&mut self, structure: Structures) -> &mut Self {
+        self.structure = structure;
+        self
+    }
+
+    pub fn get_marked(&self) -> bool {
+        self.marked
+    }
+
+    pub fn set_marked(&mut self, marked: bool) -> &mut Self {
+        self.marked = marked;
+        self
+    }
+
+    fn col_to_letters(&self) -> String {
+        let mut col: usize = self.col + 1;
+        let mut letters: Vec<char> = Vec::new();
+
+        while col > 0 {
+            letters.push((b'A' + ((col - 1) % 26) as u8) as char);
+            col = (col - 1) / 26;
+        }
+
+        letters.iter().rev().collect()
+    }
+
+    fn display_coords(&self) -> Span<'_> {
+        if self.selected || self.structure != Structures::Stone(Stone::new()) || self.marked {
+            format!("{}{}", self.col_to_letters(), self.row).green()
+        } else {
+            "".to_span()
+        }
+    }
+
+    fn fg_color(&self) -> Color {
+        if self.marked && self.selected {
+            Color::Magenta
+        } else if self.marked && !self.selected {
+            Color::LightMagenta
+        } else if !self.marked && self.selected {
+            Color::LightYellow
+        } else {
+            self.structure.get_color()
+        }
+    }
+
+    fn get_text_area(&self) -> Vec<Line<'_>> {
+        let mut lines: Vec<Line<'_>> = self.zoom_level.get_cell_text_area(
+            self.structure.get_tag(),
+            self.structure.get_level(),
+            self.unit
+                .get_tag()
+                .to_string()
+                .fg(self.unit.get_owner().get_color()),
+        );
+        if let Structures::Stone(stone) = self.structure
+            && stone.get_durability() < stone.get_max_durability()
+        {
+            let percent: u32 =
+                u32::from(stone.get_durability()) * 100 / u32::from(stone.get_max_durability());
+            let middle = lines.len() / 2;
+            lines[middle] = Line::from(format!("{percent}%")).cyan();
+        }
+        if let Structures::MineConstruction(site) = self.structure {
+            let middle: usize = lines.len() / 2;
+            lines[middle] = Line::from(format!("{}%", site.progress_percent())).cyan();
+        }
+        if let Some(unit) = &self.unit
+            && let Some(Tasks::Moving(task)) = unit.get_ref_tasks().front()
+            && let Some(percent) = task.get_movement_progress()
+        {
+            let middle = lines.len() / 2;
+            lines[middle] = Line::from(format!("{percent}%")).fg(unit.get_owner().get_color());
+        }
+        lines
+    }
+
+    fn get_block(&self) -> Block<'_> {
+        Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(self.fg_color()))
+            .title(self.display_coords())
+            .border_type(BorderType::Rounded)
+    }
 }
 
 impl Widget for CellWidget {
-  fn render(self, area: Rect, buf: &mut Buffer) {
-    Paragraph::new(self.get_text_area())
-      .alignment(Alignment::Center)
-      .block(self.get_block())
-      .render(area, buf);
-  }
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        Paragraph::new(self.get_text_area())
+            .alignment(Alignment::Center)
+            .block(self.get_block())
+            .render(area, buf);
+    }
 }

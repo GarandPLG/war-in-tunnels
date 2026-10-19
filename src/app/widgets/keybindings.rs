@@ -1,14 +1,14 @@
 use crate::app::{
-  helpers::block_single_title_helper,
-  keybindings::{Action, Group, KeyBinding, binding_for},
+    helpers::block_single_title_helper,
+    keybindings::{Action, Group, KeyBinding, binding_for},
 };
 use clap::ValueEnum;
 use ratatui::{
-  buffer::Buffer,
-  layout::{Alignment, Constraint, Layout, Rect},
-  style::{Color, Stylize},
-  text::Line,
-  widgets::{Block, Borders, Padding, Paragraph, Widget},
+    buffer::Buffer,
+    layout::{Alignment, Constraint, Layout, Rect},
+    style::{Color, Stylize},
+    text::Line,
+    widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
 use std::collections::HashSet;
 
@@ -18,136 +18,141 @@ use std::collections::HashSet;
 /// logical group of keybindings (e.g. navigation, editing, etc.).  The paragraphs
 /// are rendered side‑by‑side inside a bordered container.
 pub struct KeybindingsWidget {
-  /// Paragraphs, one per used `Group`, containing the formatted keybinding lines.
-  grouped: Vec<Paragraph<'static>>,
-  widths: Vec<u16>,
+    /// Paragraphs, one per used `Group`, containing the formatted keybinding lines.
+    grouped: Vec<Paragraph<'static>>,
+    widths: Vec<u16>,
 }
 
 impl KeybindingsWidget {
-  /// Create a new widget from a list of actions.
-  ///
-  /// For each action, the corresponding static [`KeyBinding`] is looked up
-  /// using [`binding_for`].  Only groups that have at least one binding are
-  /// displayed.  The resulting widget contains a paragraph for each group,
-  /// formatted with the key symbol (red & bold) followed by its description.
-  ///
-  /// # Parameters
-  ///
-  /// * `actions` – A slice of actions for which keybindings should be shown.
-  /// * `area_height` – The height of the area in which the widget will be rendered.
-  ///   This value is used to calculate vertical padding so that the keybinding rows
-  ///   are vertically centered when the widget's allocated height is larger than the
-  ///   number of lines needed to display the bindings.
-  ///
-  /// # Returns
-  ///
-  /// A fully‑initialised `KeybindingsWidget` ready for rendering.
-  pub fn new(actions: &[Action], area_height: u16) -> Self {
-    Self::with_descriptions(actions, area_height, &[])
-  }
-
-  pub fn with_descriptions(
-    actions: &[Action],
-    area_height: u16,
-    descriptions: &[(Action, &'static str)],
-  ) -> Self {
-    let keybindings: Vec<Option<&'static KeyBinding>> =
-      actions.iter().map(|a| binding_for(*a)).collect();
-
-    let used_groups: HashSet<Group> = keybindings
-      .iter()
-      .filter_map(|b| b.map(|binding| binding.group))
-      .collect();
-
-    let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
-    let mut widths: Vec<u16> = Vec::new();
-
-    for group in Group::value_variants().iter() {
-      if !used_groups.contains(group) {
-        continue;
-      }
-
-      let grouped_lines: Vec<Line<'_>> = keybindings
-        .iter()
-        .filter(|b| b.as_ref().map_or(false, |kb| kb.group == *group))
-        .filter_map(|b| {
-          b.as_ref().map(|kb| {
-            let description: &'static str = descriptions
-              .iter()
-              .find(|(action, _): &&(Action, &'static str)| -> bool { *action == kb.action })
-              .map_or(
-                kb.description,
-                |(_, description): &(Action, &'static str)| -> &'static str { description },
-              );
-            Line::from_iter([kb.symbol.red().bold(), " - ".into(), description.into()])
-          })
-        })
-        .collect();
-
-      let width: usize = grouped_lines.iter().map(Line::width).max().unwrap_or(0);
-      widths.push(u16::try_from(width).unwrap_or(u16::MAX).saturating_add(3));
-      let height_diff: u16 =
-        area_height.saturating_sub(grouped_lines.len().saturating_add(2) as u16);
-
-      let padding_top: u16 = if height_diff <= 1 {
-        height_diff
-      } else {
-        height_diff / 2
-      };
-
-      let mut block: Block<'_> = Block::default().padding(Padding::new(1, 1, padding_top, 0));
-
-      if !grouped_keybindings.is_empty() {
-        block = block.borders(Borders::LEFT);
-      }
-
-      grouped_keybindings.push(
-        Paragraph::new(grouped_lines)
-          .alignment(Alignment::Center)
-          .block(block),
-      );
+    /// Create a new widget from a list of actions.
+    ///
+    /// For each action, the corresponding static [`KeyBinding`] is looked up
+    /// using [`binding_for`].  Only groups that have at least one binding are
+    /// displayed.  The resulting widget contains a paragraph for each group,
+    /// formatted with the key symbol (red & bold) followed by its description.
+    ///
+    /// # Parameters
+    ///
+    /// * `actions` – A slice of actions for which keybindings should be shown.
+    /// * `area_height` – The height of the area in which the widget will be rendered.
+    ///   This value is used to calculate vertical padding so that the keybinding rows
+    ///   are vertically centered when the widget's allocated height is larger than the
+    ///   number of lines needed to display the bindings.
+    ///
+    /// # Returns
+    ///
+    /// A fully‑initialised `KeybindingsWidget` ready for rendering.
+    pub fn new(actions: &[Action], area_height: u16) -> Self {
+        Self::with_descriptions(actions, area_height, &[])
     }
 
-    Self {
-      grouped: grouped_keybindings,
-      widths,
+    pub fn with_descriptions(
+        actions: &[Action],
+        area_height: u16,
+        descriptions: &[(Action, &'static str)],
+    ) -> Self {
+        let keybindings: Vec<Option<&'static KeyBinding>> =
+            actions.iter().map(|a| binding_for(*a)).collect();
+
+        let used_groups: HashSet<Group> = keybindings
+            .iter()
+            .filter_map(|b| b.map(|binding| binding.group))
+            .collect();
+
+        let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
+        let mut widths: Vec<u16> = Vec::new();
+
+        for group in Group::value_variants().iter() {
+            if !used_groups.contains(group) {
+                continue;
+            }
+
+            let grouped_lines: Vec<Line<'_>> = keybindings
+                .iter()
+                .filter(|b| b.as_ref().map_or(false, |kb| kb.group == *group))
+                .filter_map(|b| {
+                    b.as_ref().map(|kb| {
+                        let description: &'static str = descriptions
+                            .iter()
+                            .find(|(action, _): &&(Action, &'static str)| -> bool {
+                                *action == kb.action
+                            })
+                            .map_or(
+                                kb.description,
+                                |(_, description): &(Action, &'static str)| -> &'static str {
+                                    description
+                                },
+                            );
+                        Line::from_iter([kb.symbol.red().bold(), " - ".into(), description.into()])
+                    })
+                })
+                .collect();
+
+            let width: usize = grouped_lines.iter().map(Line::width).max().unwrap_or(0);
+            widths.push(u16::try_from(width).unwrap_or(u16::MAX).saturating_add(3));
+            let height_diff: u16 =
+                area_height.saturating_sub(grouped_lines.len().saturating_add(2) as u16);
+
+            let padding_top: u16 = if height_diff <= 1 {
+                height_diff
+            } else {
+                height_diff / 2
+            };
+
+            let mut block: Block<'_> = Block::default().padding(Padding::new(1, 1, padding_top, 0));
+
+            if !grouped_keybindings.is_empty() {
+                block = block.borders(Borders::LEFT);
+            }
+
+            grouped_keybindings.push(
+                Paragraph::new(grouped_lines)
+                    .alignment(Alignment::Center)
+                    .block(block),
+            );
+        }
+
+        Self {
+            grouped: grouped_keybindings,
+            widths,
+        }
     }
-  }
 }
 
 impl Widget for KeybindingsWidget {
-  /// Render the widget inside the given rectangular area.
-  ///
-  /// The widget first draws a surrounding border with the title *Keybindings*.
-  /// It then divides the inner area proportionally to each group's text width—one per
-  /// used group—and renders each group's paragraph into its slice.
-  ///
-  /// If no groups are present, the function returns early without drawing
-  /// anything.
-  fn render(self, area: Rect, buf: &mut Buffer) {
-    let count: u16 = self.grouped.len() as u16;
+    /// Render the widget inside the given rectangular area.
+    ///
+    /// The widget first draws a surrounding border with the title *Keybindings*.
+    /// It then divides the inner area proportionally to each group's text width—one per
+    /// used group—and renders each group's paragraph into its slice.
+    ///
+    /// If no groups are present, the function returns early without drawing
+    /// anything.
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let count: u16 = self.grouped.len() as u16;
 
-    if count == 0 {
-      return;
+        if count == 0 {
+            return;
+        }
+
+        let block: Block<'_> =
+            Block::default()
+                .borders(Borders::ALL)
+                .title(block_single_title_helper(
+                    "Keybindings".to_string(),
+                    Color::Magenta,
+                ));
+
+        let inner: Rect = block.inner(area);
+
+        block.render(area, buf);
+
+        let constraints: Vec<Constraint> = self.widths.into_iter().map(Constraint::Fill).collect();
+
+        let chunks: Vec<Rect> = Layout::horizontal(constraints).split(inner).to_vec();
+
+        for (paragraph, chunk) in self.grouped.into_iter().zip(chunks.into_iter()) {
+            paragraph.render(chunk, buf);
+        }
     }
-
-    let block: Block<'_> = Block::default()
-      .borders(Borders::ALL)
-      .title(block_single_title_helper(
-        "Keybindings".to_string(),
-        Color::Magenta,
-      ));
-
-    let inner: Rect = block.inner(area);
-
-    block.render(area, buf);
-
-    let constraints: Vec<Constraint> = self.widths.into_iter().map(Constraint::Fill).collect();
-
-    let chunks: Vec<Rect> = Layout::horizontal(constraints).split(inner).to_vec();
-
-    for (paragraph, chunk) in self.grouped.into_iter().zip(chunks.into_iter()) {
-      paragraph.render(chunk, buf);
-    }
-  }
 }
