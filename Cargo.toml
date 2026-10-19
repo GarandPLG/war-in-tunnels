@@ -2,12 +2,21 @@
 name = "war_in_tunnels"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
+
+[lints.rust]
+unused_must_use = "deny"
+unsafe_code = "forbid"
+
+[lints.clippy]
+unused_unit = "allow"
 
 [profile.release]
 codegen-units = 1
 lto = true
 opt-level = 3
 strip = true
+overflow-checks = true
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }

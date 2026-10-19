@@ -22,9 +22,12 @@ Wszystkie ścieżki poniżej są względem katalogu głównego repozytorium.
 | Wątki | `src/app/threads/{events,tick,audio}.rs` | Crossterm, zegar 33 ms, Rodio i komendy audio |
 | Środowisko | `Cargo.toml`, `flake.nix`, `default.nix`, `flake.lock` | Zależności, toolchain Fenix, ALSA, pakowanie przez Naersk lub buildRustPackage |
 | Formatowanie | `rustfmt.toml` | Rustfmt, styl 2024, wcięcia po 2 spacje, docelowo 100 znaków i zakończenia LF |
+| Kontrole CI | `.gitea/workflows/rust.yml` | Gitea Actions: formatowanie, kompilacja, testy debug/release i Clippy przez Nix |
 | Zasoby | `soundtracks/default/`, `ui_draft/` | Dwa pliki OGG i tekstowe szkice ekranów |
 
 Ścieżki skrócone `skirmish_states/` oznaczają `src/app/states/skirmish_states/`. Nie ma osobnego silnika gry, bazy danych ani warstwy sieciowej. Zależności Cargo: Ratatui/Crossterm, Clap, Rodio, log/simplelog i once_cell.
+
+`Cargo.toml` deklaruje Rust 1.88 jako minimalną wspieraną wersję, wymusza `unused_must_use = "deny"` i `unsafe_code = "forbid"` we własnym kodzie, dopuszcza `clippy::unused_unit` oraz włącza `overflow-checks` w release. Toolchain deweloperski nadal pochodzi z Fenix przypiętego przez `flake.lock`; wersję 1.88.0 sprawdzono osobno.
 
 ## Uruchomienie i pętla
 
@@ -111,7 +114,7 @@ To obserwacje statyczne, nie lista napraw wykonanych w tej sesji:
 - **Zaznaczenie:** wybrany górnik czeka podczas rysowania trasy; inne jednostki wykonują zadania normalnie.
 - **Audio:** usunięto aktywne odpytywanie; pomiar CPU na docelowym urządzeniu i odsłuch pozostają do wykonania. Test dekodera nie weryfikuje urządzenia audio.
 - **Granice UI:** małe terminale, resize i trzy poziomy zoomu wymagają interaktywnego sprawdzenia. Indeksowanie planszy zakłada poprawne współrzędne.
-- **Pokrycie:** 45 testów CLI, sterowania, renderowania, planszy, wykonywania zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Brak testów pełnej rozgrywki i konfiguracji CI. Clippy zgłasza 50 ostrzeżeń biblioteki oraz 4 ostrzeżenia o wymaganych jawnych `-> ()` w testach; nie uruchamiać automatycznych poprawek poza zakresem zadania.
+- **Pokrycie:** 45 testów CLI, sterowania, renderowania, planszy, wykonywania zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Workflow Gitea sprawdza też profil release; nie obejmuje pełnej rozgrywki. Clippy zgłasza 50 ostrzeżeń biblioteki, `unused_unit` jest jawnie dozwolony. Nie uruchamiać automatycznych poprawek poza zakresem zadania.
 
 ## Gdzie zacząć konkretną zmianę
 

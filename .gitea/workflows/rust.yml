@@ -1,0 +1,24 @@
+name: Rust checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: https://github.com/actions/checkout@v4
+      - name: Install Nix
+        uses: https://github.com/cachix/install-nix-action@v31
+      - name: Formatting
+        run: nix develop --no-update-lock-file -c cargo fmt --all -- --check
+      - name: Compilation
+        run: nix develop --no-update-lock-file -c cargo check --all-targets --locked
+      - name: Tests
+        run: nix develop --no-update-lock-file -c cargo test --all-targets --locked
+      - name: Release tests
+        run: nix develop --no-update-lock-file -c cargo test --all-targets --release --locked
+      - name: Clippy
+        run: nix develop --no-update-lock-file -c cargo clippy --all-targets --locked

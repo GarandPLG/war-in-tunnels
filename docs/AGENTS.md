@@ -16,16 +16,18 @@ Nie wolno zakończyć zadania, jeżeli kompilator Rust zgłasza błędy uniemoż
 Wszystkie narzędzia Rust uruchamiaj przez `nix develop -c` z katalogu repozytorium:
 
 ```sh
-nix develop -c cargo test --all-targets
+nix develop -c cargo test --all-targets --locked
 nix develop -c cargo fmt --all -- --check
-nix develop -c cargo clippy --all-targets
+nix develop -c cargo clippy --all-targets --locked
 nix develop -c cargo run -- --help
 nix develop -c cargo run -- --disable-audio --view skirmish
 ```
 
-Ostatnie polecenie wymaga interaktywnego terminala. `shellHook` sam wykonuje `cargo run -- -h`, więc wejście do środowiska także kompiluje program i drukuje pomoc. Formatowanie stosuj wyłącznie do uzgodnionych zmian; nie używaj automatycznego `clippy --fix` do porządkowania całego repozytorium.
+Ostatnie polecenie wymaga interaktywnego terminala. `shellHook` sam wykonuje `cargo run --locked -- -h`, więc wejście do środowiska także kompiluje program i drukuje pomoc. Przy kontrolach używaj `--locked`, aby nie aktualizować `Cargo.lock`. Formatowanie stosuj wyłącznie do uzgodnionych zmian; nie używaj automatycznego `clippy --fix` do porządkowania całego repozytorium.
 
-Stan bazowy po dodaniu postępu kolejki: 45 testów i formatowanie przechodzą; Clippy zgłasza 50 ostrzeżeń dla biblioteki i 4 ostrzeżenia testów o jawnych `-> ()`, zgodnych z poniższą zasadą typowania. Zakres i polecenia opisano w [TESTING.md](TESTING.md). Nie traktuj tego jako potwierdzenia działania pełnej rozgrywki. Nowa nietrywialna logika wymaga małego testu regresji. Nie dodawaj zależności ani warstw abstrakcji bez potrzeby.
+Stan bazowy po konfiguracji lintów: 45 testów i formatowanie przechodzą; Clippy zgłasza 50 ostrzeżeń dla biblioteki. `clippy::unused_unit` jest dozwolony ze względu na wymagane jawne `-> ()`. Zakres i polecenia opisano w [TESTING.md](TESTING.md). Nie traktuj tego jako potwierdzenia działania pełnej rozgrywki. Nowa nietrywialna logika wymaga małego testu regresji. Nie dodawaj zależności ani warstw abstrakcji bez potrzeby.
+
+`Cargo.toml` wymaga Rust 1.88 lub nowszego, zabrania `unsafe` we własnym kodzie i ignorowania wyników `must_use`, a w release włącza kontrolę przepełnień. CI Gitea w `.gitea/workflows/rust.yml` sprawdza formatowanie, kompilację, testy debug/release i Clippy przez przypięte środowisko Nix. Nie dodawaj `-D warnings` przed uporządkowaniem istniejących ostrzeżeń.
 
 Audio wymaga ALSA i urządzenia odtwarzania; do pracy nad TUI używaj `--disable-audio`. `--mute` nadal uruchamia wątek audio. Ścieżki zasobów i pakowanie sprawdzaj osobno przy zmianach audio/Nix. Rozróżniaj lokalny build Cargo, pakiet `.#develop` i domyślny pakiet Nix.
 

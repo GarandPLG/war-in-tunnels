@@ -3,7 +3,7 @@
 Uruchomienie całego zestawu z katalogu głównego:
 
 ```sh
-nix develop -c cargo test --all-targets
+nix develop -c cargo test --all-targets --locked
 ```
 
 Testy korzystają z wbudowanego mechanizmu Rust, Clap i `ratatui::backend::TestBackend`. Nie dodano zależności. Nie wymagają terminala interaktywnego ani urządzenia audio. Test audio używa pliku `soundtracks/default/calm.ogg`, więc zasoby muszą być dostępne w repozytorium.
@@ -36,13 +36,27 @@ nix develop -c cargo test --test board large_viewport_and_zoom_keep_camera_insid
 Kontrole uzupełniające:
 
 ```sh
-nix develop -c cargo check --all-targets
+nix develop -c cargo check --all-targets --locked
 nix develop -c cargo fmt --all -- --check
-nix develop -c cargo clippy --all-targets
+nix develop -c cargo clippy --all-targets --locked
 ```
 
-`shellHook` środowiska Nix dodatkowo wykonuje `cargo run -- -h`. Wynik pomocy nie jest wynikiem testów; właściwy raport zawiera podsumowania `test result`.
+`shellHook` środowiska Nix dodatkowo wykonuje `cargo run --locked -- -h`. Wynik pomocy nie jest wynikiem testów; właściwy raport zawiera podsumowania `test result`.
+
+## CI i profile kompilacji
+
+Workflow `.gitea/workflows/rust.yml` uruchamia kontrole po pushu i dla pull requestów. Wymaga włączonych Actions w repozytorium Gitea i runnera Linux x86_64 o etykiecie `ubuntu-latest`, obsługującego akcje Node oraz instalację Nix. Nazwy akcji zawierają pełne adresy GitHub. Konfiguracja nie rejestruje runnera ani nie włącza Actions na serwerze; zobacz [instrukcję Gitea](https://docs.gitea.com/usage/actions/quickstart/).
+
+CI używa `nix develop --no-update-lock-file -c`, więc wersję środowiska określa `flake.lock`. Formatowanie, kompilacja, testy i Clippy są oddzielnymi krokami. Polecenia Cargo kompilujące projekt mają `--locked`; workflow nie zmienia zależności. Clippy nie używa `-D warnings` z powodu istniejących ostrzeżeń.
+
+Release ma `overflow-checks = true`. Ten sam zestaw 45 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
+
+```sh
+nix develop -c cargo test --all-targets --release --locked
+```
+
+Manifest określa minimalną wspieraną wersję Rust jako 1.88. Potwierdzono `cargo check --all-targets --locked` na Rust 1.88.0 dostarczonym tymczasowo przez Fenix (`toolchainOf`, kanał `1.88.0`) wewnątrz `nix develop`. Domyślny toolchain pozostaje zarządzany przez Fenix i `flake.lock`; nie dodano drugiego pliku przypinającego toolchain. Linty z `Cargo.toml` zabraniają `unsafe` we własnym kodzie oraz ignorowania wyników `must_use`; `unused_unit` jest dozwolony, by zachować wymagane jawne `-> ()`.
 
 ## Ograniczenia
 
-Zestaw weryfikuje wykonywanie zadań przez ticki potyczki, ale nie pełną rozgrywkę, ekonomię ani walkę. Nie potwierdza odsłuchu, zużycia CPU, obsługi urządzeń, pakowania Nix ani wszystkich układów małych terminali. Testy renderowania są kontrolą podstawową, bez utrwalania pełnych zrzutów ekranów. Brak konfiguracji CI; polecenia należy wykonywać lokalnie przed zakończeniem zmian.
+Zestaw weryfikuje wykonywanie zadań przez ticki potyczki, ale nie pełną rozgrywkę, ekonomię ani walkę. Nie potwierdza odsłuchu, zużycia CPU, obsługi urządzeń, pakowania Nix ani wszystkich układów małych terminali. Testy renderowania są kontrolą podstawową, bez utrwalania pełnych zrzutów ekranów. Workflow CI przygotowano lokalnie; jego wykonanie na serwerze wymaga dostępnego runnera i włączonych Actions.

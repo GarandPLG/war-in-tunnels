@@ -1,5 +1,15 @@
 # Dziennik prac
 
+## 2026-10-19 — linty, minimalny Rust i CI
+
+W `Cargo.toml` dodano `rust-version = "1.88"`, `unused_must_use = "deny"`, `unsafe_code = "forbid"`, `clippy::unused_unit = "allow"` oraz `overflow-checks = true` dla release. Minimalna wersja wynika z wymagań aktualnych zależności (m.in. Ratatui 0.30.2 i Darling 0.23) i składni kodu; potwierdzono kompilację wszystkich targetów na Rust 1.88.0 przez tymczasowy toolchain Fenix wewnątrz `nix develop`. Nie zmieniono domyślnego toolchaina ani plików lock.
+
+Dodano `.gitea/workflows/rust.yml` dla pushów i pull requestów: checkout, instalacja Nix, kontrola formatowania, kompilacja, testy debug/release i Clippy. Kontrole używają `nix develop --no-update-lock-file`, polecenia Cargo kompilujące kod mają `--locked`. Również `shellHook` we `flake.nix` wykonuje teraz pomoc CLI z `--locked`. Nie włączano `-D warnings`, grup `pedantic` ani `restriction`.
+
+Weryfikacja lokalna na domyślnym toolchainie Nix: formatowanie, `cargo check --all-targets --locked`, `cargo test --all-targets --locked` (45 zaliczonych), `cargo test --all-targets --release --locked` (45 zaliczonych) i `cargo clippy --all-targets --locked` zakończone sukcesem. Clippy nadal zgłasza 50 ostrzeżeń biblioteki; 4 ostrzeżenia o jawnych `-> ()` zniknęły zgodnie z nowym ustawieniem. Dodatkowa kontrola Rust 1.88.0: `cargo check --all-targets --locked` zakończone sukcesem.
+
+Zaktualizowano instrukcje agentów, mapę i opis testów. Nie zmieniano mechaniki gry ani zależności. Workflow przygotowano i przejrzano lokalnie; nie był uruchamiany na serwerze. Wymaga włączonych Actions i runnera Linux x86_64 o etykiecie `ubuntu-latest`, obsługującego akcje Node i instalację Nix. Nie rejestrowano runnera ani nie zmieniano ustawień serwera Gitea.
+
 ## 2026-10-19 — formatowanie Rust z wcięciami po 2 spacje
 
 Dodano `rustfmt.toml` z uzgodnionymi opcjami: edycja i styl 2024, `max_width = 100`, `hard_tabs = false`, `tab_spaces = 2`, zakończenia Unix, sortowanie importów i modułów oraz domyślne heurystyki krótkich konstrukcji. Zastosowano `nix develop -c cargo fmt --all` do źródeł i testów (56 zmienionych plików Rust). Zaktualizowano instrukcje agentów i mapę konfiguracji projektu.
