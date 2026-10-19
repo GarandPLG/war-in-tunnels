@@ -3,6 +3,7 @@ name = "war_in_tunnels"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
+license = "MIT"
 
 [lints.rust]
 unused_must_use = "deny"

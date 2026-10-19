@@ -1,5 +1,23 @@
 # Dziennik prac
 
+## 2026-10-19 — naprawa instalacji Nix w kontenerze Gitea Actions
+
+Log runnera 0.6.1 wskazał `sudo: command not found` w `cachix/install-nix-action@v31`. Etykieta `ubuntu-latest` była mapowana na `node:16-bullseye`, który nie zawiera sudo. Lokalny test odtworzenia wykazał dodatkowo błąd 404 podczas instalacji sudo z repozytorium starego obrazu.
+
+W `.gitea/workflows/rust.yml` wskazano jawnie kontener `node:22-bookworm`, dodano przed instalacją Nix krok `apt-get update` i `apt-get install -y --no-install-recommends sudo` oraz ustawiono `enable_kvm: false`. Nie zmieniano konfiguracji runnera na serwerze ani nie dodawano trybu privileged.
+
+Weryfikacja: uruchomiono jednorazowy kontener `node:22-bookworm`, zainstalowano sudo i wykonano skrypt `install-nix.sh` z v31 z wyłączonym KVM. Instalacja zakończyła się sukcesem, `nix --version` zwróciło 2.35.3, a `nix eval --expr "1 + 1"` zwróciło 2. Instalator ostrzega o pracy jako root; w tym izolowanym kontenerze instalacja i próbne polecenia przeszły. Nix automatycznie użył sandbox-fallback z powodu niedostępności namespaces; nie zmieniano ustawienia sandbox w workflow.
+
+`nix develop --no-update-lock-file -c cargo check --all-targets --locked` zakończone sukcesem. Nie powtarzano testów gry przy zmianie samego workflow. Zaktualizowano opis CI i mapę. Pełny przebieg Actions wymaga ponownego pushu i wykonania na serwerze; lokalny test obejmował instalację Nix i podstawowe wywołanie, nie cały workflow.
+
+## 2026-10-19 — ujednolicenie licencji na MIT
+
+Na polecenie użytkownika zastąpiono CC0 w `LICENSE` standardowym tekstem MIT z nagłówkiem `Copyright (c) 2026 GarandPLG`, zgodnym z nazwą autora i rokiem w historii Git. Dodano `license = "MIT"` w `Cargo.toml`, sekcję licencji w README i wpis w mapie. `default.nix` już deklarował MIT i nie wymagał edycji.
+
+Zmiana dotyczy bieżącego stanu repozytorium i nie cofa uprawnień do wersji wcześniej udostępnionych na CC0. Nie wykonywano audytu praw do muzyki ani innych materiałów zewnętrznych. Nie zmieniano źródeł Rust ani zależności; testów działania gry nie powtarzano.
+
+Weryfikacja: `nix develop --no-update-lock-file -c cargo check --all-targets --locked` zakończone sukcesem; sprawdzono zgodność deklaracji MIT w LICENSE, Cargo.toml i default.nix oraz `git diff --check`.
+
 ## 2026-10-19 — linty, minimalny Rust i CI
 
 W `Cargo.toml` dodano `rust-version = "1.88"`, `unused_must_use = "deny"`, `unsafe_code = "forbid"`, `clippy::unused_unit = "allow"` oraz `overflow-checks = true` dla release. Minimalna wersja wynika z wymagań aktualnych zależności (m.in. Ratatui 0.30.2 i Darling 0.23) i składni kodu; potwierdzono kompilację wszystkich targetów na Rust 1.88.0 przez tymczasowy toolchain Fenix wewnątrz `nix develop`. Nie zmieniono domyślnego toolchaina ani plików lock.

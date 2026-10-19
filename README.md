@@ -114,3 +114,8 @@ Gdy flaga `--log` jest włączona, aplikacja zapisuje logi do pliku przy użyciu
 `Cargo.toml` zabrania `unsafe` we własnym kodzie i ignorowania wyników `must_use`, dopuszcza jawne `-> ()` oraz włącza kontrolę przepełnień także w release. Gitea Actions w `.gitea/workflows/rust.yml` sprawdza formatowanie, kompilację, testy debug/release i Clippy przez Nix, z zachowaniem plików lock. Uruchomienie CI wymaga włączonych Actions i runnera `ubuntu-latest`.
 
 Polecenia lokalne i szczegóły środowiska opisano w [docs/TESTING.md](docs/TESTING.md).
+
+## Licencja
+
+Projekt jest udostępniany na licencji [MIT](LICENSE).
+Copyright (c) 2026 GarandPLG.

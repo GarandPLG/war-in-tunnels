@@ -7,11 +7,18 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    container: node:22-bookworm
     steps:
       - name: Checkout
         uses: https://github.com/actions/checkout@v4
+      - name: Install runner prerequisites
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends sudo
       - name: Install Nix
         uses: https://github.com/cachix/install-nix-action@v31
+        with:
+          enable_kvm: false
       - name: Formatting
         run: nix develop --no-update-lock-file -c cargo fmt --all -- --check
       - name: Compilation
