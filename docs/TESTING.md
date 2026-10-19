@@ -45,11 +45,11 @@ nix develop -c cargo clippy --all-targets --locked
 
 ## CI i profile kompilacji
 
-Workflow `.gitea/workflows/rust.yml` uruchamia kontrole po pushu i dla pull requestów. Wymaga włączonych Actions w repozytorium Gitea i runnera Linux x86_64 o etykiecie `ubuntu-latest`, obsługującego akcje Node oraz instalację Nix. Nazwy akcji zawierają pełne adresy GitHub. Konfiguracja nie rejestruje runnera ani nie włącza Actions na serwerze; zobacz [instrukcję Gitea](https://docs.gitea.com/usage/actions/quickstart/).
+Workflow `.gitea/workflows/rust.yml` uruchamia kontrole po pushu i dla pull requestów. Wymaga włączonych Actions w repozytorium Gitea i runnera Linux x86_64 o etykiecie `ubuntu-latest`, obsługującego akcje Node. Nazwy akcji zawierają pełne adresy GitHub. Konfiguracja nie rejestruje runnera ani nie włącza Actions na serwerze; zobacz [instrukcję Gitea](https://docs.gitea.com/usage/actions/quickstart/).
 
-Etykieta `ubuntu-latest` służy do wyboru runnera i nie gwarantuje obrazu Ubuntu: w dostarczonym logu runner 0.6.1 mapował ją na `node:16-bullseye`. Workflow określa teraz obraz zadania jawnie jako `node:22-bookworm`. Kontener działa jako root; przed instalacją Nix wykonuje `apt-get update` i instaluje `sudo`, wymagane przez `cachix/install-nix-action`. `enable_kvm: false` wyłącza zbędne próby konfiguracji KVM. Zmiana nie wymaga przełączania runnera na tryb hosta ani nadawania kontenerowi trybu privileged.
+Workflow określa obraz zadania jawnie jako `node:22-bookworm`. Kontener działa jako root i instaluje pakiety potrzebne do budowania: build-essential, pkg-config i libasound2-dev oraz curl, ca-certificates i zstd. Rust 1.99.1 z rustfmt i Clippy jest instalowany przez rustup. CI nie instaluje Nix i nie wykonuje jego shellHook.
 
-CI używa `nix develop --no-update-lock-file -c`, więc wersję środowiska określa `flake.lock`. Formatowanie, kompilacja, testy i Clippy są oddzielnymi krokami. Polecenia Cargo kompilujące projekt mają `--locked`; workflow nie zmienia zależności. Clippy nie używa `-D warnings` z powodu istniejących ostrzeżeń.
+Wersję Rust w CI określa `RUST_VERSION` w workflow, niezależnie od lokalnego `flake.lock`. Formatowanie, kompilacja, testy i Clippy są oddzielnymi krokami Cargo. Polecenia kompilujące projekt mają `--locked`; Clippy nie używa `-D warnings` z powodu istniejących ostrzeżeń. `actions/cache@v4` zachowuje osobno toolchain oraz rejestr Cargo, repozytoria git i `target`. Klucze uwzględniają wersję Rust, a dla Cargo także manifest, lockfile i kod; klucze częściowe pozwalają ponownie wykorzystać wcześniejsze kompilacje. Działanie cache wymaga dostępnego serwera cache runnera. Pierwszy przebieg wypełnia cache; błędy pobierania cache mogą spowodować ponowną instalację i kompilację.
 
 Release ma `overflow-checks = true`. Ten sam zestaw 45 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
 
@@ -61,4 +61,4 @@ Manifest określa minimalną wspieraną wersję Rust jako 1.88. Potwierdzono `ca
 
 ## Ograniczenia
 
-Zestaw weryfikuje wykonywanie zadań przez ticki potyczki, ale nie pełną rozgrywkę, ekonomię ani walkę. Nie potwierdza odsłuchu, zużycia CPU, obsługi urządzeń, pakowania Nix ani wszystkich układów małych terminali. Testy renderowania są kontrolą podstawową, bez utrwalania pełnych zrzutów ekranów. Po błędzie instalacji Nix na runnerze zweryfikowano lokalnie poprawioną instalację w `node:22-bookworm` oraz `nix eval`; cały workflow wymaga ponownego przebiegu na Gitea.
+Zestaw weryfikuje wykonywanie zadań przez ticki potyczki, ale nie pełną rozgrywkę, ekonomię ani walkę. Nie potwierdza odsłuchu, zużycia CPU, obsługi urządzeń, pakowania Nix ani wszystkich układów małych terminali. Testy renderowania są kontrolą podstawową, bez utrwalania pełnych zrzutów ekranów. Nowy workflow bez Nix wymaga przebiegu na Gitea; odczyt cache należy potwierdzić w kolejnym przebiegu.

@@ -1,5 +1,11 @@
 # Dziennik prac
 
+## 2026-10-19 — CI Rust bez Nix
+
+Na życzenie użytkownika usunięto instalację Nix i wywołania `nix develop` z workflow. W kontenerze `node:22-bookworm` rustup instaluje Rust 1.99.1 z rustfmt i Clippy. Dodano zależności systemowe ALSA, pkg-config i kompilator C oraz dwa cache `actions/cache@v4`: toolchain i Cargo (registry, git, target). Klucze Cargo uwzględniają wersję Rust, Cargo.lock, manifest i źródła; częściowe trafienia pozwalają wykorzystać wcześniejsze artefakty. Zachowano wszystkie pięć kontroli i `--locked`. Lokalne środowisko Nix pozostaje bez zmian. Zaktualizowano mapę i instrukcje.
+
+Weryfikacja: lokalne `nix develop -c cargo check --all-targets --locked`, `nix develop -c cargo fmt --all -- --check` i `git diff --check` zakończyły się sukcesem. Pełne wykonanie nowego workflow i skuteczność cache wymagają sprawdzenia na Gitea; lokalna kontrola nie potwierdza instalacji rustup ani sieciowego dostępu do cache serwera.
+
 ## 2026-10-19 — naprawa instalacji Nix w kontenerze Gitea Actions
 
 Log runnera 0.6.1 wskazał `sudo: command not found` w `cachix/install-nix-action@v31`. Etykieta `ubuntu-latest` była mapowana na `node:16-bullseye`, który nie zawiera sudo. Lokalny test odtworzenia wykazał dodatkowo błąd 404 podczas instalacji sudo z repozytorium starego obrazu.

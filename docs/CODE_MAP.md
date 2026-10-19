@@ -22,7 +22,7 @@ Wszystkie ścieżki poniżej są względem katalogu głównego repozytorium.
 | Wątki | `src/app/threads/{events,tick,audio}.rs` | Crossterm, zegar 33 ms, Rodio i komendy audio |
 | Środowisko | `Cargo.toml`, `flake.nix`, `default.nix`, `flake.lock` | Zależności, toolchain Fenix, ALSA, pakowanie przez Naersk lub buildRustPackage |
 | Formatowanie | `rustfmt.toml` | Rustfmt, styl 2024, wcięcia po 2 spacje, docelowo 100 znaków i zakończenia LF |
-| Kontrole CI | `.gitea/workflows/rust.yml` | Gitea Actions w `node:22-bookworm`: instalacja sudo i Nix, formatowanie, kompilacja, testy debug/release i Clippy |
+| Kontrole CI | `.gitea/workflows/rust.yml` | Gitea Actions w `node:22-bookworm`: Rust 1.99.1 przez rustup, cache toolchaina i Cargo, formatowanie, kompilacja, testy debug/release i Clippy |
 | Licencja | `LICENSE`, `Cargo.toml`, `default.nix` | MIT, Copyright (c) 2026 GarandPLG |
 | Zasoby | `soundtracks/default/`, `ui_draft/` | Dwa pliki OGG i tekstowe szkice ekranów |
 

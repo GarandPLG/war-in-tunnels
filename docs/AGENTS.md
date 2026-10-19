@@ -27,7 +27,7 @@ Ostatnie polecenie wymaga interaktywnego terminala. `shellHook` sam wykonuje `ca
 
 Stan bazowy po konfiguracji lintów: 45 testów i formatowanie przechodzą; Clippy zgłasza 50 ostrzeżeń dla biblioteki. `clippy::unused_unit` jest dozwolony ze względu na wymagane jawne `-> ()`. Zakres i polecenia opisano w [TESTING.md](TESTING.md). Nie traktuj tego jako potwierdzenia działania pełnej rozgrywki. Nowa nietrywialna logika wymaga małego testu regresji. Nie dodawaj zależności ani warstw abstrakcji bez potrzeby.
 
-`Cargo.toml` wymaga Rust 1.88 lub nowszego, zabrania `unsafe` we własnym kodzie i ignorowania wyników `must_use`, a w release włącza kontrolę przepełnień. CI Gitea w `.gitea/workflows/rust.yml` sprawdza formatowanie, kompilację, testy debug/release i Clippy przez przypięte środowisko Nix. Nie dodawaj `-D warnings` przed uporządkowaniem istniejących ostrzeżeń.
+`Cargo.toml` wymaga Rust 1.88 lub nowszego, zabrania `unsafe` we własnym kodzie i ignorowania wyników `must_use`, a w release włącza kontrolę przepełnień. CI Gitea w `.gitea/workflows/rust.yml` sprawdza formatowanie, kompilację, testy debug/release i Clippy bez Nix, przez Rust 1.99.1 instalowany rustup; lokalnie nadal używaj Nix. Nie dodawaj `-D warnings` przed uporządkowaniem istniejących ostrzeżeń.
 
 Audio wymaga ALSA i urządzenia odtwarzania; do pracy nad TUI używaj `--disable-audio`. `--mute` nadal uruchamia wątek audio. Ścieżki zasobów i pakowanie sprawdzaj osobno przy zmianach audio/Nix. Rozróżniaj lokalny build Cargo, pakiet `.#develop` i domyślny pakiet Nix.
 
