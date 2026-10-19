@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=War in Tunnels
+Comment=Underground strategy game in your terminal
+Exec=war-in-tunnels
+Icon=com.garandplg.WarInTunnels
+Terminal=true
+Categories=Game;StrategyGame;

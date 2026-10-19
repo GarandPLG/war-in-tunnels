@@ -1,0 +1,107 @@
+name: Linux package builds (test)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    container: node:22-bookworm
+    env:
+      CARGO_HOME: /root/.cargo
+      RUSTUP_HOME: /root/.rustup
+      RUST_VERSION: 1.99.1
+    steps:
+      - name: Checkout
+        uses: https://github.com/actions/checkout@v4
+      - name: Install packaging dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl build-essential pkg-config libasound2-dev python3 rpm cpio desktop-file-utils squashfs-tools p7zip-full file flatpak ostree zstd
+      - name: Rust toolchain cache
+        uses: https://github.com/actions/cache@v4
+        with:
+          path: |
+            /root/.rustup
+            /root/.cargo/bin
+          key: rust-toolchain-v1-linux-x64-${{ env.RUST_VERSION }}
+      - name: Install Rust
+        run: |
+          if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh
+            sh /tmp/rustup-init.sh -y --profile minimal --default-toolchain none --no-modify-path
+          fi
+          "$CARGO_HOME/bin/rustup" toolchain install "$RUST_VERSION" --profile minimal --component rustfmt --component clippy
+          "$CARGO_HOME/bin/rustup" default "$RUST_VERSION"
+          echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+      - name: Cargo cache
+        uses: https://github.com/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry
+            /root/.cargo/git
+            target
+          key: packages-v1-linux-x64-${{ env.RUST_VERSION }}-${{ hashFiles('Cargo.lock') }}-${{ hashFiles('Cargo.toml', 'src/**', 'tests/**') }}
+          restore-keys: |
+            packages-v1-linux-x64-${{ env.RUST_VERSION }}-${{ hashFiles('Cargo.lock') }}-
+      - name: Compile Linux binary
+        id: compile
+        run: cargo build --release --locked
+      - name: Build deb
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: bash packaging/build.sh deb
+      - name: Build rpm
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: bash packaging/build.sh rpm
+      - name: Build AppImage
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: bash packaging/build.sh appimage
+      - name: Build Flatpak
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: bash packaging/build.sh flatpak
+      - name: Save test packages
+        if: ${{ !cancelled() }}
+        uses: https://github.com/actions/upload-artifact@v3
+        with:
+          name: linux-packages-x86_64
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  aur:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - name: Install Arch dependencies
+        run: pacman -Syu --noconfirm --needed git rust cargo pkgconf alsa-lib python zstd
+      - name: Checkout
+        uses: https://github.com/actions/checkout@v4
+      - name: Build AUR recipe from this commit
+        run: |
+          version=$(python -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+          recipe_version=$(bash -c 'source packaging/aur/PKGBUILD; printf "%s" "$pkgver"')
+          test "$version" = "$recipe_version"
+          mkdir -p /tmp/aur-build
+          cp packaging/aur/PKGBUILD /tmp/aur-build/
+          tar --exclude=.git --exclude=target --exclude=dist --transform="s,^\./,war-in-tunnels-$version/," -czf "/tmp/aur-build/war-in-tunnels-$version.tar.gz" .
+          cd /tmp/aur-build
+          checksum=$(sha256sum "war-in-tunnels-$version.tar.gz" | cut -d ' ' -f 1)
+          sed -i "s/sha256sums=('SKIP')/sha256sums=('$checksum')/" PKGBUILD
+          useradd -m builder
+          chown -R builder:builder /tmp/aur-build
+          runuser -u builder -- bash -c 'cd /tmp/aur-build && makepkg --cleanbuild --noconfirm && makepkg --printsrcinfo > .SRCINFO'
+          pacman -U --noconfirm ./*.pkg.tar.zst
+          cd /tmp
+          war-in-tunnels --version
+      - name: Save Arch test package and recipe
+        uses: https://github.com/actions/upload-artifact@v3
+        with:
+          name: arch-package-x86_64
+          path: |
+            /tmp/aur-build/*.pkg.tar.zst
+            /tmp/aur-build/PKGBUILD
+            /tmp/aur-build/.SRCINFO
+            /tmp/aur-build/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7

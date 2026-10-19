@@ -8,6 +8,7 @@ use std::{
   collections::HashMap,
   fs::read,
   io::{BufReader, Cursor},
+  path::{Path, PathBuf},
   process::exit,
   sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, mpsc::Receiver},
 };
@@ -49,15 +50,24 @@ static PRELOADED_SOUNDTRACKS: Lazy<RwLock<HashMap<Soundtrack, Arc<SoundtrackCach
   });
 
 fn load_soundtrack_folder(folder: &str) -> SoundtrackCache {
-  let base: String = format!("soundtracks/{}", folder);
+  let soundtrack_root: PathBuf = std::env::current_exe()
+    .ok()
+    .and_then(|executable: PathBuf| -> Option<PathBuf> {
+      executable
+        .parent()
+        .map(|directory: &Path| -> PathBuf { directory.join("soundtracks") })
+    })
+    .filter(|directory: &PathBuf| -> bool { directory.is_dir() })
+    .unwrap_or_else(|| -> PathBuf { PathBuf::from("soundtracks") });
+  let base: PathBuf = soundtrack_root.join(folder);
   let mut cache: HashMap<SoundrackParts, Vec<u8>> = HashMap::new();
 
   macro_rules! load {
     ($part:ident, $file:expr) => {
-      let path = format!("{}/{}", base, $file);
+      let path: PathBuf = base.join($file);
       cache.insert(
         SoundrackParts::$part,
-        read(&path).expect(&format!("cannot read {}", path)),
+        read(&path).expect(&format!("cannot read {}", path.display())),
       );
     };
   }
