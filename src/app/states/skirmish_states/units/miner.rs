@@ -1,7 +1,7 @@
 use ratatui::{style::Stylize, text::Line};
 
 use crate::app::states::skirmish_states::{
-  Players,
+  Players, Resources,
   tasks::{Task, Tasks},
   units::Unit,
 };
@@ -18,6 +18,10 @@ pub struct MinerUnit {
 }
 
 impl MinerUnit {
+  pub const RECRUIT_COST: Resources = Resources {
+    wood: 10,
+    metal: 15,
+  };
   pub fn new(owner: Players, coords: (usize, usize)) -> Self {
     Self {
       owner,
@@ -69,6 +73,10 @@ impl Unit for MinerUnit {
 
   fn get_can_dig(&self) -> bool {
     self.can_dig
+  }
+
+  fn get_can_build(&self) -> bool {
+    true
   }
 
   fn get_digging_power(&self) -> f32 {

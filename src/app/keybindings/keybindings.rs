@@ -31,6 +31,10 @@ pub enum Action {
   ScrollRight,
   /// Toggle selecting cell.
   Space,
+  /// Open or close the construction view.
+  Building,
+  /// Open or close the recruitment view.
+  Recruitment,
   /// Unmark last selected cell.
   Backspace,
   /// Cancel marking cell.
@@ -108,6 +112,33 @@ pub struct KeyBinding {
 /// The slice is ordered primarily for readability; the runtime lookup scans
 /// this slice linearly, which is acceptable given the modest size of the list.
 static KEYBINDINGS: &[KeyBinding] = &[
+  KeyBinding {
+    action: Action::Recruitment,
+    code: KeyCode::Char(' '),
+    kind: KeyEventKind::Press,
+    modifiers: KeyModifiers::ALT,
+    group: Group::Opener,
+    symbol: "Alt + Space / r",
+    description: "Recruit",
+  },
+  KeyBinding {
+    action: Action::Recruitment,
+    code: KeyCode::Char('r'),
+    kind: KeyEventKind::Press,
+    modifiers: KeyModifiers::NONE,
+    group: Group::Opener,
+    symbol: "r",
+    description: "Recruit",
+  },
+  KeyBinding {
+    action: Action::Building,
+    code: KeyCode::Char(' '),
+    kind: KeyEventKind::Press,
+    modifiers: KeyModifiers::CONTROL,
+    group: Group::Opener,
+    symbol: "Ctrl + Space",
+    description: "Buildings",
+  },
   KeyBinding {
     action: Action::Quit,
     code: KeyCode::Char('q'),
@@ -330,6 +361,13 @@ pub fn binding_for(action: Action) -> Option<&'static KeyBinding> {
 /// was pressed. Returns `None` when the event does not correspond to any known
 /// action.
 pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
+  // Legacy terminals encode Ctrl+Space as NUL instead of a modified space.
+  if event.code == KeyCode::Null
+    && event.kind == KeyEventKind::Press
+    && (event.modifiers == KeyModifiers::NONE || event.modifiers == KeyModifiers::CONTROL)
+  {
+    return Some(Action::Building);
+  }
   if let Some(b) = KEYBINDINGS
     .iter()
     .find(|b| b.code == event.code && b.kind == event.kind && b.modifiers == event.modifiers)

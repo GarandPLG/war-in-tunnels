@@ -32,6 +32,12 @@ impl Ore {
     5000
   }
 
+  pub fn extract(&mut self, amount: u16) -> u16 {
+    let extracted: u16 = amount.min(self.ore_amount);
+    self.ore_amount -= extracted;
+    extracted
+  }
+
   pub fn set_owner(&mut self, new_owner: Players) -> &mut Self {
     self.owner = new_owner;
     self

@@ -108,16 +108,17 @@ pub struct Cli {
     )]
   pub starting_wood: u16,
 
-  /// Starting amount of iron (1–150).
+  /// Starting amount of metal (1–150).
   #[arg(
         long,
         short = 'i',
-        help = "Starting iron",
+        help = "Starting metal",
+        alias = "starting-iron",
         value_name = "Positive integer [1; 150]",
         default_value = "25",
         value_parser = value_parser!(u16).range(1..=150)
     )]
-  pub starting_iron: u16,
+  pub starting_metal: u16,
 
   /// Maximum amount of units (49–149).
   #[arg(

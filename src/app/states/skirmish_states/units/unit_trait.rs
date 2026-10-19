@@ -22,6 +22,10 @@ pub trait Unit {
 
   fn get_can_dig(&self) -> bool;
 
+  fn get_can_build(&self) -> bool {
+    false
+  }
+
   fn get_digging_power(&self) -> f32;
 
   fn get_coords(&self) -> (usize, usize);
@@ -64,6 +68,10 @@ pub trait Unit {
         "Digging power: ".gray(),
         digging_power.green(),
       ]));
+    }
+
+    if self.get_can_build() {
+      lines.push(Line::from("Can build: Yes").green());
     }
 
     if !have_any_tasks {

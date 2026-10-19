@@ -1,7 +1,7 @@
 use crate::{
   app::states::{
     MainMenuState, PerkDecksState, SettingsState, SkillsConfigState, SkirmishState,
-    skirmish_states::BoardState,
+    skirmish_states::{BoardState, Resources},
   },
   cli::Cli,
 };
@@ -36,6 +36,10 @@ impl GameStates {
         ),
         side_panel: false,
         turn_counter: 0,
+        player_resources: Resources::new(args.starting_wood, args.starting_metal),
+        enemy_resources: Resources::new(args.starting_wood, args.starting_metal),
+        building_view: false,
+        recruitment_view: false,
       },
       perk_decks: PerkDecksState {
         id: 2,
@@ -52,7 +56,7 @@ impl GameStates {
         game_mode: args.game_mode.clone(),
         perk_deck: args.perk_deck.clone(),
         starting_wood: args.starting_wood.clone(),
-        starting_iron: args.starting_iron.clone(),
+        starting_metal: args.starting_metal,
         supply_limit: args.supply_limit.clone(),
         xp_modifier: args.xp_modifier.clone(),
         skill_points_limit: args.skill_points_limit.clone(),

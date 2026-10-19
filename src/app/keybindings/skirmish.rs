@@ -1,13 +1,126 @@
 use crate::app::{
   App,
   keybindings::{Action, common_keybindings, event_to_action},
-  states::skirmish_states::{BoardState, MoveFocusedCell, ZoomLevel},
+  states::{
+    SkirmishState,
+    skirmish_states::{
+      BoardState, FocusedCell, MoveFocusedCell, Players, ZoomLevel,
+      structures::{Structure, Structures},
+      units::{Unit, Units},
+    },
+  },
 };
 use ratatui::{crossterm::event::KeyEvent, layout::Rect};
 
-pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
-  if let Some(action) = event_to_action(&key_event) {
+pub fn available_skirmish_actions(state: &SkirmishState) -> Vec<Action> {
+  if state.recruitment_view {
+    let mut actions: Vec<Action> = vec![Action::Recruitment, Action::Esc, Action::Quit2];
+    if state.can_recruit_miner(state.board.get_focused_cell().get_coords(), Players::Player) {
+      actions.push(Action::Enter);
+    }
+    return actions;
+  }
+  if state.building_view {
+    let mut actions: Vec<Action> = vec![Action::Building, Action::Esc, Action::Quit2];
+    let coords: (usize, usize) = state.board.get_focused_cell().get_coords();
+    if let Structures::MineConstruction(site) =
+      state.board.get_ref_cell(coords.0, coords.1).get_structure()
+      && site.get_owner() == Players::Player
+    {
+      actions.push(Action::Delete);
+    } else if state.can_start_mine_construction(coords, Players::Player) {
+      actions.push(Action::Enter);
+    }
+    return actions;
+  }
+  let mut actions: Vec<Action> = vec![Action::Up, Action::Down, Action::Left, Action::Right];
+  if state.board.marked_cells.marking_cells {
+    actions.extend([
+      Action::Space,
+      Action::Backspace,
+      Action::Delete,
+      Action::Esc,
+      Action::Tab,
+      Action::Quit2,
+    ]);
+    return actions;
+  }
+  actions.extend([
+    Action::ScrollUp,
+    Action::ScrollDown,
+    Action::ScrollLeft,
+    Action::ScrollRight,
+    Action::Tab,
+    Action::Building,
+    Action::Mute,
+    Action::Quit,
+    Action::Esc,
+  ]);
+  if state.board.zoom_level != ZoomLevel::ZoomedIn {
+    actions.push(Action::ZoomIn);
+  }
+  if state.board.zoom_level != ZoomLevel::ZoomedOut {
+    actions.push(Action::ZoomOut);
+  }
+  let cell: &FocusedCell = state.board.get_focused_cell();
+  let (row, col): (usize, usize) = cell.get_coords();
+  if matches!(state.board.get_ref_cell(row, col).get_structure(), Structures::Base(base) if base.get_owner() == Players::Player)
+  {
+    actions.push(Action::Recruitment);
+  }
+  let unit: &Option<Units> = state.board.get_ref_cell(row, col).get_ref_option_unit();
+  if unit.get_owner() == Players::Player && unit.get_can_dig() {
+    actions.push(Action::Space);
+  }
+  actions
+}
+
+pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) -> () {
+  if let Some(action) = event_to_action(key_event) {
+    let Some(states) = app.states_mut() else {
+      common_keybindings(app, action);
+      return;
+    };
+    if states.skirmish.recruitment_view {
+      match action {
+        Action::Recruitment | Action::Esc => states.skirmish.recruitment_view = false,
+        Action::Enter => {
+          let coords: (usize, usize) = states.skirmish.board.get_focused_cell().get_coords();
+          states.skirmish.recruit_miner(coords, Players::Player);
+        }
+        _ => common_keybindings(app, action),
+      }
+      return;
+    }
+    if states.skirmish.building_view {
+      match action {
+        Action::Building | Action::Esc => states.skirmish.building_view = false,
+        Action::Enter => {
+          let coords: (usize, usize) = states.skirmish.board.get_focused_cell().get_coords();
+          states
+            .skirmish
+            .start_mine_construction(coords, Players::Player);
+        }
+        Action::Delete => {
+          let coords: (usize, usize) = states.skirmish.board.get_focused_cell().get_coords();
+          states
+            .skirmish
+            .cancel_mine_construction(coords, Players::Player);
+        }
+        _ => common_keybindings(app, action),
+      }
+      return;
+    }
+    if action == Action::Esc && states.skirmish.board.marked_cells.marking_cells {
+      states.skirmish.board.marked_cells.marking_cells = false;
+      states.skirmish.board.end_marking_cells(true);
+      return;
+    }
+    let available: bool = available_skirmish_actions(&states.skirmish).contains(&action);
     common_keybindings(app, action);
+    if !available {
+      return;
+    }
 
     let window_area: Rect = app.window_area;
 
@@ -83,6 +196,8 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) {
         ZoomLevel::ZoomedOut => {}
       },
       Action::Space => board.toggle_marking(),
+      Action::Building => states.skirmish.building_view = true,
+      Action::Recruitment => states.skirmish.recruitment_view = true,
       Action::Backspace => board.pop_marked_cell(),
       Action::Delete => {
         board.marked_cells.marking_cells = false;

@@ -1,6 +1,6 @@
 # Mapa kodu i przepływu
 
-Migawka: 2026-10-18. Projekt `war_in_tunnels` 0.1.0 to prototyp terminalowego RTS. Działają menu, plansza, nawigacja, zlecanie i wykonywanie kopania oraz audio. Zegar obsługuje zadania jednostek; ekonomia i walka pozostają poza zakresem obecnej symulacji.
+Migawka: 2026-10-19. Projekt `war_in_tunnels` 0.1.0 to prototyp terminalowego RTS. Działają menu, plansza, nawigacja, zlecanie i wykonywanie kopania, magazyny Wood/Metal, dostawy drewna, budowanie Mine, obsadzanie kopalni górnikiem, rekrutacja Miner w Base i audio. Walka i pełna ekonomia pozostają poza zakresem obecnej symulacji.
 
 ## Moduły i odpowiedzialność
 
@@ -17,6 +17,8 @@ Wszystkie ścieżki poniżej są względem katalogu głównego repozytorium.
 | Plansza | `src/app/states/skirmish_states/board.rs` | Tworzenie mapy, kamera, zoom, focus, zaznaczenia, zlecanie i wykonywanie zadań |
 | Współrzędne | `focused_cell.rs`, `offset.rs`, `marked_cells.rs`, `zoom_level.rs` w `skirmish_states/` | Granice kursora i przewijania, ścieżka zaznaczenia, rozmiar komórek |
 | Obiekty gry | `skirmish_states/structures/`, `units/`, `tasks/` | Traity `Structure`, `Unit`, `Task` i delegujące enumy `Structures`, `Units`, `Tasks` |
+| Zasoby | `skirmish_states/resources.rs`, `states/skirmish.rs`, `structures/mine.rs` | Osobne magazyny gracza i przeciwnika, pasywne Wood i wydobycie metalu z ograniczonego złoża |
+| Rekrutacja | `structures/base.rs`, `units/miner.rs`, `states/skirmish.rs`, `board.rs` | Koszt górnika, niezależne kolejki baz i bezpieczne pojawianie się jednostek po ruchu |
 | Widgety | `src/app/widgets/` | Plansza, komórka, panel boczny i legenda klawiszy |
 | Pomocniczy layout | `src/app/helpers/` | Obszar komórek, tytuły bloków i tekst opcji menu |
 | Wątki | `src/app/threads/{events,tick,audio}.rs` | Crossterm, zegar 33 ms, Rodio i komendy audio |
@@ -56,7 +58,7 @@ flowchart TD
 
 Kanały to standardowe `std::sync::mpsc`. Stan gry mutuje główny wątek. Każdy obrót pętli najpierw rysuje, następnie próbuje odebrać po jednym zdarzeniu z każdego kanału. Aktualizacja potyczki odbywa się niezależnie od wybranego ekranu. `tick_update` wykonuje `board.advance_turn()` i zwiększa `turn_counter`.
 
-`GameStates::new` tworzy wszystkie stany jednocześnie. `SettingsState` przechowuje parametry z CLI; samo istnienie parametrów ekonomii, XP i trybu gry nie oznacza zaimplementowanych mechanik. `View` zawiera MainMenu, Skirmish, PerkDecks i SkillsConfig. Dwa ostatnie używają `default_view` z napisem „Work in progress”; ustawienia nie mają osobnego wariantu `View`.
+`GameStates::new` tworzy wszystkie stany jednocześnie. `SettingsState` przechowuje parametry z CLI; `SkirmishState` ma odrębne bieżące `player_resources` i `enemy_resources`, inicjalizowane z starting_wood/starting_metal. Nagłówek TUI odczytuje te magazyny zamiast ustawień. `--starting-iron` jest aliasem nowego `--starting-metal`; XP, supply i tryb gry nadal nie mają pełnej symulacji. `View` zawiera MainMenu, Skirmish, PerkDecks i SkillsConfig. Dwa ostatnie używają `default_view` z napisem „Work in progress”; ustawienia nie mają osobnego wariantu `View`.
 
 ## Renderowanie i dane
 
@@ -77,7 +79,21 @@ flowchart LR
 
 `BoardState.cells: Vec<Vec<CellWidget>>` łączy model i prezentację: komórka zawiera strukturę, opcjonalną jednostkę, pozycję i flagi UI. `BoardWidget` wybiera widoczne komórki przez offsety i layout; `CellWidget` odpowiada za ich tekst i styl. Panel boczny prezentuje dane zaznaczenia. Zoom wpływa na wielkość komórek i liczbę widocznych wierszy/kolumn; resize i przełączanie panelu zmieniają granice offsetów.
 
-Mapa powstaje deterministycznie: kamień, baza gracza w `(map_height / 2, 2)`, baza przeciwnika w `(map_height / 2, map_width - 3)`, sąsiadujące złoża i po jednym górniku w bazie. CLI domyślnie wybiera mapę 42 × 11; dopuszczalne zakresy to szerokość 36–108 i wysokość 11–39. Dostępne struktury to Base, Ore, Stone, Tunnel; jedyna jednostka to Miner. Zadania to Digging i Moving, implementujące wspólny trait Task.
+Mapa powstaje deterministycznie: kamień, baza gracza w `(map_height / 2, 2)`, baza przeciwnika w `(map_height / 2, map_width - 3)`, sąsiadujące neutralne złoża i po jednym górniku w bazie. Kopalnie nie są rozmieszczane na starcie. CLI domyślnie wybiera mapę 42 × 11; dopuszczalne zakresy to szerokość 36–108 i wysokość 11–39. Struktury to Base, Ore, Stone, Tunnel, MineConstruction i Mine; jedyna jednostka to Miner. Zadania to Digging i Moving, implementujące wspólny trait Task.
+
+`Resources` przechowuje Wood i Metal jako u32; dodawanie saturuje zamiast przepełniać licznik. `tick_update` po zadaniach jednostek dodaje graczowi 5 Wood co 152 ticki (5016 ms). Co 31 ticków (1023 ms) kopalnie wydobywają po 1 Metal lub 2 Metal, jeśli na ich kratce stoi własny Miner. `Mine::accepts_unit` określa możliwość obsadzenia, a `production_per_cycle` ogranicza wydobycie pozostałą zawartością złoża. Rzeczywiście uzyskana ilość jest odejmowana z Ore i dopisywana właścicielowi. Wyczerpane złoże pozostaje z ilością zero. SidePanelWidget pokazuje tempo i aktywny bonus Miner. Wartości i okresy określają stałe w resources.rs oraz Mine::METAL_PER_CYCLE/STAFFED_METAL_PER_CYCLE.
+
+`BoardState::can_build_at` sprawdza granice, pustą kratkę, własnego sąsiedniego budowniczego (cztery kierunki) i BuildingTerrain. Zwykłe budynki wymagają kamienia połączonego krawędzią z tunelem lub własną bazą; Mine wymaga neutralnego, niewyczerpanego Ore i omija wyłącznie warunek połączenia, nigdy obecność budowniczego. `Unit::get_can_build` ma domyślnie false, Miner zwraca true, a Units i Option delegują uprawnienie. Gameplay wywołuje SkirmishState::start_mine_construction: sprawdza zasoby, ponownie waliduje teren i pobiera Mine::COST (20 Wood, 10 Metal). Niedobór dowolnego zasobu nie zmienia planszy ani magazynu. BoardState odpowiada za warstwę terenu, nie opłaty. Nie ma jeszcze innych budowanych obiektów.
+
+MineConstruction zachowuje gotowy model Mine z oryginalnym Ore oraz licznik budowy. Po ruchu jednostek BoardState::advance_construction nalicza tick tylko przy sąsiednim własnym budowniczym; odejście pauzuje budowę, powrót wznawia. Po 304 tickach (10032 ms, około 10 sekund) struktura staje się Mine. Do tego czasu nie można do niej wejść ani wydobywać. Procenty są na kratce, w panelu Tab i widoku budowania. SkirmishState::cancel_mine_construction dopuszcza tylko własny aktywny plac, przywraca oryginalne neutralne Ore i jednokrotnie zwraca koszt; zakończonej kopalni nie da się w ten sposób sprzedać. Resources::spend sprawdza oba zasoby przed odjęciem.
+
+`available_skirmish_actions` jest wspólne dla obsługi wejścia i legendy. Na mapie spacja jest dostępna przy własnym górniku, a zoom zależy od poziomu. Rysowanie trasy ukrywa zoom, przewijanie i budowanie; Esc anuluje trasę. Ctrl+Space otwiera SkirmishState::building_view dla wskazanego pola. Poprawne pole z funduszami udostępnia Enter/Build Mine; panel pozostaje otwarty z procentami i Delete/Cancel construction dla własnej trwającej budowy. Esc lub Ctrl+Space tylko zamyka panel, nie anuluje budowy. Obsługiwany jest również NUL starszych terminali. Muzyka i wyjście są globalne. Widget legendy stosuje opisy zależne od kontekstu i szerokości kolumn proporcjonalne do tekstu, zachowując stałą wysokość stopki i geometrię mapy.
+
+`Structures::can_enter` jest wspólną regułą dla planowania trasy i jej wykonywania: baza i tunel pozostają przechodnie; Mine przyjmuje własnego Minera, jeżeli kratka nie jest zajęta. Wejście do kopalni jest Moving (około 3 sekund), również gdy zadanie wcześniej miało typ Digging. Obsadzony górnik pozostaje jedyną jednostką na kratce, można go zaznaczyć i wyprowadzić zwykłą trasą. Bonus wylicza się z bieżącej obecności jednostki po ruchu; nie ma osobnej kopii pracownika ani osobnego zadania pracy.
+
+BaseBuilding przechowuje queued_miners, recruitment_ticks i waiting_for_departure. Ponieważ kolejka obsługuje wyłącznie identycznych Minerów, wystarcza licznik pozycji zamiast listy obiektów. SkirmishState::recruit_miner sprawdza typ i właściciela bazy, granice, pojemność licznika i MinerUnit::RECRUIT_COST (10 Wood, 15 Metal), po czym opłaca dodanie pozycji. BoardState::advance_recruitment jest wywoływane po ruchu jednostek, przed budowaniem i wydobyciem. Pierwszy Miner rekrutuje się przez 304 ticki (10032 ms), nawet na zajętej bazie; przy 100% czeka na wolne pole. Spawn tworzy jednostkę z właścicielem i współrzędnymi bazy oraz pustą kolejką zadań. Po spawnie waiting_for_departure blokuje odliczanie kolejnych pozycji, dopóki baza jest zajęta. Nigdy nie nadpisujemy obecnej jednostki. Każda baza ma osobną kolejkę; przeciwnik korzysta z własnych zasobów.
+
+Alt+Space lub r jest dostępne na własnej Base poza rysowaniem trasy i widokiem budowania. SkirmishState::recruitment_view otwiera modal z kosztem, liczbą pozycji, procentem i statusem Recruiting/Ready/Paused. Enter dodaje Minera tylko przy wystarczających zasobach. Esc, r lub Alt+Space zamyka panel, zachowując kolejkę; ruch mapy i otwarcie innego modalu są wtedy zablokowane. Opisy w legendzie zależą od trybu, a postęp i liczba pozycji są też pod Tab.
 
 ## Klawisze i zlecanie kopania
 
@@ -117,7 +133,7 @@ To obserwacje statyczne, nie lista napraw wykonanych w tej sesji:
 - **Zaznaczenie:** wybrany górnik czeka podczas rysowania trasy; inne jednostki wykonują zadania normalnie.
 - **Audio:** usunięto aktywne odpytywanie; pomiar CPU na docelowym urządzeniu i odsłuch pozostają do wykonania. Test dekodera nie weryfikuje urządzenia audio.
 - **Granice UI:** małe terminale, resize i trzy poziomy zoomu wymagają interaktywnego sprawdzenia. Indeksowanie planszy zakłada poprawne współrzędne.
-- **Pokrycie:** 46 testów CLI, sterowania, renderowania, planszy, wykonywania zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Workflow Gitea sprawdza też profil release; nie obejmuje pełnej rozgrywki. Clippy zgłasza 50 ostrzeżeń biblioteki, `unused_unit` jest jawnie dozwolony. Nie uruchamiać automatycznych poprawek poza zakresem zadania.
+- **Pokrycie:** 82 testów CLI, sterowania i kontekstowej legendy, renderowania, planszy, zasobów, budowania/obsadzania kopalni, rekrutacji i blokowania kolejki bazy, zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Workflow Gitea sprawdza też profil release; nie obejmuje pełnej rozgrywki. Clippy ma istniejące ostrzeżenia, unused_unit jest jawnie dozwolony. Nie uruchamiać automatycznych poprawek poza zakresem zadania.
 
 ## Gdzie zacząć konkretną zmianę
 

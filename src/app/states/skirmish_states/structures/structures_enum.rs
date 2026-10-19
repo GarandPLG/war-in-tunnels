@@ -1,6 +1,7 @@
 use crate::app::states::skirmish_states::{
   Players,
-  structures::{BaseBuilding, Ore, Stone, Structure, Tunnel},
+  structures::{BaseBuilding, Mine, MineConstruction, Ore, Stone, Structure, Tunnel},
+  units::Units,
 };
 use ratatui::{
   style::{Color, Stylize},
@@ -13,9 +14,28 @@ pub enum Structures {
   Tunnel(Tunnel),
   Stone(Stone),
   Ore(Ore),
+  Mine(Mine),
+  MineConstruction(MineConstruction),
 }
 
 impl Structures {
+  pub fn can_enter(&self, unit: &Units) -> bool {
+    match self {
+      Self::Base(_) | Self::Tunnel(_) => true,
+      Self::Mine(mine) => mine.accepts_unit(unit),
+      _ => false,
+    }
+  }
+  pub fn build_mine(&mut self, owner: Players) -> bool {
+    if let Self::Ore(ore) = *self
+      && let Some(mine) = Mine::new(owner, ore)
+    {
+      *self = Self::Mine(mine);
+      return true;
+    }
+    false
+  }
+
   #[inline]
   fn s(&self) -> &dyn Structure {
     match self {
@@ -23,6 +43,8 @@ impl Structures {
       Self::Tunnel(t) => t,
       Self::Stone(s) => s,
       Self::Ore(o) => o,
+      Self::Mine(mine) => mine,
+      Self::MineConstruction(site) => site,
     }
   }
 }

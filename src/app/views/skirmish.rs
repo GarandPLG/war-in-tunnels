@@ -1,46 +1,29 @@
 use crate::app::{
   App,
   helpers::block_title_helper,
-  keybindings::{Action, count_largest_group},
-  states::skirmish_states::BoardState,
-  widgets::{BoardWidget, KeybindingsWidget, SidePanelWidget},
+  keybindings::{Action, available_skirmish_actions},
+  states::skirmish_states::{
+    BoardState, Players,
+    resources::{WOOD_DELIVERY_AMOUNT, WOOD_DELIVERY_INTERVAL_MS},
+    structures::{Mine, Structure, Structures},
+    units::MinerUnit,
+  },
+  widgets::{BoardWidget, CellWidget, KeybindingsWidget, SidePanelWidget},
 };
 use ratatui::{
   buffer::Buffer,
   layout::{Alignment, Constraint, Layout, Margin, Rect},
   style::{Color, Stylize},
   text::Line,
-  widgets::{Block, Borders, Padding, Paragraph, Widget},
+  widgets::{Block, Borders, Clear, Padding, Paragraph, Widget},
 };
-
-const ACTIONS: &[Action] = &[
-  Action::Up,
-  Action::Down,
-  Action::Left,
-  Action::Right,
-  Action::ScrollUp,
-  Action::ScrollDown,
-  Action::ScrollLeft,
-  Action::ScrollRight,
-  Action::ZoomIn,
-  Action::ZoomOut,
-  Action::VolumeUp,
-  Action::VolumeDown,
-  Action::Space,
-  Action::Backspace,
-  Action::Delete,
-  Action::Mute,
-  Action::Tab,
-  Action::Quit,
-  Action::Quit2,
-  Action::Esc,
-];
 
 pub fn skirmish_layout(area: Rect) -> [Rect; 3] {
   Layout::vertical([
     Constraint::Length(4),
     Constraint::Fill(1),
-    Constraint::Length(count_largest_group(&ACTIONS) + 2),
+    // Four movement rows plus borders keep the board geometry stable across modes.
+    Constraint::Length(6),
   ])
   .areas(area)
 }
@@ -68,8 +51,13 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
     let lines: Vec<Line<'_>> = Vec::from_iter([
       Line::raw("War in Tunnels").yellow(),
       Line::from_iter([
-        format!("Wood: {} (+{}) | ", states.settings.starting_wood, 5),
-        format!("Iron: {} (+{}) | ", states.settings.starting_iron, 1),
+        format!(
+          "Wood: {} (+{}/{}s) | ",
+          states.skirmish.player_resources.wood,
+          WOOD_DELIVERY_AMOUNT,
+          WOOD_DELIVERY_INTERVAL_MS / 1000
+        ),
+        format!("Metal: {} | ", states.skirmish.player_resources.metal),
         format!("Supply Limit: {}/{} | ", 10, states.settings.supply_limit),
         format!(
           "Skills points: {} ({}/{}) | ",
@@ -148,6 +136,130 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
   }
 
   {
-    KeybindingsWidget::new(ACTIONS, keybindings_area.height).render(keybindings_area, buf);
+    let actions: Vec<Action> = available_skirmish_actions(&states.skirmish);
+    let descriptions: [(Action, &'static str); 11] = [
+      (
+        Action::Enter,
+        if states.skirmish.recruitment_view {
+          "Queue Miner"
+        } else {
+          "Build Mine"
+        },
+      ),
+      (
+        Action::Recruitment,
+        if states.skirmish.recruitment_view {
+          "Close recruitment"
+        } else {
+          "Recruit"
+        },
+      ),
+      (
+        Action::Delete,
+        if states.skirmish.building_view {
+          "Cancel construction"
+        } else {
+          "Cancel marking"
+        },
+      ),
+      (
+        Action::Space,
+        if board.marked_cells.marking_cells {
+          "Confirm route"
+        } else {
+          "Select miner"
+        },
+      ),
+      (
+        Action::Esc,
+        if states.skirmish.recruitment_view {
+          "Close recruitment"
+        } else if states.skirmish.building_view {
+          "Close buildings"
+        } else if board.marked_cells.marking_cells {
+          "Cancel route"
+        } else {
+          "Menu"
+        },
+      ),
+      (
+        Action::Building,
+        if states.skirmish.building_view {
+          "Close buildings"
+        } else {
+          "Build"
+        },
+      ),
+      (Action::Tab, "Details"),
+      (Action::ScrollUp, "Scroll"),
+      (Action::ScrollDown, "Scroll"),
+      (Action::ScrollLeft, "Scroll"),
+      (Action::ScrollRight, "Scroll"),
+    ];
+    KeybindingsWidget::with_descriptions(&actions, keybindings_area.height, &descriptions)
+      .render(keybindings_area, buf);
+  }
+  if states.skirmish.building_view {
+    let popup: Rect = main_area.centered(Constraint::Length(64), Constraint::Length(14));
+    let coords: (usize, usize) = board.get_focused_cell().get_coords();
+    let structure: Structures = board.get_ref_cell(coords.0, coords.1).get_structure();
+    let status: String = if let Structures::MineConstruction(site) = structure
+      && site.get_owner() == Players::Player
+    {
+      format!(
+        "Construction: {}%\n{}\nDelete: cancel and refund full cost",
+        site.progress_percent(),
+        if board.has_adjacent_builder(coords, Players::Player) {
+          "Builder working"
+        } else {
+          "Paused: adjacent friendly builder required"
+        }
+      )
+    } else if matches!(structure, Structures::Mine(_)) && structure.get_owner() == Players::Player {
+      "Mine completed".to_string()
+    } else if states
+      .skirmish
+      .can_start_mine_construction(coords, Players::Player)
+    {
+      "Ready to build: Enter".to_string()
+    } else {
+      "Construction unavailable: check site, builder and resources".to_string()
+    };
+    Clear.render(popup, buf);
+    Paragraph::new(format!("Mine\nCost: {} Wood + {} Metal | Build time: 10s\nRequires: neutral Ore + adjacent friendly builder\nProduces: 1 Metal/s (2 with a Miner inside)\n{status}", Mine::COST.wood, Mine::COST.metal))
+      .block(Block::bordered().title("Buildings").padding(Padding::uniform(1)))
+      .render(popup, buf);
+  }
+  if states.skirmish.recruitment_view {
+    let popup: Rect = main_area.centered(Constraint::Length(64), Constraint::Length(14));
+    let coords: (usize, usize) = board.get_focused_cell().get_coords();
+    let cell: &CellWidget = board.get_ref_cell(coords.0, coords.1);
+    let text: String = if let Structures::Base(base) = cell.get_structure()
+      && base.get_owner() == Players::Player
+    {
+      let status: &'static str = base.recruitment_status(cell.get_ref_option_unit().is_some());
+      let action: &'static str = if states.skirmish.can_recruit_miner(coords, Players::Player) {
+        "Enter: queue Miner"
+      } else {
+        "Insufficient resources or queue full"
+      };
+      format!(
+        "Miner\nCost: {} Wood + {} Metal | Recruit time: 10s\nQueued Miners: {} (includes active)\nCurrent progress: {}%\n{status}\n{action}",
+        MinerUnit::RECRUIT_COST.wood,
+        MinerUnit::RECRUIT_COST.metal,
+        base.queued_miners(),
+        base.recruitment_progress()
+      )
+    } else {
+      "Select your Base to recruit Miners".to_string()
+    };
+    Clear.render(popup, buf);
+    Paragraph::new(text)
+      .block(
+        Block::bordered()
+          .title("Recruitment")
+          .padding(Padding::uniform(1)),
+      )
+      .render(popup, buf);
   }
 }

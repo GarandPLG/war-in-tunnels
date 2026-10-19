@@ -17,9 +17,13 @@ Testy korzystają z wbudowanego mechanizmu Rust, Clap i `ratatui::backend::TestB
 | `tests/board.rs` | 7 | Rozmieszczenie baz/złóż/jednostek, granice kursora i kamery, zatwierdzanie/anulowanie ścieżki, cofanie z powtórzonym polem, duży viewport, resize i zoom |
 | `tests/tasks.rs` | 7 | Przyrost i limit kopania, reset etapu, pusta ścieżka, kolejność zadań, timer MovingTask, całkowity postęp, zachowanie liczby etapów przy konwersji, formatowanie postępu aktywnych i oczekujących zadań |
 | `tests/audio.rs` | 2 | Zapętlanie rzeczywistego pliku OGG po jego końcu i ładowanie soundtracków obok binarki poza katalogiem repozytorium |
+| `tests/resources.rs` | 7 | Stan z CLI, alias starting-iron, pasywne Wood, neutralne złoża, brak kopalń na starcie, budowa wyłącznie na Ore, wyczerpanie złoża i przychód właściciela, ochrona przepełnień i bieżące zasoby w TUI |
+| `tests/context_keybindings.rs` | 4 | Kontekst mapy i trasy, anulowanie przez Esc, blokada budowania na nieprawidłowym polu, Ctrl+Space i NUL ze starszych terminali, globalne wyjście i czytelność legendy przy 120 kolumnach |
+| `tests/construction.rs` | 16 | Uprawnienia budowniczego i delegacja, sąsiedztwo i brak zdalnej budowy, właściciel, reguła kamienia i wyjątek Ore, ochrona zajętych/wyczerpanych/wrogich złóż, atomowa opłata, 10 sekund budowy, pauza i wznowienie, brak przedwczesnego wydobycia/wejścia, procenty i anulowanie Delete w TUI, jednokrotny zwrot i zachowanie Ore, ruch do/z Mine i bonus wydobycia, ochrona rezerwy |
+| `tests/recruitment.rs` | 9 | Wyłącznie własna Base, atomowy koszt każdej pozycji i brak obciążenia przy błędzie, 10 sekund rekrutacji, oczekiwanie przy 100%, brak nadpisania jednostki, blokada kolejnych pozycji do wyjścia poprzedniego rekruta, wznowienie po ruchu, niezależne bazy i właściciele, Alt+Space/r/Enter/Esc i kontekstowa legenda |
 | `tests/digging.rs` | 18 | Wykonywanie kopania i ruchu, kolejki, 3 sekundy na krok, wejście po wykopaniu, blokady i walidacja, kolory i procenty w TUI, podział trasy Moving/Digging, ochrona struktur, zmiana rodzaju zadania, panel Tab z postępem etapu i całego zadania |
 
-Łącznie: 46 testów. Wszystkie testy znajdują się w `tests/` i sprawdzają publiczne interfejsy biblioteki lub binarkę. Funkcja `load_audio` jest eksportowana przez `app::threads`, dzięki czemu test korzysta z tego samego dekodera co odtwarzanie.
+Łącznie: 82 testów. Wszystkie testy znajdują się w `tests/` i sprawdzają publiczne interfejsy biblioteki lub binarkę. Funkcja `load_audio` jest eksportowana przez `app::threads`, dzięki czemu test korzysta z tego samego dekodera co odtwarzanie.
 
 Wybrane zestawy i pojedynczy przypadek:
 
@@ -55,7 +59,7 @@ Workflow określa obraz zadania jawnie jako `node:22-bookworm`. Kontener działa
 
 Wersję Rust w CI określa `RUST_VERSION` w workflow, niezależnie od lokalnego `flake.lock`. Formatowanie, kompilacja, testy i Clippy są oddzielnymi krokami Cargo. Polecenia kompilujące projekt mają `--locked`; Clippy nie używa `-D warnings` z powodu istniejących ostrzeżeń. `actions/cache@v4` zachowuje osobno toolchain oraz rejestr Cargo, repozytoria git i `target`. Klucze uwzględniają wersję Rust, a dla Cargo także manifest, lockfile i kod; klucze częściowe pozwalają ponownie wykorzystać wcześniejsze kompilacje. Działanie cache wymaga dostępnego serwera cache runnera. Pierwszy przebieg wypełnia cache; błędy pobierania cache mogą spowodować ponowną instalację i kompilację.
 
-Release ma `overflow-checks = true`. Ten sam zestaw 46 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
+Release ma `overflow-checks = true`. Ten sam zestaw 82 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
 
 ```sh
 nix develop -c cargo test --all-targets --release --locked
@@ -65,4 +69,4 @@ Manifest określa minimalną wspieraną wersję Rust jako 1.88. Potwierdzono `ca
 
 ## Ograniczenia
 
-Zestaw weryfikuje wykonywanie zadań przez ticki potyczki, ale nie pełną rozgrywkę, ekonomię ani walkę. Nie potwierdza odsłuchu, zużycia CPU, obsługi urządzeń, pakowania Nix ani wszystkich układów małych terminali. Testy renderowania są kontrolą podstawową, bez utrwalania pełnych zrzutów ekranów. Nowy workflow bez Nix wymaga przebiegu na Gitea; odczyt cache należy potwierdzić w kolejnym przebiegu.
+Zestaw weryfikuje wykonywanie zadań przez ticki potyczki i podstawowe zasoby, ale nie pełną rozgrywkę, balans ekonomii ani walkę. Nie potwierdza odsłuchu, zużycia CPU, obsługi urządzeń, pakowania Nix ani wszystkich układów małych terminali. Testy renderowania są kontrolą podstawową, bez utrwalania pełnych zrzutów ekranów. Transport artefaktów i odczyt cache wymagają przebiegu na Gitea.

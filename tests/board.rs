@@ -26,6 +26,10 @@ fn map_has_opposing_bases_ore_and_two_miners() {
       board.get_ref_cell(5, ore_col).get_structure(),
       Structures::Ore(_)
     ));
+    assert_eq!(
+      board.get_ref_cell(5, ore_col).get_structure().get_owner(),
+      Players::Unclaimed
+    );
   }
   assert_eq!(
     board

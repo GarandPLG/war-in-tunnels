@@ -20,6 +20,7 @@ use std::collections::HashSet;
 pub struct KeybindingsWidget {
   /// Paragraphs, one per used `Group`, containing the formatted keybinding lines.
   grouped: Vec<Paragraph<'static>>,
+  widths: Vec<u16>,
 }
 
 impl KeybindingsWidget {
@@ -42,6 +43,14 @@ impl KeybindingsWidget {
   ///
   /// A fully‑initialised `KeybindingsWidget` ready for rendering.
   pub fn new(actions: &[Action], area_height: u16) -> Self {
+    Self::with_descriptions(actions, area_height, &[])
+  }
+
+  pub fn with_descriptions(
+    actions: &[Action],
+    area_height: u16,
+    descriptions: &[(Action, &'static str)],
+  ) -> Self {
     let keybindings: Vec<Option<&'static KeyBinding>> =
       actions.iter().map(|a| binding_for(*a)).collect();
 
@@ -51,6 +60,7 @@ impl KeybindingsWidget {
       .collect();
 
     let mut grouped_keybindings: Vec<Paragraph<'static>> = Vec::new();
+    let mut widths: Vec<u16> = Vec::new();
 
     for group in Group::value_variants().iter() {
       if !used_groups.contains(group) {
@@ -62,11 +72,20 @@ impl KeybindingsWidget {
         .filter(|b| b.as_ref().map_or(false, |kb| kb.group == *group))
         .filter_map(|b| {
           b.as_ref().map(|kb| {
-            Line::from_iter([kb.symbol.red().bold(), " - ".into(), kb.description.into()])
+            let description: &'static str = descriptions
+              .iter()
+              .find(|(action, _): &&(Action, &'static str)| -> bool { *action == kb.action })
+              .map_or(
+                kb.description,
+                |(_, description): &(Action, &'static str)| -> &'static str { description },
+              );
+            Line::from_iter([kb.symbol.red().bold(), " - ".into(), description.into()])
           })
         })
         .collect();
 
+      let width: usize = grouped_lines.iter().map(Line::width).max().unwrap_or(0);
+      widths.push(u16::try_from(width).unwrap_or(u16::MAX).saturating_add(3));
       let height_diff: u16 =
         area_height.saturating_sub(grouped_lines.len().saturating_add(2) as u16);
 
@@ -91,6 +110,7 @@ impl KeybindingsWidget {
 
     Self {
       grouped: grouped_keybindings,
+      widths,
     }
   }
 }
@@ -99,7 +119,7 @@ impl Widget for KeybindingsWidget {
   /// Render the widget inside the given rectangular area.
   ///
   /// The widget first draws a surrounding border with the title *Keybindings*.
-  /// It then divides the inner area into equal horizontal slices—one per
+  /// It then divides the inner area proportionally to each group's text width—one per
   /// used group—and renders each group's paragraph into its slice.
   ///
   /// If no groups are present, the function returns early without drawing
@@ -122,9 +142,7 @@ impl Widget for KeybindingsWidget {
 
     block.render(area, buf);
 
-    let base: u16 = if count == 0 { 0 } else { 100u16 / count };
-
-    let constraints: Vec<Constraint> = vec![Constraint::Percentage(base); count as usize];
+    let constraints: Vec<Constraint> = self.widths.into_iter().map(Constraint::Fill).collect();
 
     let chunks: Vec<Rect> = Layout::horizontal(constraints).split(inner).to_vec();
 

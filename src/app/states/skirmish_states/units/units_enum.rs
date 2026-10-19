@@ -28,6 +28,9 @@ impl Units {
 }
 
 impl Unit for Units {
+  fn get_can_build(&self) -> bool {
+    self.u().get_can_build()
+  }
   fn get_tag(&self) -> char {
     self.u().get_tag()
   }
@@ -82,6 +85,11 @@ impl Unit for Units {
 }
 
 impl Unit for Option<Units> {
+  fn get_can_build(&self) -> bool {
+    self
+      .as_ref()
+      .is_some_and(|unit: &Units| -> bool { unit.get_can_build() })
+  }
   fn is_unit(&self) -> bool {
     self.as_ref().map_or(false, |u| u.is_unit())
   }

@@ -4,7 +4,9 @@ use crate::app::{
     FocusedCell, Offset,
     skirmish_states::{
       CellSizes, MarkedCells, MoveFocusedCell, Players, ZoomLevel,
-      structures::{BaseBuilding, Ore, Stone, Structure, Structures, Tunnel},
+      structures::{
+        BaseBuilding, BuildingTerrain, MineConstruction, Ore, Stone, Structure, Structures, Tunnel,
+      },
       tasks::{DiggingTask, MovingTask, Task, Tasks},
       units::{MinerUnit, Unit, Units},
     },
@@ -32,6 +34,138 @@ pub struct BoardState {
 }
 
 impl BoardState {
+  pub fn advance_recruitment(&mut self) -> () {
+    for (row, cells) in self.cells.iter_mut().enumerate() {
+      for (col, cell) in cells.iter_mut().enumerate() {
+        if let Structures::Base(mut base) = cell.get_structure() {
+          if base.advance_recruitment(cell.get_ref_option_unit().is_some()) {
+            *cell.get_mut_option_unit() =
+              Some(Units::Miner(MinerUnit::new(base.get_owner(), (row, col))));
+          }
+          cell.set_structure(Structures::Base(base));
+        }
+      }
+    }
+  }
+
+  fn adjacent_cells(&self, (row, col): (usize, usize)) -> Vec<&CellWidget> {
+    let coordinates: [(usize, usize); 4] = [
+      (row.wrapping_sub(1), col),
+      (row.saturating_add(1), col),
+      (row, col.wrapping_sub(1)),
+      (row, col.saturating_add(1)),
+    ];
+    coordinates
+      .into_iter()
+      .filter_map(|(row, col): (usize, usize)| -> Option<&CellWidget> {
+        self
+          .cells
+          .get(row)
+          .and_then(|cells: &Vec<CellWidget>| -> Option<&CellWidget> { cells.get(col) })
+      })
+      .collect()
+  }
+
+  pub fn has_adjacent_builder(&self, coords: (usize, usize), owner: Players) -> bool {
+    owner != Players::Unclaimed
+      && self
+        .adjacent_cells(coords)
+        .iter()
+        .any(|cell: &&CellWidget| -> bool {
+          let unit: &Option<Units> = cell.get_ref_option_unit();
+          unit.get_owner() == owner && unit.get_can_build()
+        })
+  }
+
+  pub fn can_build_at(
+    &self,
+    (row, col): (usize, usize),
+    owner: Players,
+    terrain: BuildingTerrain,
+  ) -> bool {
+    if owner == Players::Unclaimed {
+      return false;
+    }
+    let Some(cell) = self
+      .cells
+      .get(row)
+      .and_then(|cells: &Vec<CellWidget>| -> Option<&CellWidget> { cells.get(col) })
+    else {
+      return false;
+    };
+    if cell.get_ref_option_unit().is_some() {
+      return false;
+    }
+    if !self.has_adjacent_builder((row, col), owner) {
+      return false;
+    }
+    match (terrain, cell.get_structure()) {
+      (BuildingTerrain::Ore, Structures::Ore(ore)) => {
+        ore.get_owner() == Players::Unclaimed && ore.get_ore_amount() > 0
+      }
+      (BuildingTerrain::Stone, Structures::Stone(_)) => {
+        self
+          .adjacent_cells((row, col))
+          .iter()
+          .any(|cell: &&CellWidget| -> bool {
+            matches!(cell.get_structure(), Structures::Tunnel(_))
+              || matches!(cell.get_structure(), Structures::Base(_))
+                && cell.get_structure().get_owner() == owner
+          })
+      }
+      _ => false,
+    }
+  }
+
+  pub fn start_mine_construction(&mut self, coords: (usize, usize), owner: Players) -> bool {
+    if !self.can_build_at(coords, owner, BuildingTerrain::Ore) {
+      return false;
+    }
+    let cell: &mut CellWidget = self.get_mut_cell(coords.0, coords.1);
+    if let Structures::Ore(ore) = cell.get_structure()
+      && let Some(site) = MineConstruction::new(owner, ore)
+    {
+      cell.set_structure(Structures::MineConstruction(site));
+      return true;
+    }
+    false
+  }
+
+  pub fn cancel_mine_construction(&mut self, (row, col): (usize, usize), owner: Players) -> bool {
+    let Some(cell): Option<&mut CellWidget> = self
+      .cells
+      .get_mut(row)
+      .and_then(|cells: &mut Vec<CellWidget>| -> Option<&mut CellWidget> { cells.get_mut(col) })
+    else {
+      return false;
+    };
+    if let Structures::MineConstruction(site) = cell.get_structure()
+      && site.get_owner() == owner
+    {
+      cell.set_structure(Structures::Ore(site.cancel()));
+      return true;
+    }
+    false
+  }
+
+  pub fn advance_construction(&mut self) -> () {
+    for row in 0..self.cells.len() {
+      for col in 0..self.cells[row].len() {
+        if let Structures::MineConstruction(mut site) = self.cells[row][col].get_structure()
+          && self.has_adjacent_builder((row, col), site.get_owner())
+        {
+          site.advance();
+          let structure: Structures = if let Some(mine) = site.into_mine() {
+            Structures::Mine(mine)
+          } else {
+            Structures::MineConstruction(site)
+          };
+          self.cells[row][col].set_structure(structure);
+        }
+      }
+    }
+  }
+
   pub fn new(
     area: &Rect,
     map_width: usize,
@@ -79,9 +213,9 @@ impl BoardState {
         } else if enemy_base {
           Structures::Base(BaseBuilding::new(Players::Enemy))
         } else if player_ore {
-          Structures::Ore(Ore::new(Players::Player, 1))
+          Structures::Ore(Ore::new(Players::Unclaimed, 1))
         } else if enemy_ore {
-          Structures::Ore(Ore::new(Players::Enemy, 1))
+          Structures::Ore(Ore::new(Players::Unclaimed, 1))
         } else {
           Structures::Stone(Stone::new())
         };
@@ -286,10 +420,11 @@ impl BoardState {
       .get(row)
       .and_then(|cells| cells.get(col))
       .is_some_and(|cell| {
-        matches!(
-          cell.get_structure(),
-          Structures::Tunnel(_) | Structures::Base(_)
-        )
+        self
+          .marked_cells
+          .selected_unit
+          .as_ref()
+          .is_some_and(|unit: &Units| -> bool { cell.get_structure().can_enter(unit) })
       })
   }
 
@@ -419,11 +554,10 @@ impl BoardState {
         let cell: &mut CellWidget = self.get_mut_cell(target_row, target_col);
         if cell.get_ref_option_unit().is_none() {
           let structure: Structures = cell.get_structure();
+          let walkable: bool = structure.can_enter(&unit);
           // Previously planned stone may already be a tunnel when this task starts.
           task = match (task, structure) {
-            (Tasks::Digging(dig), Structures::Tunnel(_) | Structures::Base(_)) => {
-              Tasks::Moving(MovingTask::from_digging(dig))
-            }
+            (Tasks::Digging(dig), _) if walkable => Tasks::Moving(MovingTask::from_digging(dig)),
             (Tasks::Moving(moving), Structures::Stone(_)) => {
               Tasks::Digging(DiggingTask::from_moving(moving, unit.get_digging_power()))
             }
@@ -444,7 +578,7 @@ impl BoardState {
                 cell.set_structure(Structures::Stone(stone));
               }
             }
-            (Tasks::Moving(moving), Structures::Tunnel(_) | Structures::Base(_)) => {
+            (Tasks::Moving(moving), _) if walkable => {
               moving.progress();
               if moving.is_finished() {
                 destination = (target_row, target_col);

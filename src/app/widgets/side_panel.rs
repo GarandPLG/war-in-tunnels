@@ -9,6 +9,7 @@ use ratatui::{
   buffer::Buffer,
   layout::{Alignment, Constraint, Layout, Margin, Rect},
   style::Color,
+  text::Line,
   widgets::{Block, BorderType, Borders, Padding, Paragraph, Widget},
 };
 
@@ -87,7 +88,25 @@ impl Widget for SidePanelWidget<'_> {
     let [structure_area, unit_area] =
       Layout::vertical(self.get_area_constraints()).areas(inner_area);
 
-    Paragraph::new(self.structure.text())
+    let mut structure_text: Vec<Line<'_>> = self.structure.text();
+    if let Structures::Base(base) = self.structure
+      && base.queued_miners() > 0
+      && self.unit.is_some()
+    {
+      structure_text.push(Line::from(base.recruitment_status(true)));
+    }
+    if let Structures::Mine(mine) = self.structure {
+      let staffed: bool = self
+        .unit
+        .as_ref()
+        .is_some_and(|unit: &Units| -> bool { mine.accepts_unit(unit) });
+      structure_text.push(Line::from(format!(
+        "Metal: {}/s{}",
+        mine.production_per_cycle(staffed),
+        if staffed { " (Miner)" } else { "" }
+      )));
+    }
+    Paragraph::new(structure_text)
       .alignment(Alignment::Left)
       .block(self.get_inner_block(self.structure.get_name().to_string(), Color::Cyan))
       .render(structure_area, buf);

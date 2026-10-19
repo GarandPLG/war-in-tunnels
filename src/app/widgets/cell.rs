@@ -133,6 +133,10 @@ impl CellWidget {
       let middle = lines.len() / 2;
       lines[middle] = Line::from(format!("{percent}%")).cyan();
     }
+    if let Structures::MineConstruction(site) = self.structure {
+      let middle: usize = lines.len() / 2;
+      lines[middle] = Line::from(format!("{}%", site.progress_percent())).cyan();
+    }
     if let Some(unit) = &self.unit
       && let Some(Tasks::Moving(task)) = unit.get_ref_tasks().front()
       && let Some(percent) = task.get_movement_progress()

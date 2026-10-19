@@ -6,7 +6,7 @@ pub struct SettingsState {
   pub game_mode: GameMode,
   pub perk_deck: PerkDecks,
   pub starting_wood: u16,
-  pub starting_iron: u16,
+  pub starting_metal: u16,
   pub supply_limit: u8,
   pub xp_modifier: f32,
   pub skill_points_limit: u16,

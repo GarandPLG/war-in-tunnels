@@ -1,5 +1,57 @@
 # Dziennik prac
 
+## 2026-10-19 — alternatywny skrót rekrutacji
+
+Zgłoszono brak reakcji na Alt+Space. Testy przekazywanego zdarzenia Alt+Space działają; nie potwierdzono, jakie zdarzenie wysyła terminal użytkownika ani czy skrót przechwytuje menedżer okien. Dodano alternatywne `r` do tej samej akcji Recruitment i pokazano oba skróty w legendzie. Obowiązują te same ograniczenia własnej bazy i trybu; `r` także zamyka panel bez kasowania kolejki. README opisuje alternatywę.
+
+Dodano regresję otwarcia, opłacenia rekrutacji i zamknięcia przez `r`, oraz sprawdzenie blokady poza bazą i podczas rysowania trasy. Przeszły wszystkie 82 testy, cargo check --all-targets --locked i cargo fmt --all -- --check przez nix develop oraz git diff --check. Nie sprawdzano skrótów w środowisku graficznym użytkownika.
+
+## 2026-10-19 — rekrutacja Miner w Base
+
+Dodano koszt MinerUnit::RECRUIT_COST: roboczo 10 Wood i 15 Metal za każdą pozycję. SkirmishState::can_recruit_miner/recruit_miner sprawdza własną Base, współrzędne, miejsce w liczniku kolejki i środki, po czym opłaca zamówienie. Niedobór dowolnego zasobu lub niewłaściwy cel nie pobiera opłaty ani nie zmienia kolejki. Każda baza ma niezależny licznik queued_miners, recruitment_ticks i flagę waiting_for_departure; dla identycznych Minerów nie jest potrzebna lista obiektów ani utrata Copy struktur.
+
+Rekrutacja trwa 304 ticki (10032 ms, około 10 sekund). Zgodnie z odpowiedzią użytkownika pierwsza pozycja może dojść do 100% na zajętej bazie i czeka tam na wolną kratkę. Nie postępują wtedy kolejne pozycje. Po pojawieniu się górnika flaga waiting_for_departure zatrzymuje następne odliczanie na 0% do jego wyjścia z bazy. BoardState::advance_recruitment działa po ruchu istniejących jednostek, więc nie nadpisuje zajętego pola i może wykorzystać właśnie zwolnioną bazę. Nowy Miner ma właściciela bazy, jej współrzędne, pełne HP, uprawnienia i pustą kolejkę zadań. Bazy przeciwnika używają jego zasobów; brak automatycznej rekrutacji AI.
+
+Alt+Space otwiera panel wyłącznie na własnej bazie, poza rysowaniem trasy i innym modalem. Enter dopisuje Minera, jeśli są środki. Panel pokazuje koszt, czas, liczbę zamówionych (włącznie z aktywnym), postęp i status Recruiting/Ready/Paused. Esc lub Alt+Space zamyka widok bez kasowania kolejki. Ruch mapy i otwarcie budowania są w tym trybie blokowane, globalna muzyka i wyjście pozostają dostępne. Licznik i postęp są również pod Tab.
+
+Dodano tests/recruitment.rs z 8 testami. Cały zestaw 81 testów przeszedł w debug i release, w tym własność i opłaty, brak przedwczesnego pojawienia się jednostki, czekanie przy 100%, blokowanie kolejnych pozycji i wznowienie po wyjściu, brak nadpisania także przy obcej jednostce w bazie, niezależne bazy, zadania nowego górnika oraz Alt+Space/Enter/Esc i renderowanie panelu. Końcowe cargo fmt --all -- --check, cargo check --all-targets --locked i cargo clippy --all-targets --locked przez nix develop przeszły; nadal 47 istniejących ostrzeżeń biblioteki. git diff --check przeszedł. Uzupełniono README, CODE_MAP, TESTING i AGENTS; zachowano wcześniejsze staged i unstaged zmiany użytkownika.
+
+Nie wykonywano ręcznej pełnej rozgrywki ani ponownego budowania paczek. Cena jest wstępna do balansowania. Anulowanie pozycji rekrutacji, inne typy jednostek i pełna mechanika limitu populacji nie były częścią tej zmiany.
+
+## 2026-10-19 — czas, koszt i anulowanie budowy Mine
+
+Potwierdzono, że wyjątek Mine dotyczy tylko połączenia z tunelem/bazą: obecność własnego sąsiedniego budowniczego nadal jest obowiązkowa, więc ruda na środku mapy bez jednostki nie pozwala rozpocząć budowy. Wydzielono wspólne BoardState::has_adjacent_builder i dodano regresję rzeczywistej zdalnej rudy bez pobierania opłaty.
+
+Mine::COST wynosi roboczo 20 Wood i 10 Metal. SkirmishState::can_start_mine_construction/start_mine_construction sprawdza dostępne środki i teren, po czym opłaca rozpoczęcie. Resources::spend sprawdza oba zasoby przed odjęciem; nieudana lub powtórzona próba nie pobiera środków. Nowa struktura MineConstruction przechowuje oryginalną rudę i postęp. Budowa trwa 304 ticki (10032 ms, około 10 sekund) aktywnej obecności własnego budowniczego na sąsiedniej kratce. Odejście pauzuje, powrót wznawia; niedokończona kopalnia nie wydobywa i nie przyjmuje jednostek. Ukończenie zmienia ją w gotową Mine z zachowaną rezerwą.
+
+Panel Ctrl+Space pokazuje koszt, czas, procent, pracę lub brak budowniczego oraz Delete/Cancel construction. Po rozpoczęciu panel pozostaje otwarty; Esc lub Ctrl+Space tylko go zamyka. Procent jest także na kratce i pod Tab. SkirmishState::cancel_mine_construction przywraca oryginalne neutralne Ore i zwraca pełen koszt wyłącznie właścicielowi aktywnego placu. Nie można zwrócić kosztu dwukrotnie, anulować cudzego placu ani sprzedać ukończonej kopalni.
+
+Dodano 7 regresji i dostosowano wcześniejsze testy budowania: construction.rs ma 16 testów, cały projekt 73. Wszystkie przeszły w debug i release. Kontrole cargo fmt --all -- --check, cargo check --all-targets --locked i cargo clippy --all-targets --locked przez nix develop zakończyły się sukcesem; nadal 47 istniejących ostrzeżeń biblioteki. git diff --check przeszedł. Zaktualizowano README, CODE_MAP, TESTING i instrukcje agenta, zachowując poprzednie zmiany w drzewie roboczym.
+
+Nie wykonywano ręcznej pełnej rozgrywki ani ponownego budowania paczek. Koszt i czas są parametrami wstępnymi; anulowanie zwraca pełny koszt niezależnie od postępu, a pasywne dostawy drewna działają osobno.
+
+## 2026-10-19 — budowanie Mine i bonus od obsadzenia górnikiem
+
+Dodano Unit::get_can_build (domyślnie false), włączone dla Miner i delegowane przez Units/Option. Wspólne BoardState::can_build_at sprawdza sąsiedniego własnego budowniczego w czterech kierunkach, granice, brak jednostki na celu i teren: zwykłe budynki wymagają kamienia przy tunelu lub własnej bazie, a Mine wymaga neutralnego, niewyczerpanego Ore bez wymogu połączenia. BoardState::build_mine_at ponownie waliduje i zachowuje zawartość złoża. UI Ctrl+Space udostępnia Enter/Build Mine tylko dla poprawnego celu; udana budowa zamyka widok. Na razie budowa jest natychmiastowa i bez kosztów, bo kosztów ani czasu nie ustalono. Inne typy budynków nie są jeszcze dodane.
+
+Structures::can_enter współdzieli regułę wejścia między planowaniem i wykonywaniem trasy. Mine akceptuje własnego Minera; ruch do i z kopalni jest Moving i trwa około 3 sekund. Jednostka pozostaje na kratce, zajmując jej standardowy pojedynczy slot, bez kopiowania pracownika do osobnego stanu budynku. Mine::production_per_cycle/produce_with_miner zwiększa wydobycie z 1 do 2 Metal na cykl przy obecności własnego górnika; po wyjściu bonus znika. Wydobycie nadal ogranicza rezerwa Ore, a metal trafia do właściciela. Panel Tab pokazuje tempo i dopisek Miner przy aktywnym bonusie, a opis jednostki pokazuje uprawnienie budowania.
+
+Dodano tests/construction.rs (9 testów) i dostosowano test nieprawidłowego celu w context_keybindings.rs. Razem 66 testów przeszło w debug i release. Testy obejmują uprawnienia, sąsiedztwo przez krawędź, wrogą jednostkę, wyjątek Ore, połączenie dla kamienia, granice i zajęte/wyczerpane złoża, budowę Enter w TUI, Moving do/z kopalni, wzrost i zanik bonusu oraz ostatnią jednostkę rudy. Końcowe cargo check --all-targets --locked, cargo fmt --all -- --check i cargo clippy --all-targets --locked przez nix develop przeszły; Clippy nadal ma 47 istniejących ostrzeżeń biblioteki. git diff --check przeszedł. Zaktualizowano README, CODE_MAP, TESTING i AGENTS, zachowując wcześniejsze zmiany zasobów w drzewie roboczym.
+
+Nie wykonywano ręcznej pełnej rozgrywki ani ponownego budowania paczek dystrybucyjnych. Koszty budowy, czas budowy i balans bonusu pozostają do późniejszego ustalenia.
+
+## 2026-10-19 — rzeczywiste zasoby, model Mine i kontekstowa legenda
+
+Zmieniono Iron na Metal w CLI, ustawieniach i nagłówku; --starting-metal zachowuje -i oraz alias --starting-iron. SkirmishState ma osobne magazyny Resources (u32) dla gracza i przeciwnika, inicjalizowane z CLI. TUI czyta aktualny stan magazynu, nie wartości startowe. Gracz dostaje 5 Wood co 152 ticki (około 5 sekund); dodawanie chroni przed przepełnieniem. Metal nie przyrasta bez kopalni.
+
+Dodano Structures::Mine, które przechowuje właściciela i oryginalne Ore wraz z pozostałą zawartością. Structures::build_mine dopuszcza wyłącznie neutralną rudę; tick co 31 wywołań wydobywa do 1 Metal i kredytuje rzeczywistego właściciela. Wyczerpane złoże nie produkuje więcej. Side panel pokazuje zawartość Ore kopalni. Oba początkowe złoża pozostają na mapie, lecz są neutralne. Kopalnie nie są rozmieszczane na planszy. Zgodnie z doprecyzowaniem użytkownika widok Ctrl+Space jest wyłącznie podglądem, bez stawiania budynków, kosztów ani budowania przez Enter.
+
+Wspólne available_skirmish_actions określa konteksty mapy, rysowania trasy i budowania dla wejścia i legendy. Własnego górnika można zaznaczyć spacją; na trasie widoczne są ruch, potwierdzenie i cofanie/anulowanie. Esc anuluje trasę lub zamyka podgląd budowania, w normalnym trybie wraca do menu. Ctrl+Space obsługuje też NUL starszych terminali. Wyjście i muzyka pozostają globalne. Legenda dobiera opisy i szerokości kolumn do tekstu; wysokość stopki pozostaje stała, bez zmiany geometrii planszy.
+
+Dodano tests/resources.rs (7 testów) i tests/context_keybindings.rs (4 testy), poprawiono test neutralności złóż i CLI; razem 57 testów. Debug i release przeszły w całości, w tym renderowanie bieżących zasobów, wyczerpanie złoża, przypisanie wydobycia właścicielowi, brak automatycznej budowy i czytelność legendy przy 120 kolumnach. Końcowe cargo check --all-targets --locked, cargo fmt --all -- --check i cargo clippy --all-targets --locked przez nix develop zakończyły się sukcesem; Clippy zgłasza 47 istniejących ostrzeżeń biblioteki. git diff --check przeszedł. Zaktualizowano README, CODE_MAP, TESTING i instrukcje agenta.
+
+Nie dodano faktycznego stawiania kopalń ani wymiany z powierzchnią. Wartości przychodów są wstępnymi stałymi do balansowania. Nie wykonywano ręcznej pełnej rozgrywki ani budowania paczek dystrybucyjnych; brak nowych zależności Cargo.
+
 ## 2026-10-19 — Node.js wymagany przez akcje joba AUR
 
 Log Gitea wykazał brak `node` podczas uruchamiania checkout@v4 i jego kroku post. Arch base-devel nie zawiera Node.js, a runner 0.6.1 wywołuje akcje JavaScript przez `node` w kontenerze. Dodano `nodejs` do instalacji zależności przed checkoutem oraz kontrolę `node --version`. Node.js jest zależnością CI, nie paczki gry. Poprzednia próba lokalna weryfikowała makepkg, lecz nie uruchamiała akcji JavaScript; uzupełniono ten brak.

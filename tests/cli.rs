@@ -19,7 +19,7 @@ fn numeric_options_accept_boundaries_and_reject_out_of_range_values() {
     ("--map-width", 36, 108),
     ("--map-height", 11, 39),
     ("--starting-wood", 1, 150),
-    ("--starting-iron", 1, 150),
+    ("--starting-metal", 1, 150),
     ("--supply-limit", 49, 149),
     ("--skill-points-limit", 90, 690),
   ] {
