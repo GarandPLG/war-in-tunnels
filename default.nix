@@ -22,7 +22,7 @@ in
     #   hash = lib.fakeHash;
     # };
 
-    cargoHash = "sha256-Cv/sUzkiQuQS3ybg2glfXucIu+HtPi2brH/D7tqc3Mc=";
+    cargoHash = "sha256-cXG/SZxmq/w2CFJiaOYtE6IpShkGY2k0Q+E0QCxgY0I=";
 
     nativeBuildInputs = [pkg-config];
     buildInputs = [alsa-lib];

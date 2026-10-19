@@ -1,5 +1,11 @@
 # Dziennik prac
 
+## 2026-10-19 — oddzielny workflow budowania default.nix
+
+Dodano `.gitea/workflows/nix.yml` dla push i pull request. Workflow w `node:22-bookworm` instaluje sudo i Nix (KVM wyłączone), następnie buduje `.#default` z przypiętym `flake.lock`, bez aktualizacji lockfile i bez devShell. Obejmuje testy buildRustPackage oraz versionCheckHook. Nie zmieniono workflow Rust ani konfiguracji runnera; nie dodano trwałego cache Nix.
+
+Próbna budowa ujawniła nieaktualny cargoHash w `default.nix`; poprawiono go na hash rzeczywiście pobranych zależności. Ponowne `nix build .#default --no-update-lock-file --no-link --print-out-paths --print-build-logs` zakończyło się sukcesem. Lokalna kontrola `nix develop -c cargo check --all-targets --locked` również przeszła. Zaktualizowano mapę, instrukcje i opis CI. Zachowano zastaną zmianę użytkownika w `flake.nix`. Nowy workflow wymaga jeszcze uruchomienia na Gitea.
+
 ## 2026-10-19 — CI Rust bez Nix
 
 Na życzenie użytkownika usunięto instalację Nix i wywołania `nix develop` z workflow. W kontenerze `node:22-bookworm` rustup instaluje Rust 1.99.1 z rustfmt i Clippy. Dodano zależności systemowe ALSA, pkg-config i kompilator C oraz dwa cache `actions/cache@v4`: toolchain i Cargo (registry, git, target). Klucze Cargo uwzględniają wersję Rust, Cargo.lock, manifest i źródła; częściowe trafienia pozwalają wykorzystać wcześniejsze artefakty. Zachowano wszystkie pięć kontroli i `--locked`. Lokalne środowisko Nix pozostaje bez zmian. Zaktualizowano mapę i instrukcje.

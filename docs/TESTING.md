@@ -45,6 +45,8 @@ nix develop -c cargo clippy --all-targets --locked
 
 ## CI i profile kompilacji
 
+Osobny workflow `.gitea/workflows/nix.yml` (push i pull request) instaluje Nix w `node:22-bookworm` i wykonuje `nix build .#default --no-update-lock-file --no-link --print-out-paths --print-build-logs`. Atrybut `.#default` wywołuje `pkgs.callPackage ./default.nix {}` z nixpkgs przypiętym w `flake.lock`; nie buduje wariantu `.#develop` opartego na Fenix. Budowa obejmuje standardową fazę testów `buildRustPackage` i włączony w pakiecie `versionCheckHook`. Nie wymaga devShell ani uruchamiania gry. Instalator potrzebuje sudo; KVM jest wyłączone. Workflow nie konfiguruje trwałego cache magazynu Nix, więc nowy job może ponownie pobierać zależności. Kontrole Rust opisane poniżej pozostają niezależne.
+
 Workflow `.gitea/workflows/rust.yml` uruchamia kontrole po pushu i dla pull requestów. Wymaga włączonych Actions w repozytorium Gitea i runnera Linux x86_64 o etykiecie `ubuntu-latest`, obsługującego akcje Node. Nazwy akcji zawierają pełne adresy GitHub. Konfiguracja nie rejestruje runnera ani nie włącza Actions na serwerze; zobacz [instrukcję Gitea](https://docs.gitea.com/usage/actions/quickstart/).
 
 Workflow określa obraz zadania jawnie jako `node:22-bookworm`. Kontener działa jako root i instaluje pakiety potrzebne do budowania: build-essential, pkg-config i libasound2-dev oraz curl, ca-certificates i zstd. Rust 1.99.1 z rustfmt i Clippy jest instalowany przez rustup. CI nie instaluje Nix i nie wykonuje jego shellHook.
