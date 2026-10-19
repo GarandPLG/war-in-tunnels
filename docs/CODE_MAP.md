@@ -24,6 +24,7 @@ Wszystkie ścieżki poniżej są względem katalogu głównego repozytorium.
 | Formatowanie | `rustfmt.toml` | Rustfmt, styl 2024, wcięcia po 2 spacje, docelowo 100 znaków i zakończenia LF |
 | Kontrole CI | `.gitea/workflows/rust.yml` | Gitea Actions w `node:22-bookworm`: Rust 1.99.1 przez rustup, cache toolchaina i Cargo, formatowanie, kompilacja, testy debug/release i Clippy |
 | Budowa paczki Nix | `.gitea/workflows/nix.yml` | Oddzielny workflow buduje `.#default`, czyli `default.nix` przez nixpkgs przypięte w `flake.lock`, z testami i kontrolą instalacji pakietu |
+| Paczki Linux | `.gitea/workflows/packages.yml`, `packaging/` | Testowe deb, rpm, AppImage, Flatpak oraz makepkg dla AUR; bez wydań i tagów; szczegóły w `docs/PACKAGING.md` |
 | Licencja | `LICENSE`, `Cargo.toml`, `default.nix` | MIT, Copyright (c) 2026 GarandPLG |
 | Zasoby | `soundtracks/default/`, `ui_draft/` | Dwa pliki OGG i tekstowe szkice ekranów |
 
@@ -104,7 +105,7 @@ Postęp bieżącego kroku jest udostępniany przez `MovingTask::get_movement_pro
 
 Główny wątek wysyła `AudioCmd`; osobny wątek obsługuje głośność, mute, część i soundtrack. Cache wykorzystuje `Lazy`, `RwLock`, `Arc` i bajty OGG. Calm ładuje `calm.ogg`; Buildup, Assault i Outro korzystają obecnie z `test.ogg`. Błędy urządzenia, odczytu i dekodowania mogą zakończyć wątek przez `expect`.
 
-Rodio zapętla źródło przez `Decoder::new_looped`. Wątek sterujący blokuje się na odbiorniku (`for cmd in rx`), zamiast aktywnie sprawdzać komendy i koniec utworu. Zmiana części lub soundtracku dopisuje zapętlone źródło i pomija bieżące przez `skip_one`. Zamknięcie kanału kończy wątek. Test `audio_repeats_after_end_of_file` sprawdza przekroczenie końca rzeczywistego pliku OGG bez urządzenia audio.
+Rodio zapętla źródło przez `Decoder::new_looped`. Wątek sterujący blokuje się na odbiorniku (`for cmd in rx`), zamiast aktywnie sprawdzać komendy i koniec utworu. Zmiana części lub soundtracku dopisuje zapętlone źródło i pomija bieżące przez `skip_one`. Zamknięcie kanału kończy wątek. Soundtracki są szukane obok rzeczywistej binarki, z fallbackiem do bieżącego katalogu dla Cargo. Testy audio obejmują zapętlanie OGG i ładowanie zasobów poza repozytorium, bez urządzenia audio.
 
 `flake.nix` dostarcza devShell dla `x86_64-linux`, domyślny pakiet z `default.nix` i pakiet `.#develop` budowany przez Naersk. Obie ścieżki pakowania kopiują soundtracki do `$out/bin` i zmieniają nazwę binarki na `war-in-tunnels`. `default.nix` ma stały `cargoHash`; po zmianie zależności wymaga osobnej weryfikacji. Samo `cargo test` nie sprawdza pakowania.
 
@@ -116,7 +117,7 @@ To obserwacje statyczne, nie lista napraw wykonanych w tej sesji:
 - **Zaznaczenie:** wybrany górnik czeka podczas rysowania trasy; inne jednostki wykonują zadania normalnie.
 - **Audio:** usunięto aktywne odpytywanie; pomiar CPU na docelowym urządzeniu i odsłuch pozostają do wykonania. Test dekodera nie weryfikuje urządzenia audio.
 - **Granice UI:** małe terminale, resize i trzy poziomy zoomu wymagają interaktywnego sprawdzenia. Indeksowanie planszy zakłada poprawne współrzędne.
-- **Pokrycie:** 45 testów CLI, sterowania, renderowania, planszy, wykonywania zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Workflow Gitea sprawdza też profil release; nie obejmuje pełnej rozgrywki. Clippy zgłasza 50 ostrzeżeń biblioteki, `unused_unit` jest jawnie dozwolony. Nie uruchamiać automatycznych poprawek poza zakresem zadania.
+- **Pokrycie:** 46 testów CLI, sterowania, renderowania, planszy, wykonywania zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Workflow Gitea sprawdza też profil release; nie obejmuje pełnej rozgrywki. Clippy zgłasza 50 ostrzeżeń biblioteki, `unused_unit` jest jawnie dozwolony. Nie uruchamiać automatycznych poprawek poza zakresem zadania.
 
 ## Gdzie zacząć konkretną zmianę
 

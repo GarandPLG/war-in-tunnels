@@ -1,0 +1,28 @@
+# Test recipe: CI supplies the source archive from the checked-out commit.
+pkgname=war-in-tunnels
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Underground strategy game in your terminal'
+arch=('x86_64')
+url='https://gitea.garandplg.com/GarandPLG/war-in-tunnels'
+license=('MIT')
+depends=('alsa-lib' 'gcc-libs' 'glibc')
+makedepends=('cargo' 'pkgconf')
+options=('!debug')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+  cargo build --release --locked
+}
+
+check() {
+  cd "$srcdir/$pkgname-$pkgver"
+  cargo test --release --locked
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+  sh packaging/stage.sh "$pkgdir/usr"
+}

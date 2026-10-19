@@ -1,5 +1,23 @@
 # Dziennik prac
 
+## 2026-10-19 — Node.js wymagany przez akcje joba AUR
+
+Log Gitea wykazał brak `node` podczas uruchamiania checkout@v4 i jego kroku post. Arch base-devel nie zawiera Node.js, a runner 0.6.1 wywołuje akcje JavaScript przez `node` w kontenerze. Dodano `nodejs` do instalacji zależności przed checkoutem oraz kontrolę `node --version`. Node.js jest zależnością CI, nie paczki gry. Poprzednia próba lokalna weryfikowała makepkg, lecz nie uruchamiała akcji JavaScript; uzupełniono ten brak.
+
+Weryfikacja w jednorazowym Arch base-devel: zainstalowano Node.js, `node --version` zwróciło v26.12.0; sprawdzono `node --check` rzeczywistych entrypointów checkout@v4 i upload-artifact@v3. Uruchomienie checkoutu doszło do oczekiwanego błędu brakującego inputu token (bez poświadczeń i klonowania repozytorium), potwierdzając poprawny start akcji. `nix develop -c cargo check --all-targets --locked` i `git diff --check` przeszły. Nie powtarzano budowania gry ani nie uruchamiano pełnego workflow na serwerze; transport artefaktów pozostaje do potwierdzenia na Gitea.
+
+## 2026-10-19 — testowe paczki Linux poza Nix
+
+Dodano `.gitea/workflows/packages.yml` dla push i pull request: job Debian kompiluje Rust 1.99.1 i tworzy deb, rpm, AppImage oraz Flatpak; job Arch kompiluje i testuje lokalny przepis AUR przez makepkg jako użytkownik builder. Workflow zapisuje artefakty przez 7 dni, nie tworzy wydań, tagów ani publikacji AUR/Flathub. Zależności i toolchain Cargo mają cache; Flatpak i Arch nie mają jeszcze trwałego cache. Obsługiwana architektura: x86_64.
+
+Przepisy i wspólna instalacja są w `packaging/`, a zakres i ograniczenia w `docs/PACKAGING.md`. Pakowane są muzyka, licencja, launcher zachowujący katalog roboczy, plik desktop Terminal=true i ikona SVG. Flatpak pakuje binarkę z Debiana do runtime 25.08, bez kompilacji w SDK i bez zagnieżdżonego sandboxa. Przepis AUR dostaje archiwum checkoutu z rzeczywistym SHA256; nie jest jeszcze przepisem publikowanego wydania. Dodano `dist/` do .gitignore.
+
+Audio szuka zasobów obok rzeczywistej binarki z fallbackiem do katalogu roboczego, aby instalowane paczki działały poza repozytorium bez zmiany miejsca zapisu logów. Dodano regresję uruchamianą w osobnym procesie z przeniesioną binarką testu i soundtrackami. Łącznie 46 testów integracyjnych.
+
+Weryfikacja: cargo check --all-targets --locked, cargo test --all-targets --locked (46 testów), cargo fmt --all -- --check i cargo clippy --all-targets --locked przez nix develop przeszły; Clippy nadal ma 50 ostrzeżeń biblioteki. Przeszły git diff --check i bash -n. W jednorazowym Debianie rzeczywiście skompilowano grę, utworzono deb i rpm, rozpakowano i sprawdzono --version; zbudowano też AppImage, rozpakowano je i uruchomiono AppRun --version. Narzędzie i wynik AppImage rozpakowywane są przez 7z, bez FUSE i kolizji z binfmt hosta. Osobny Arch Linux wykonał makepkg, testy release i doctest, instalację paczki oraz --version. Flatpak został wyeksportowany, zapisany do pliku i zainstalowany w kontenerze; zweryfikowano soundtrack i --version zainstalowanej binarki. Wyłączono sandbox wyłącznie walidatora własnej ikony przy build-export; instalacja może zgłaszać ostrzeżenia bwrap dla hooków integracji pulpitu w standardowym Dockerze. Nie wyłączono sandboxa gotowej aplikacji. Instalacja runtime i aplikacji używa --no-related, aby nie pobierać opcjonalnych sterowników GPU ani tłumaczeń dla testu TUI.
+
+Nie sprawdzono pełnej rozgrywki, odsłuchu, uruchamiania z menu pulpitu ani działania na starszych dystrybucjach; pełny workflow i transport artefaktów wymagają przebiegu na Gitea. Testowe kontenery miały repozytorium tylko do odczytu; nie instalowano paczek na hoście. Usunięto tymczasowy kontener war-packages-check i obraz war-in-tunnels-packaging-test:local.
+
 ## 2026-10-19 — oddzielny workflow budowania default.nix
 
 Dodano `.gitea/workflows/nix.yml` dla push i pull request. Workflow w `node:22-bookworm` instaluje sudo i Nix (KVM wyłączone), następnie buduje `.#default` z przypiętym `flake.lock`, bez aktualizacji lockfile i bez devShell. Obejmuje testy buildRustPackage oraz versionCheckHook. Nie zmieniono workflow Rust ani konfiguracji runnera; nie dodano trwałego cache Nix.
