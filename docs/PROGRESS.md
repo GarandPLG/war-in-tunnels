@@ -1,5 +1,11 @@
 # Dziennik prac
 
+## 2026-10-19 — formatowanie Rust z wcięciami po 2 spacje
+
+Dodano `rustfmt.toml` z uzgodnionymi opcjami: edycja i styl 2024, `max_width = 100`, `hard_tabs = false`, `tab_spaces = 2`, zakończenia Unix, sortowanie importów i modułów oraz domyślne heurystyki krótkich konstrukcji. Zastosowano `nix develop -c cargo fmt --all` do źródeł i testów (56 zmienionych plików Rust). Zaktualizowano instrukcje agentów i mapę konfiguracji projektu.
+
+Weryfikacja przez `nix develop -c`: `cargo fmt --all -- --check`, `cargo check --all-targets` i `cargo test --all-targets` zakończone sukcesem; 45 testów zaliczonych. Nie wprowadzano zmian mechanik ani zależności. Nie powtarzano Clippy ani ręcznej sesji TUI przy zmianie formatowania.
+
 ## 2026-10-18 — przekazanie kontekstu na kolejną sesję
 
 Użytkownik zaakceptował aktualny stan. Nie ma ustalonego kolejnego zadania. Na start kolejnej sesji przeczytaj `docs/AGENTS.md`, `docs/CODE_MAP.md` i `docs/TESTING.md`; instrukcje w `docs/` mogą wymagać jawnego wskazania agentowi.

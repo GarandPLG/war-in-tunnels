@@ -31,6 +31,7 @@ Audio wymaga ALSA i urządzenia odtwarzania; do pracy nad TUI używaj `--disable
 
 ## Konwencje kodu
 
+- Formatowanie określa `rustfmt.toml`: styl Rust 2024, wcięcia po 2 spacje, szerokość docelowa 100 znaków i zakończenia LF. Stosuj `nix develop -c cargo fmt --all`; kontroluj przez `nix develop -c cargo fmt --all -- --check`.
 - Jawne adnotacje typów są OBOWIĄZKOWE w nowym i zmienianym kodzie: przy zmiennych i stałych, polach struktur, parametrach funkcji i domknięć oraz typach zwracanych (także `-> ()` dla funkcji bez wyniku). Nie polegaj na inferencji typu tam, gdzie można podać typ jawnie. Dotyczy to również testów. Jest to zasada jawnego typowania; rzutowania wartości (`as`, `From`, `TryFrom`) stosuj tylko wtedy, gdy potrzebna jest rzeczywista konwersja.
 - Rust 2024, jedna biblioteka i jeden binarny punkt wejścia; bez workspace.
 - Wykorzystuj istniejące `App`, `GameStates`, `BoardState`, akcje i widgety.
