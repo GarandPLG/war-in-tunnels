@@ -354,7 +354,7 @@ fn cancellation_restores_original_ore_and_refunds_cost_exactly_once() -> () {
 }
 
 #[test]
-fn panel_shows_progress_and_delete_cancels_while_escape_only_closes_panel() -> () {
+fn panel_shows_progress_delete_cancels_and_escape_is_ignored() -> () {
     let mut app: App = app();
     for _ in 0..2 {
         handle_keybindings(&mut app, KeyEvent::new(KeyCode::Left, KeyModifiers::NONE));
@@ -389,10 +389,16 @@ fn panel_shows_progress_and_delete_cancels_while_escape_only_closes_panel() -> (
     assert!(text.contains("Construction: 0%"));
     assert!(text.contains("Delete - Cancel construction"));
     handle_keybindings(&mut app, KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
+    assert!(app.states_ref().unwrap().skirmish.building_view);
     assert!(matches!(
         app.states_ref().unwrap().skirmish.board.cells[5][1].get_structure(),
         Structures::MineConstruction(_)
     ));
+    handle_keybindings(
+        &mut app,
+        KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE),
+    );
+    assert!(!app.states_ref().unwrap().skirmish.building_view);
     handle_keybindings(
         &mut app,
         KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE),

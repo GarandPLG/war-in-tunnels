@@ -500,6 +500,25 @@ impl BoardState {
         }
     }
 
+    pub fn cancel_focused_tasks(&mut self, all: bool) -> bool {
+        if self.marked_cells.marking_cells {
+            return false;
+        }
+        let (row, col): (usize, usize) = self.focused_cell.get_coords();
+        let Some(unit) = self.cells[row][col].get_mut_option_unit().as_mut() else {
+            return false;
+        };
+        if unit.get_owner() != Players::Player || unit.get_ref_tasks().is_empty() {
+            return false;
+        }
+        if all {
+            unit.get_mut_tasks().clear();
+        } else {
+            unit.get_mut_tasks().pop_back();
+        }
+        true
+    }
+
     pub fn advance_turn(&mut self) {
         // Snapshot positions so moving to a later cell cannot grant another turn.
         let active: Vec<(usize, usize)> = self

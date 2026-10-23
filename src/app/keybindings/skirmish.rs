@@ -14,14 +14,20 @@ use ratatui::{crossterm::event::KeyEvent, layout::Rect};
 
 pub fn available_skirmish_actions(state: &SkirmishState) -> Vec<Action> {
     if state.recruitment_view {
-        let mut actions: Vec<Action> = vec![Action::Recruitment, Action::Esc, Action::Quit2];
+        let mut actions: Vec<Action> = vec![
+            Action::Recruitment,
+            Action::Left,
+            Action::Right,
+            Action::Quit2,
+        ];
         if state.can_recruit_miner(state.board.get_focused_cell().get_coords(), Players::Player) {
             actions.push(Action::Enter);
         }
         return actions;
     }
     if state.building_view {
-        let mut actions: Vec<Action> = vec![Action::Building, Action::Esc, Action::Quit2];
+        let mut actions: Vec<Action> =
+            vec![Action::Building, Action::Left, Action::Right, Action::Quit2];
         let coords: (usize, usize) = state.board.get_focused_cell().get_coords();
         if let Structures::MineConstruction(site) =
             state.board.get_ref_cell(coords.0, coords.1).get_structure()
@@ -72,6 +78,9 @@ pub fn available_skirmish_actions(state: &SkirmishState) -> Vec<Action> {
     if unit.get_owner() == Players::Player && unit.get_can_dig() {
         actions.push(Action::Space);
     }
+    if state.side_panel && unit.get_owner() == Players::Player && !unit.get_ref_tasks().is_empty() {
+        actions.extend([Action::Backspace, Action::Delete]);
+    }
     actions
 }
 
@@ -83,7 +92,10 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) -> () {
         };
         if states.skirmish.recruitment_view {
             match action {
-                Action::Recruitment | Action::Esc => states.skirmish.recruitment_view = false,
+                Action::Recruitment => states.skirmish.recruitment_view = false,
+                Action::Left => states.skirmish.cycle_popup_option(false),
+                Action::Right => states.skirmish.cycle_popup_option(true),
+                Action::Esc => (),
                 Action::Enter => {
                     let coords: (usize, usize) =
                         states.skirmish.board.get_focused_cell().get_coords();
@@ -95,7 +107,10 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) -> () {
         }
         if states.skirmish.building_view {
             match action {
-                Action::Building | Action::Esc => states.skirmish.building_view = false,
+                Action::Building => states.skirmish.building_view = false,
+                Action::Left => states.skirmish.cycle_popup_option(false),
+                Action::Right => states.skirmish.cycle_popup_option(true),
+                Action::Esc => (),
                 Action::Enter => {
                     let coords: (usize, usize) =
                         states.skirmish.board.get_focused_cell().get_coords();
@@ -201,7 +216,13 @@ pub fn skirmish_keybindings(app: &mut App, key_event: &KeyEvent) -> () {
             Action::Space => board.toggle_marking(),
             Action::Building => states.skirmish.building_view = true,
             Action::Recruitment => states.skirmish.recruitment_view = true,
-            Action::Backspace => board.pop_marked_cell(),
+            Action::Backspace if board.marked_cells.marking_cells => board.pop_marked_cell(),
+            Action::Backspace => {
+                board.cancel_focused_tasks(false);
+            }
+            Action::Delete if !board.marked_cells.marking_cells => {
+                board.cancel_focused_tasks(true);
+            }
             Action::Delete => {
                 board.marked_cells.marking_cells = false;
                 board.end_marking_cells(true)

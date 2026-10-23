@@ -143,6 +143,18 @@ impl CellWidget {
             let middle = lines.len() / 2;
             lines[middle] = Line::from(format!("{percent}%")).fg(unit.get_owner().get_color());
         }
+        if let Structures::Base(base) = self.structure
+            && base.queued_miners() > 0
+        {
+            let middle: usize = lines.len() / 2;
+            let percent: u16 = base.recruitment_progress();
+            let label: String = if self.zoom_level == ZoomLevel::ZoomedOut && percent == 100 {
+                percent.to_string()
+            } else {
+                format!("{percent}%")
+            };
+            lines[middle] = Line::from(label).cyan();
+        }
         lines
     }
 

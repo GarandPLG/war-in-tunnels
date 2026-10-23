@@ -103,11 +103,13 @@ Możesz zaznaczyć pracującego górnika ponownie: rysowanie kolejnego zadania z
 
 ## Zasoby i budowanie
 
+Okna budowania (`b`) i rekrutacji (`r`) mają zakładki przełączane strzałkami ←/→. Zaznaczona pozycja jest wyróżniona jasną magentą. Obecnie dostępne są wyłącznie Mine i Miner, więc przełączanie pozostawia jedyną pozycję; strzałki w tych oknach nie przesuwają kursora mapy. Enter wykonuje dostępną akcję, a ponowne b/r zamyka odpowiednie okno.
+
 Wood i Metal mają rzeczywisty stan w magazynie każdego gracza, inicjalizowany z `--starting-wood` i `--starting-metal`. Nagłówek pokazuje bieżące zasoby. Gracz otrzymuje 5 Wood co około 5 sekund symulacji; metal nie przyrasta bez kopalni. Złoża Ore są początkowo neutralne.
 
 Ustaw kursor na neutralnym Ore i otwórz widok budowania przez `b`. Jeśli na jednej z czterech sąsiednich kratek stoi własny Miner z uprawnieniem budowania i masz 20 Wood oraz 10 Metal, Enter rozpoczyna budowę Mine. Koszt jest pobierany od razu, a budowa trwa około 10 sekund. Panel pozostaje otwarty i pokazuje postęp; procent widać też na kratce. Po odejściu budowniczego budowa zatrzymuje się do jego powrotu. Nie można budować zdalnie na rudzie bez sąsiedniego własnego budowniczego.
 
-Delete w panelu budowy anuluje trwającą budowę, przywraca pierwotne neutralne Ore i zwraca cały koszt. b lub Esc jedynie zamyka panel — budowa nadal postępuje, jeżeli budowniczy jest obecny. Niedokończona kopalnia nie produkuje metalu i nie przyjmuje jednostek. Na początkowej mapie złoże obok bazy spełnia warunek sąsiedztwa; kopalnie nie pojawiają się automatycznie.
+Delete w panelu budowy anuluje trwającą budowę, przywraca pierwotne neutralne Ore i zwraca cały koszt. b jedynie zamyka panel — budowa nadal postępuje, jeżeli budowniczy jest obecny. Niedokończona kopalnia nie produkuje metalu i nie przyjmuje jednostek. Na początkowej mapie złoże obok bazy spełnia warunek sąsiedztwa; kopalnie nie pojawiają się automatycznie.
 
 Mine wydobywa 1 Metal co około sekundę, aż do wyczerpania złoża. Możesz wysłać do własnej kopalni górnika zwykłą trasą zatwierdzaną spacją. Wejście trwa około 3 sekund jako Moving; górnik pozostaje na kratce kopalni i zwiększa wydobycie do 2 Metal/s. Po jego wyjściu bonus znika. W kopalni mieści się jedna jednostka; obcy górnicy nie mogą do niej wejść. Panel Tab pokazuje aktualne tempo wydobycia.
 
@@ -115,9 +117,17 @@ Wspólna reguła zwykłych budynków wymaga pustego kamienia sąsiadującego z t
 
 Legenda klawiszy zależy od trybu: na mapie pokazuje nawigację i dostępne zaznaczenie własnego górnika; podczas rysowania trasy — ruch, zatwierdzanie i anulowanie; w widoku budowania — rozpoczęcie lub anulowanie budowy; w rekrutacji — dodawanie górników do kolejki. Globalne skróty wyjścia i muzyki nadal działają. W zwykłym trybie Esc wraca do menu.
 
+## Odwoływanie zadań jednostki
+
+Pozostałe ścieżki zadań własnych jednostek są podświetlane kolorem LightMagenta, a pole ścieżki pod kursorem — Magenta. Podświetlenie obejmuje wszystkie zadania w kolejce i znika wraz z wykonaniem lub odwołaniem odcinków.
+
+Ustaw kursor na własnej jednostce i otwórz szczegóły przez Tab. Backspace odwołuje ostatnie zadanie (także aktywne, jeśli zostało tylko jedno). Delete odwołuje całą kolejkę i zatrzymuje jednostkę. Przerwany ruch pozostawia jednostkę na obecnej kratce; wykonane tunele i uszkodzenia kamienia pozostają na mapie. Podczas wytyczania trasy te klawisze nadal cofają i anulują wyłącznie rysowaną trasę. W oknie budowania Delete nadal anuluje budowę.
+
 ## Rekrutacja
 
-Ustaw kursor na własnym budynku Base i naciśnij `r`. Enter dodaje jednego Minera do kolejki za **10 Wood i 15 Metal**, pobierane od razu. Każda rekrutacja trwa około **10 sekund**. Panel pokazuje liczbę zamówionych górników (włącznie z aktualnie rekrutowanym), procent bieżącej rekrutacji i powód oczekiwania. Esc lub `r` zamyka panel bez kasowania kolejki. Liczbę i postęp widać też pod Tab.
+Na kratce bazy widać cyjanowy procent bieżącej rekrutacji. Wskaźnik pozostaje przy 100%, gdy gotowa jednostka czeka na wolne miejsce, i znika po opróżnieniu kolejki. W najmniejszym zoomie gotowość pokazuje `100` bez znaku procentu, aby zmieścić się w kratce.
+
+Ustaw kursor na własnym budynku Base i naciśnij `r`. Enter dodaje jednego Minera do kolejki za **10 Wood i 15 Metal**, pobierane od razu. Każda rekrutacja trwa około **10 sekund**. Panel pokazuje liczbę zamówionych górników (włącznie z aktualnie rekrutowanym), procent bieżącej rekrutacji i powód oczekiwania. `r` zamyka panel bez kasowania kolejki. Liczbę i postęp widać też pod Tab.
 
 Pierwszy górnik może zostać wyszkolony do 100%, nawet jeśli baza jest zajęta. Gotowy czeka, aż kratka będzie wolna, i pojawia się w bazie bez nadpisywania stojącej tam jednostki. Następna rekrutacja pozostaje na 0%, dopóki poprzedni zrekrutowany górnik nie opuści bazy. Wyprowadź go zwykłą trasą, aby wznowić kolejkę. Każda baza ma niezależną kolejkę; nowe jednostki otrzymują właściciela bazy i pełne uprawnienia Minera.
 

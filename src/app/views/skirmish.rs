@@ -2,6 +2,7 @@ use crate::app::{
     App,
     helpers::block_title_helper,
     keybindings::{Action, available_skirmish_actions},
+    states::SkirmishState,
     states::skirmish_states::{
         BoardState, Players,
         resources::{WOOD_DELIVERY_AMOUNT, WOOD_DELIVERY_INTERVAL_MS},
@@ -13,9 +14,9 @@ use crate::app::{
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Margin, Rect},
-    style::{Color, Stylize},
+    style::{Color, Style, Stylize},
     text::Line,
-    widgets::{Block, Borders, Clear, Padding, Paragraph, Widget},
+    widgets::{Block, Borders, Clear, Padding, Paragraph, Tabs, Widget},
 };
 
 pub fn skirmish_layout(area: Rect) -> [Rect; 3] {
@@ -137,7 +138,31 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
 
     {
         let actions: Vec<Action> = available_skirmish_actions(&states.skirmish);
-        let descriptions: [(Action, &'static str); 11] = [
+        let descriptions: [(Action, &'static str); 14] = [
+            (
+                Action::Left,
+                if states.skirmish.building_view || states.skirmish.recruitment_view {
+                    "Previous option"
+                } else {
+                    "Left"
+                },
+            ),
+            (
+                Action::Right,
+                if states.skirmish.building_view || states.skirmish.recruitment_view {
+                    "Next option"
+                } else {
+                    "Right"
+                },
+            ),
+            (
+                Action::Backspace,
+                if board.marked_cells.marking_cells {
+                    "Undo last cell"
+                } else {
+                    "Cancel last task"
+                },
+            ),
             (
                 Action::Enter,
                 if states.skirmish.recruitment_view {
@@ -158,6 +183,8 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
                 Action::Delete,
                 if states.skirmish.building_view {
                     "Cancel construction"
+                } else if !board.marked_cells.marking_cells {
+                    "Cancel all tasks"
                 } else {
                     "Cancel marking"
                 },
@@ -172,11 +199,7 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             ),
             (
                 Action::Esc,
-                if states.skirmish.recruitment_view {
-                    "Close recruitment"
-                } else if states.skirmish.building_view {
-                    "Close buildings"
-                } else if board.marked_cells.marking_cells {
+                if board.marked_cells.marking_cells {
                     "Cancel route"
                 } else {
                     "Menu"
@@ -228,7 +251,6 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             vec![Line::from("Construction unavailable: check site, builder and resources").red()]
         };
         let mut lines: Vec<Line<'_>> = vec![
-            Line::from("Mine").yellow().bold(),
             Line::from(format!(
                 "Cost: {} Wood + {} Metal | Build time: 10s",
                 Mine::COST.wood,
@@ -240,13 +262,17 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         ];
         lines.extend(status);
         Clear.render(popup, buf);
-        Paragraph::new(lines)
-            .block(
-                Block::bordered()
-                    .title(Line::from("Buildings").magenta().bold())
-                    .padding(Padding::uniform(1)),
-            )
-            .render(popup, buf);
+        let block: Block<'_> = Block::bordered()
+            .title(Line::from("Buildings").magenta().bold())
+            .padding(Padding::uniform(1));
+        let [tabs_area, details_area]: [Rect; 2] =
+            Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(block.inner(popup));
+        block.render(popup, buf);
+        Tabs::new(SkirmishState::BUILDING_OPTIONS.iter().copied())
+            .select(states.skirmish.selected_building)
+            .highlight_style(Style::default().fg(Color::LightMagenta).bold())
+            .render(tabs_area, buf);
+        Paragraph::new(lines).render(details_area, buf);
     }
     if states.skirmish.recruitment_view {
         let popup: Rect = main_area.centered(Constraint::Length(64), Constraint::Length(14));
@@ -263,7 +289,6 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
                 Line::from("Insufficient resources or queue full").red()
             };
             vec![
-                Line::from("Miner").yellow().bold(),
                 Line::from(format!(
                     "Cost: {} Wood + {} Metal | Recruit time: 10s",
                     MinerUnit::RECRUIT_COST.wood,
@@ -287,12 +312,16 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             vec![Line::from("Select your Base to recruit Miners").red()]
         };
         Clear.render(popup, buf);
-        Paragraph::new(lines)
-            .block(
-                Block::bordered()
-                    .title(Line::from("Recruitment").magenta().bold())
-                    .padding(Padding::uniform(1)),
-            )
-            .render(popup, buf);
+        let block: Block<'_> = Block::bordered()
+            .title(Line::from("Recruitment").magenta().bold())
+            .padding(Padding::uniform(1));
+        let [tabs_area, details_area]: [Rect; 2] =
+            Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(block.inner(popup));
+        block.render(popup, buf);
+        Tabs::new(SkirmishState::RECRUITMENT_OPTIONS.iter().copied())
+            .select(states.skirmish.selected_recruit)
+            .highlight_style(Style::default().fg(Color::LightMagenta).bold())
+            .render(tabs_area, buf);
+        Paragraph::new(lines).render(details_area, buf);
     }
 }

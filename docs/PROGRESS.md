@@ -1,5 +1,35 @@
 # Dziennik prac
 
+## 2026-10-23 — zakładki budowania i rekrutacji
+
+Dodano paski Tabs z wyróżnieniem LightMagenta oraz strzałki Left/Right przełączające opcje w aktywnym oknie bez ruchu mapy. SkirmishState przechowuje osobne indeksy i listy opcji (obecnie wyłącznie Mine oraz Miner); wybór zawija na końcach listy. Przy jednej pozycji strzałki zachowują ten sam wybór. Nie dodano budynków ani jednostek. Enter, Delete i zamykanie b/r zachowują dotychczasowe działanie; Esc pozostaje ignorowany. Dodanie przyszłych typów wymaga powiązania ich szczegółów i akcji z wyborem, zgodnie z CODE_MAP.
+
+Dodano test strzałek w obu oknach, niezmienności planszy i kolejek oraz zamykania właściwym skrótem. Dostosowano test kolorów zaznaczonej zakładki i legendy. Wszystkie 89 testów oraz cargo check --all-targets --locked przez nix develop przeszły. Zastosowano cargo fmt; git diff --check przeszedł. Zaktualizowano README, CODE_MAP i TESTING. Nie sprawdzano ręcznie terminala.
+
+## 2026-10-23 — procent rekrutacji na kratce bazy
+
+CellWidget wyświetla cyjanowy procent rekrutacji na środku Base z niepustą kolejką. Pokazuje także 0% i gotowe 100% czekające na wolne miejsce; znika po zakończeniu kolejki. W najmniejszym zoomie 100 jest bez sufiksu %, aby zmieścić się w trzech znakach wnętrza. Wskaźnik ma pierwszeństwo przed procentem ruchu jednostki opuszczającej bazę; w pozostałych zoomach zachowano znacznik jednostki. Brak zmian symulacji i czasu rekrutacji.
+
+Dodano regresję wszystkich trzech zoomów: brak procentu bez kolejki, 0%, 50%, cyjanowy kolor, znacznik Minera, oczekiwanie przy 100% oraz usunięcie wskaźnika po spawnie. Wszystkie 88 testów i cargo check --all-targets --locked przez nix develop przeszły. Zastosowano cargo fmt, git diff --check przeszedł; zaktualizowano README i CODE_MAP. Nie sprawdzano ręcznie terminala.
+
+## 2026-10-23 — podświetlenie ścieżek zadań
+
+BoardWidget zbiera pozostałe pola wszystkich zadań własnych jednostek do HashSet i podświetla widoczne kopie komórek istniejącymi kolorami LightMagenta oraz Magenta pod kursorem. Obsługuje ruch i kopanie, także dalsze pozycje kolejki. Flagi marked modelu i wytyczanie nowych tras nie są zmieniane. Pola znikają z podświetlenia po wykonaniu lub odwołaniu zadań; przeciwnik nie ujawnia tras. Wykorzystano istniejące renderowanie CellWidget bez nowego stanu gry.
+
+Dodano test renderowania w tests/task_cancellation.rs: kolor trasy, skracanie po przejściu, znikanie po anulowaniu i zakończeniu, zachowanie flag modelu oraz brak kolorowania tras przeciwnika. Wszystkie 87 testów i cargo check --all-targets --locked przez nix develop przeszły. Zastosowano cargo fmt; git diff --check przeszedł. Uzupełniono README, CODE_MAP i TESTING. Nie sprawdzano ręcznie terminala.
+
+## 2026-10-23 — odwoływanie zadań jednostek
+
+Pod Tab, z fokusem na własnej jednostce z zadaniami, Backspace odwołuje ostatnie zadanie, a Delete całą kolejkę. Jeśli zostało jedno zadanie, Backspace odwołuje także wykonywane. Legenda dopasowuje opisy do kontekstu; podczas rysowania trasy klawisze zachowują cofanie/anulowanie trasy, a Delete w budowaniu nadal anuluje budowę. BoardState::cancel_focused_tasks waliduje właściciela, kolejkę i brak rysowania. Nie dodano usuwania środkowej pozycji, ponieważ dalsze zadania bazują na końcu poprzednich odcinków trasy.
+
+Anulowanie usuwa timer zadania, zachowując położenie jednostki, wykopane tunele i uszkodzenia kamienia. Dodano 3 testy integracyjne obejmujące opóźnione i aktywne zadania, przerwany ruch, ochronę przeciwnika i trybu trasy oraz klawisze pod Tab. Wszystkie 86 testów oraz cargo check --all-targets --locked przez nix develop przeszły. Zastosowano cargo fmt i zaktualizowano dokumentację. Nie sprawdzano ręcznej rozgrywki.
+
+## 2026-10-23 — zamykanie paneli wyłącznie skrótem otwierającym
+
+Odświeżono kontekst po zmianach z drugiego komputera: aktualne skróty to b (budowanie), r (rekrutacja), + i - (głośność), a rustfmt używa 4 spacji. Zachowano te ustawienia. Usunięto Esc z akcji i legendy obu paneli. Obsługa modalna jawnie ignoruje Esc, aby nie uruchamiał również globalnego powrotu do menu. b zamyka budowanie, r zamyka rekrutację; kolejki i budowy pozostają zachowane. Esc poza tymi panelami zachowuje dotychczasowe działanie.
+
+Dostosowano testy kontekstu, rekrutacji i budowania: sprawdzają ignorowanie Esc bez zmiany widoku, brak Esc w legendzie oraz zamykanie odpowiednim skrótem. Zaktualizowano README, CODE_MAP, TESTING i instrukcje agenta. Wszystkie 83 testy oraz cargo check --all-targets --locked przez nix develop przeszły; zastosowano cargo fmt. Nie sprawdzano ręcznej rozgrywki w terminalu.
+
 ## 2026-10-21 — spójne skróty głośności
 
 Przyciszanie muzyki przeniesiono z `n` na `-`, zgodnie z parą `+`/`-`. Zaktualizowano wspólną tabelę skrótów (także legendę), istniejący test komend audio i README. Kompilacja wszystkich targetów, testy `tests/app.rs` i kontrola formatowania przez Nix przeszły. Nie sprawdzano odsłuchu.

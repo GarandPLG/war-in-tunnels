@@ -18,12 +18,12 @@ Testy korzystają z wbudowanego mechanizmu Rust, Clap i `ratatui::backend::TestB
 | `tests/tasks.rs` | 7 | Przyrost i limit kopania, reset etapu, pusta ścieżka, kolejność zadań, timer MovingTask, całkowity postęp, zachowanie liczby etapów przy konwersji, formatowanie postępu aktywnych i oczekujących zadań |
 | `tests/audio.rs` | 2 | Zapętlanie rzeczywistego pliku OGG po jego końcu i ładowanie soundtracków obok binarki poza katalogiem repozytorium |
 | `tests/resources.rs` | 7 | Stan z CLI, alias starting-iron, pasywne Wood, neutralne złoża, brak kopalń na starcie, budowa wyłącznie na Ore, wyczerpanie złoża i przychód właściciela, ochrona przepełnień i bieżące zasoby w TUI |
-| `tests/context_keybindings.rs` | 5 | Kontekst mapy i trasy, anulowanie przez Esc, blokada budowania na nieprawidłowym polu, b i odrzucenie starych skrótów, globalne wyjście i czytelność legendy przy 120 kolumnach i kolory tekstu obu okien |
+| `tests/context_keybindings.rs` | 6 | Kontekst mapy i trasy, anulowanie przez Esc, blokada budowania na nieprawidłowym polu, b i odrzucenie starych skrótów, globalne wyjście i czytelność legendy przy 120 kolumnach i kolory tekstu obu okien |
 | `tests/construction.rs` | 16 | Uprawnienia budowniczego i delegacja, sąsiedztwo i brak zdalnej budowy, właściciel, reguła kamienia i wyjątek Ore, ochrona zajętych/wyczerpanych/wrogich złóż, atomowa opłata, 10 sekund budowy, pauza i wznowienie, brak przedwczesnego wydobycia/wejścia, procenty i anulowanie Delete w TUI, jednokrotny zwrot i zachowanie Ore, ruch do/z Mine i bonus wydobycia, ochrona rezerwy |
-| `tests/recruitment.rs` | 9 | Wyłącznie własna Base, atomowy koszt każdej pozycji i brak obciążenia przy błędzie, 10 sekund rekrutacji, oczekiwanie przy 100%, brak nadpisania jednostki, blokada kolejnych pozycji do wyjścia poprzedniego rekruta, wznowienie po ruchu, niezależne bazy i właściciele, r/Enter/Esc i kontekstowa legenda |
+| `tests/recruitment.rs` | 10 | Wyłącznie własna Base, atomowy koszt każdej pozycji i brak obciążenia przy błędzie, 10 sekund rekrutacji, oczekiwanie przy 100%, brak nadpisania jednostki, blokada kolejnych pozycji do wyjścia poprzedniego rekruta, wznowienie po ruchu, niezależne bazy i właściciele, r/Enter, ignorowanie Esc w obu panelach i kontekstowa legenda |
 | `tests/digging.rs` | 18 | Wykonywanie kopania i ruchu, kolejki, 3 sekundy na krok, wejście po wykopaniu, blokady i walidacja, kolory i procenty w TUI, podział trasy Moving/Digging, ochrona struktur, zmiana rodzaju zadania, panel Tab z postępem etapu i całego zadania |
 
-Łącznie: 83 testy. Wszystkie testy znajdują się w `tests/` i sprawdzają publiczne interfejsy biblioteki lub binarkę. Funkcja `load_audio` jest eksportowana przez `app::threads`, dzięki czemu test korzysta z tego samego dekodera co odtwarzanie.
+Łącznie: 89 testów. Wszystkie testy znajdują się w `tests/` i sprawdzają publiczne interfejsy biblioteki lub binarkę. Funkcja `load_audio` jest eksportowana przez `app::threads`, dzięki czemu test korzysta z tego samego dekodera co odtwarzanie.
 
 Wybrane zestawy i pojedynczy przypadek:
 
@@ -47,6 +47,8 @@ nix develop -c cargo clippy --all-targets --locked
 
 `shellHook` środowiska Nix wyświetla dostępne polecenia; nie kompiluje automatycznie programu.
 
+Testy `tests/task_cancellation.rs` (4) sprawdzają usuwanie ostatniego zadania i całej kolejki pod Tab, zachowanie wykonanych uszkodzeń, przerwany ruch bez teleportacji i zachowania timera, ochronę przeciwnika i rysowania trasy. Dodatkowa regresja sprawdza kolory tras, znikanie po wykonaniu i odwołaniu, brak zmian flag modelu oraz ukrywanie tras przeciwnika.
+
 ## CI i profile kompilacji
 
 Testowe paczki deb, rpm, AppImage, AUR i Flatpak sprawdza niezależny `.gitea/workflows/packages.yml`, bez publikowania wydań. Zasady budowania, artefakty i ograniczenia opisano w [PACKAGING.md](PACKAGING.md).
@@ -59,7 +61,7 @@ Workflow określa obraz zadania jawnie jako `node:22-bookworm`. Kontener działa
 
 Wersję Rust w CI określa `RUST_VERSION` w workflow, niezależnie od lokalnego `flake.lock`. Formatowanie, kompilacja, testy i Clippy są oddzielnymi krokami Cargo. Polecenia kompilujące projekt mają `--locked`; Clippy nie używa `-D warnings` z powodu istniejących ostrzeżeń. `actions/cache@v4` zachowuje osobno toolchain oraz rejestr Cargo, repozytoria git i `target`. Klucze uwzględniają wersję Rust, a dla Cargo także manifest, lockfile i kod; klucze częściowe pozwalają ponownie wykorzystać wcześniejsze kompilacje. Działanie cache wymaga dostępnego serwera cache runnera. Pierwszy przebieg wypełnia cache; błędy pobierania cache mogą spowodować ponowną instalację i kompilację.
 
-Release ma `overflow-checks = true`. Ten sam zestaw 83 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
+Release ma `overflow-checks = true`. Ten sam zestaw 89 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
 
 ```sh
 nix develop -c cargo test --all-targets --release --locked

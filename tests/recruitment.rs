@@ -2,9 +2,11 @@ use clap::Parser;
 use ratatui::{
     Terminal,
     backend::TestBackend,
-    buffer::Cell,
+    buffer::{Buffer, Cell},
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
     layout::Rect,
+    style::Color,
+    widgets::Widget,
 };
 use std::sync::mpsc::{Receiver, Sender, channel};
 use war_in_tunnels::{
@@ -13,7 +15,7 @@ use war_in_tunnels::{
         states::{
             SkirmishState,
             skirmish_states::{
-                MoveFocusedCell, Players, Resources,
+                CellSizes, MoveFocusedCell, Players, Resources, ZoomLevel,
                 structures::{BaseBuilding, Structures, Tunnel},
                 units::{MinerUnit, Unit, Units},
             },
@@ -42,6 +44,74 @@ fn base(game: &SkirmishState, coords: (usize, usize)) -> BaseBuilding {
 
 fn press(app: &mut App, code: KeyCode, modifiers: KeyModifiers) -> () {
     handle_keybindings(app, KeyEvent::new(code, modifiers));
+}
+
+#[test]
+fn base_cell_shows_recruitment_progress_until_spawn_at_every_zoom() -> () {
+    for zoom in [
+        ZoomLevel::ZoomedIn,
+        ZoomLevel::Default,
+        ZoomLevel::ZoomedOut,
+    ] {
+        let mut app: App = app();
+        let game: &mut SkirmishState = &mut app.states_mut().unwrap().skirmish;
+        let render = |game: &SkirmishState| -> Buffer {
+            let area: Rect = Rect::new(
+                0,
+                0,
+                zoom.get_cell_size(CellSizes::Width) as u16,
+                zoom.get_cell_size(CellSizes::Height) as u16,
+            );
+            let mut buffer: Buffer = Buffer::empty(area);
+            game.board.cells[5][2]
+                .clone()
+                .set_zoom_level(zoom)
+                .clone()
+                .render(area, &mut buffer);
+            buffer
+        };
+        let text = |buffer: &Buffer| -> String {
+            buffer
+                .content
+                .iter()
+                .map(|cell: &Cell| -> &str { cell.symbol() })
+                .collect()
+        };
+        assert!(!text(&render(game)).contains('%'));
+        assert!(game.recruit_miner((5, 2), Players::Player));
+        assert!(text(&render(game)).contains("0%"));
+        for _ in 0..BaseBuilding::RECRUITMENT_TICKS / 2 {
+            game.tick_update();
+        }
+        let buffer: Buffer = render(game);
+        assert!(text(&buffer).contains("50%"));
+        assert_eq!(
+            buffer
+                .content
+                .iter()
+                .find(|cell: &&Cell| -> bool { cell.symbol() == "%" })
+                .unwrap()
+                .fg,
+            Color::Cyan
+        );
+        if zoom != ZoomLevel::ZoomedOut {
+            assert!(text(&buffer).contains('M'));
+        }
+        for _ in 0..BaseBuilding::RECRUITMENT_TICKS {
+            game.tick_update();
+        }
+        assert!(
+            text(&render(game)).contains(if zoom == ZoomLevel::ZoomedOut {
+                "100"
+            } else {
+                "100%"
+            })
+        );
+        game.board.cells[5][2].get_mut_option_unit().take();
+        game.tick_update();
+        assert!(!text(&render(game)).contains('%'));
+        assert!(game.board.cells[5][2].get_ref_option_unit().is_some());
+    }
 }
 
 #[test]
@@ -278,7 +348,14 @@ fn recruitment_panel_queues_with_enter_shows_ready_state_and_closes_without_losi
     assert!(text.contains("Current progress: 100%"));
     assert!(text.contains("Ready: waiting for free base cell"));
     assert!(text.contains("Close recruitment"));
+    assert!(!text.contains("Esc -"));
+    assert!(
+        !available_skirmish_actions(&app.states_ref().unwrap().skirmish).contains(&Action::Esc)
+    );
     press(&mut app, KeyCode::Esc, KeyModifiers::NONE);
+    assert!(app.states_ref().unwrap().skirmish.recruitment_view);
+    assert_eq!(app.view, View::Skirmish);
+    press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
     assert_eq!(app.view, View::Skirmish);
     press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);

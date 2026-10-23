@@ -40,6 +40,8 @@ impl GameStates {
                 enemy_resources: Resources::new(args.starting_wood, args.starting_metal),
                 building_view: false,
                 recruitment_view: false,
+                selected_building: 0,
+                selected_recruit: 0,
             },
             perk_decks: PerkDecksState {
                 id: 2,

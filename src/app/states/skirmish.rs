@@ -17,9 +17,29 @@ pub struct SkirmishState {
     pub enemy_resources: Resources,
     pub building_view: bool,
     pub recruitment_view: bool,
+    pub selected_building: usize,
+    pub selected_recruit: usize,
 }
 
 impl SkirmishState {
+    pub const BUILDING_OPTIONS: &'static [&'static str] = &["Mine"];
+    pub const RECRUITMENT_OPTIONS: &'static [&'static str] = &["Miner"];
+
+    pub fn cycle_popup_option(&mut self, next: bool) -> () {
+        let (selected, count): (&mut usize, usize) = if self.recruitment_view {
+            (&mut self.selected_recruit, Self::RECRUITMENT_OPTIONS.len())
+        } else if self.building_view {
+            (&mut self.selected_building, Self::BUILDING_OPTIONS.len())
+        } else {
+            return;
+        };
+        *selected = if next {
+            (*selected + 1) % count
+        } else {
+            (*selected + count - 1) % count
+        };
+    }
+
     pub fn can_recruit_miner(&self, (row, col): (usize, usize), owner: Players) -> bool {
         let resources: &Resources = match owner {
             Players::Player => &self.player_resources,
