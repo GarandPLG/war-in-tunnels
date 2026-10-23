@@ -82,8 +82,8 @@ fn key_release_does_not_trigger_quit() {
 fn music_keys_send_commands_without_opening_audio_device() {
     let (mut app, rx) = app();
     press(&mut app, KeyCode::Char('m'));
-    press(&mut app, KeyCode::Char('b'));
-    press(&mut app, KeyCode::Char('n'));
+    press(&mut app, KeyCode::Char('+'));
+    press(&mut app, KeyCode::Char('-'));
     assert!(matches!(rx.try_recv().unwrap(), AudioCmd::Mute));
     assert!(matches!(rx.try_recv().unwrap(), AudioCmd::VolumeUp));
     assert!(matches!(rx.try_recv().unwrap(), AudioCmd::VolumeDown));

@@ -234,7 +234,7 @@ fn recruitment_panel_queues_with_enter_shows_ready_state_and_closes_without_losi
         available_skirmish_actions(&app.states_ref().unwrap().skirmish)
             .contains(&Action::Recruitment)
     );
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
+    press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(app.states_ref().unwrap().skirmish.recruitment_view);
     press(&mut app, KeyCode::Enter, KeyModifiers::NONE);
     press(&mut app, KeyCode::Enter, KeyModifiers::NONE);
@@ -246,7 +246,7 @@ fn recruitment_panel_queues_with_enter_shows_ready_state_and_closes_without_losi
         !available_skirmish_actions(&app.states_ref().unwrap().skirmish).contains(&Action::Enter)
     );
     press(&mut app, KeyCode::Right, KeyModifiers::NONE);
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::CONTROL);
+    press(&mut app, KeyCode::Char('b'), KeyModifiers::NONE);
     assert_eq!(
         app.states_ref()
             .unwrap()
@@ -281,8 +281,8 @@ fn recruitment_panel_queues_with_enter_shows_ready_state_and_closes_without_losi
     press(&mut app, KeyCode::Esc, KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
     assert_eq!(app.view, View::Skirmish);
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
+    press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
+    press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
     assert_eq!(
         base(&app.states_ref().unwrap().skirmish, (5, 2)).queued_miners(),
@@ -295,13 +295,13 @@ fn recruitment_panel_is_unavailable_off_base_and_during_route_selection() -> () 
     let mut app: App = app();
     press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
+    press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
     press(&mut app, KeyCode::Left, KeyModifiers::NONE);
     press(&mut app, KeyCode::Char(' '), KeyModifiers::NONE);
     press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
+    press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
     assert!(
         app.states_ref()
@@ -312,15 +312,17 @@ fn recruitment_panel_is_unavailable_off_base_and_during_route_selection() -> () 
             .marking_cells
     );
     press(&mut app, KeyCode::Esc, KeyModifiers::NONE);
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
+    press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     press(&mut app, KeyCode::Char('c'), KeyModifiers::CONTROL);
     assert!(app.exit);
 }
 
 #[test]
-fn recruitment_fallback_opens_queues_and_closes_on_own_base() -> () {
+fn recruitment_key_opens_queues_and_closes_on_own_base() -> () {
     let mut app: App = app();
     press(&mut app, KeyCode::Left, KeyModifiers::NONE);
+    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
+    assert!(!app.states_ref().unwrap().skirmish.recruitment_view);
     press(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
     assert!(app.states_ref().unwrap().skirmish.recruitment_view);
     press(&mut app, KeyCode::Enter, KeyModifiers::NONE);

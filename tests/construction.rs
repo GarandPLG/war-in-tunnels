@@ -145,7 +145,7 @@ fn construction_view_starts_paid_build_on_enter_and_stays_open() -> () {
     }
     handle_keybindings(
         &mut app,
-        KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL),
+        KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE),
     );
     assert!(
         available_skirmish_actions(&app.states_ref().unwrap().skirmish).contains(&Action::Enter)
@@ -361,7 +361,7 @@ fn panel_shows_progress_and_delete_cancels_while_escape_only_closes_panel() -> (
     }
     handle_keybindings(
         &mut app,
-        KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL),
+        KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE),
     );
     handle_keybindings(&mut app, KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
     assert!(
@@ -395,7 +395,7 @@ fn panel_shows_progress_and_delete_cancels_while_escape_only_closes_panel() -> (
     ));
     handle_keybindings(
         &mut app,
-        KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL),
+        KeyEvent::new(KeyCode::Char('b'), KeyModifiers::NONE),
     );
     handle_keybindings(&mut app, KeyEvent::new(KeyCode::Delete, KeyModifiers::NONE));
     assert!(matches!(

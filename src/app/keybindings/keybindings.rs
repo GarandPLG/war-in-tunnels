@@ -114,15 +114,6 @@ pub struct KeyBinding {
 static KEYBINDINGS: &[KeyBinding] = &[
     KeyBinding {
         action: Action::Recruitment,
-        code: KeyCode::Char(' '),
-        kind: KeyEventKind::Press,
-        modifiers: KeyModifiers::ALT,
-        group: Group::Opener,
-        symbol: "Alt + Space / r",
-        description: "Recruit",
-    },
-    KeyBinding {
-        action: Action::Recruitment,
         code: KeyCode::Char('r'),
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::NONE,
@@ -132,11 +123,11 @@ static KEYBINDINGS: &[KeyBinding] = &[
     },
     KeyBinding {
         action: Action::Building,
-        code: KeyCode::Char(' '),
+        code: KeyCode::Char('b'),
         kind: KeyEventKind::Press,
-        modifiers: KeyModifiers::CONTROL,
+        modifiers: KeyModifiers::NONE,
         group: Group::Opener,
-        symbol: "Ctrl + Space",
+        symbol: "b",
         description: "Buildings",
     },
     KeyBinding {
@@ -303,20 +294,20 @@ static KEYBINDINGS: &[KeyBinding] = &[
     },
     KeyBinding {
         action: Action::VolumeUp,
-        code: KeyCode::Char('b'),
+        code: KeyCode::Char('+'),
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::NONE,
         group: Group::Music,
-        symbol: "b",
+        symbol: "+",
         description: "🔊",
     },
     KeyBinding {
         action: Action::VolumeDown,
-        code: KeyCode::Char('n'),
+        code: KeyCode::Char('-'),
         kind: KeyEventKind::Press,
         modifiers: KeyModifiers::NONE,
         group: Group::Music,
-        symbol: "n",
+        symbol: "-",
         description: "🔉",
     },
     KeyBinding {
@@ -361,13 +352,6 @@ pub fn binding_for(action: Action) -> Option<&'static KeyBinding> {
 /// was pressed. Returns `None` when the event does not correspond to any known
 /// action.
 pub fn event_to_action(event: &KeyEvent) -> Option<Action> {
-    // Legacy terminals encode Ctrl+Space as NUL instead of a modified space.
-    if event.code == KeyCode::Null
-        && event.kind == KeyEventKind::Press
-        && (event.modifiers == KeyModifiers::NONE || event.modifiers == KeyModifiers::CONTROL)
-    {
-        return Some(Action::Building);
-    }
     if let Some(b) = KEYBINDINGS
         .iter()
         .find(|b| b.code == event.code && b.kind == event.kind && b.modifiers == event.modifiers)

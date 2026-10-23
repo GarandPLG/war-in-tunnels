@@ -1,5 +1,17 @@
 # Dziennik prac
 
+## 2026-10-21 — spójne skróty głośności
+
+Przyciszanie muzyki przeniesiono z `n` na `-`, zgodnie z parą `+`/`-`. Zaktualizowano wspólną tabelę skrótów (także legendę), istniejący test komend audio i README. Kompilacja wszystkich targetów, testy `tests/app.rs` i kontrola formatowania przez Nix przeszły. Nie sprawdzano odsłuchu.
+
+## 2026-10-21 — skróty b/r i kolory okien budowy oraz rekrutacji
+
+Zastąpiono Ctrl+Space przez `b`, a Alt+Space przez `r`; usunięto także obsługę NUL dla budowania. Oba klawisze otwierają i zamykają właściwy panel. Ponieważ `b` sterowało głośnością, zwiększanie głośności przeniesiono na `+`. Legenda korzysta ze wspólnej tabeli skrótów.
+
+Okna używają kolorowanych linii Ratatui: żółte nazwy i koszty, cyjanowe postępy i produkcja, zielone dostępne działania, czerwone błędy oraz żółte komunikaty oczekiwania. Zachowano tekstowe opisy statusów. Zaktualizowano testy i bieżącą dokumentację; dodano regresję kolorów obu okien i sprawdzenie odrzucania starych skrótów.
+
+Weryfikacja: kompilacja wszystkich targetów i 83 testy debug przez `nix develop -c` przeszły. Nie sprawdzano interaktywnego terminala ani odsłuchu. Zastanej zmiany `flake.lock` nie modyfikowano.
+
 ## 2026-10-19 — alternatywny skrót rekrutacji
 
 Zgłoszono brak reakcji na Alt+Space. Testy przekazywanego zdarzenia Alt+Space działają; nie potwierdzono, jakie zdarzenie wysyła terminal użytkownika ani czy skrót przechwytuje menedżer okien. Dodano alternatywne `r` do tej samej akcji Recruitment i pokazano oba skróty w legendzie. Obowiązują te same ograniczenia własnej bazy i trybu; `r` także zamyka panel bez kasowania kolejki. README opisuje alternatywę.

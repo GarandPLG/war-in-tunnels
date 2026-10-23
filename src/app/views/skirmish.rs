@@ -203,65 +203,94 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         let popup: Rect = main_area.centered(Constraint::Length(64), Constraint::Length(14));
         let coords: (usize, usize) = board.get_focused_cell().get_coords();
         let structure: Structures = board.get_ref_cell(coords.0, coords.1).get_structure();
-        let status: String = if let Structures::MineConstruction(site) = structure
+        let status: Vec<Line<'_>> = if let Structures::MineConstruction(site) = structure
             && site.get_owner() == Players::Player
         {
-            format!(
-                "Construction: {}%\n{}\nDelete: cancel and refund full cost",
-                site.progress_percent(),
+            vec![
+                Line::from(format!("Construction: {}%", site.progress_percent())).cyan(),
                 if board.has_adjacent_builder(coords, Players::Player) {
-                    "Builder working"
+                    Line::from("Builder working").green()
                 } else {
-                    "Paused: adjacent friendly builder required"
-                }
-            )
+                    Line::from("Paused: adjacent friendly builder required").yellow()
+                },
+                Line::from("Delete: cancel and refund full cost").yellow(),
+            ]
         } else if matches!(structure, Structures::Mine(_))
             && structure.get_owner() == Players::Player
         {
-            "Mine completed".to_string()
+            vec![Line::from("Mine completed").green()]
         } else if states
             .skirmish
             .can_start_mine_construction(coords, Players::Player)
         {
-            "Ready to build: Enter".to_string()
+            vec![Line::from("Ready to build: Enter").green()]
         } else {
-            "Construction unavailable: check site, builder and resources".to_string()
+            vec![Line::from("Construction unavailable: check site, builder and resources").red()]
         };
+        let mut lines: Vec<Line<'_>> = vec![
+            Line::from("Mine").yellow().bold(),
+            Line::from(format!(
+                "Cost: {} Wood + {} Metal | Build time: 10s",
+                Mine::COST.wood,
+                Mine::COST.metal
+            ))
+            .yellow(),
+            Line::from("Requires: neutral Ore + adjacent friendly builder").gray(),
+            Line::from("Produces: 1 Metal/s (2 with a Miner inside)").cyan(),
+        ];
+        lines.extend(status);
         Clear.render(popup, buf);
-        Paragraph::new(format!("Mine\nCost: {} Wood + {} Metal | Build time: 10s\nRequires: neutral Ore + adjacent friendly builder\nProduces: 1 Metal/s (2 with a Miner inside)\n{status}", Mine::COST.wood, Mine::COST.metal))
-      .block(Block::bordered().title("Buildings").padding(Padding::uniform(1)))
-      .render(popup, buf);
+        Paragraph::new(lines)
+            .block(
+                Block::bordered()
+                    .title(Line::from("Buildings").magenta().bold())
+                    .padding(Padding::uniform(1)),
+            )
+            .render(popup, buf);
     }
     if states.skirmish.recruitment_view {
         let popup: Rect = main_area.centered(Constraint::Length(64), Constraint::Length(14));
         let coords: (usize, usize) = board.get_focused_cell().get_coords();
         let cell: &CellWidget = board.get_ref_cell(coords.0, coords.1);
-        let text: String = if let Structures::Base(base) = cell.get_structure()
+        let lines: Vec<Line<'_>> = if let Structures::Base(base) = cell.get_structure()
             && base.get_owner() == Players::Player
         {
             let status: &'static str =
                 base.recruitment_status(cell.get_ref_option_unit().is_some());
-            let action: &'static str = if states.skirmish.can_recruit_miner(coords, Players::Player)
-            {
-                "Enter: queue Miner"
+            let action: Line<'_> = if states.skirmish.can_recruit_miner(coords, Players::Player) {
+                Line::from("Enter: queue Miner").green()
             } else {
-                "Insufficient resources or queue full"
+                Line::from("Insufficient resources or queue full").red()
             };
-            format!(
-                "Miner\nCost: {} Wood + {} Metal | Recruit time: 10s\nQueued Miners: {} (includes active)\nCurrent progress: {}%\n{status}\n{action}",
-                MinerUnit::RECRUIT_COST.wood,
-                MinerUnit::RECRUIT_COST.metal,
-                base.queued_miners(),
-                base.recruitment_progress()
-            )
+            vec![
+                Line::from("Miner").yellow().bold(),
+                Line::from(format!(
+                    "Cost: {} Wood + {} Metal | Recruit time: 10s",
+                    MinerUnit::RECRUIT_COST.wood,
+                    MinerUnit::RECRUIT_COST.metal
+                ))
+                .yellow(),
+                Line::from(format!(
+                    "Queued Miners: {} (includes active)",
+                    base.queued_miners()
+                ))
+                .cyan(),
+                Line::from(format!(
+                    "Current progress: {}%",
+                    base.recruitment_progress()
+                ))
+                .cyan(),
+                Line::from(status).yellow(),
+                action,
+            ]
         } else {
-            "Select your Base to recruit Miners".to_string()
+            vec![Line::from("Select your Base to recruit Miners").red()]
         };
         Clear.render(popup, buf);
-        Paragraph::new(text)
+        Paragraph::new(lines)
             .block(
                 Block::bordered()
-                    .title("Recruitment")
+                    .title(Line::from("Recruitment").magenta().bold())
                     .padding(Padding::uniform(1)),
             )
             .render(popup, buf);

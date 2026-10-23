@@ -5,6 +5,7 @@ use ratatui::{
     buffer::Cell,
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
     layout::Rect,
+    style::Color,
 };
 use std::sync::mpsc::{Receiver, Sender, channel};
 use war_in_tunnels::{
@@ -45,7 +46,7 @@ fn selecting_miner_switches_help_and_escape_cancels_only_the_route() -> () {
     assert!(actions.contains(&Action::Delete));
     assert!(!actions.contains(&Action::Building));
     assert!(!actions.contains(&Action::ZoomIn));
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::CONTROL);
+    press(&mut app, KeyCode::Char('b'), KeyModifiers::NONE);
     assert!(!app.states_ref().unwrap().skirmish.building_view);
     press(&mut app, KeyCode::Esc, KeyModifiers::NONE);
     assert_eq!(app.view, View::Skirmish);
@@ -72,7 +73,7 @@ fn building_view_has_its_own_help_and_does_not_build_on_invalid_tile() -> () {
     let mut app: App = app();
     let before: war_in_tunnels::app::states::skirmish_states::BoardState =
         app.states_ref().unwrap().skirmish.board.clone();
-    press(&mut app, KeyCode::Char(' '), KeyModifiers::CONTROL);
+    press(&mut app, KeyCode::Char('b'), KeyModifiers::NONE);
     assert!(app.states_ref().unwrap().skirmish.building_view);
     assert_eq!(
         available_skirmish_actions(&app.states_ref().unwrap().skirmish),
@@ -109,13 +110,17 @@ fn building_view_has_its_own_help_and_does_not_build_on_invalid_tile() -> () {
 }
 
 #[test]
-fn legacy_control_space_and_quit_work_in_building_view() -> () {
+fn building_key_toggles_panel_and_old_shortcuts_do_not_open_it() -> () {
     let mut app: App = app();
     press(&mut app, KeyCode::Null, KeyModifiers::NONE);
-    assert!(app.states_ref().unwrap().skirmish.building_view);
-    press(&mut app, KeyCode::Null, KeyModifiers::CONTROL);
+    press(&mut app, KeyCode::Char(' '), KeyModifiers::CONTROL);
+    press(&mut app, KeyCode::Char(' '), KeyModifiers::ALT);
     assert!(!app.states_ref().unwrap().skirmish.building_view);
-    press(&mut app, KeyCode::Null, KeyModifiers::NONE);
+    press(&mut app, KeyCode::Char('b'), KeyModifiers::NONE);
+    assert!(app.states_ref().unwrap().skirmish.building_view);
+    press(&mut app, KeyCode::Char('b'), KeyModifiers::NONE);
+    assert!(!app.states_ref().unwrap().skirmish.building_view);
+    press(&mut app, KeyCode::Char('b'), KeyModifiers::NONE);
     press(&mut app, KeyCode::Char('c'), KeyModifiers::CONTROL);
     assert!(app.exit);
 }
@@ -138,7 +143,7 @@ fn contextual_help_fits_normal_terminal_and_changes_when_route_is_selected() -> 
         .iter()
         .map(|cell: &Cell| -> &str { cell.symbol() })
         .collect();
-    assert!(text.contains("Ctrl + Space - Build"));
+    assert!(text.contains("b - Build"));
     assert!(text.contains("Space - Select miner"));
     press(&mut app, KeyCode::Char(' '), KeyModifiers::NONE);
     terminal
@@ -155,6 +160,46 @@ fn contextual_help_fits_normal_terminal_and_changes_when_route_is_selected() -> 
         .collect();
     assert!(text.contains("Space - Confirm route"));
     assert!(text.contains("Esc - Cancel route"));
-    assert!(!text.contains("Ctrl + Space"));
+    assert!(!text.contains("b - Build"));
     assert!(!text.contains("Zoom in"));
+}
+
+#[test]
+fn construction_and_recruitment_popups_render_semantic_text_colors() -> () {
+    for (key, name, status, status_color) in [
+        ('b', "Mine", "Construction unavailable", Color::Red),
+        ('r', "Miner", "Enter: queue Miner", Color::Green),
+    ] {
+        let mut app: App = app();
+        if key == 'r' {
+            press(&mut app, KeyCode::Left, KeyModifiers::NONE);
+        }
+        press(&mut app, KeyCode::Char(key), KeyModifiers::NONE);
+        let mut terminal: Terminal<TestBackend> = Terminal::new(TestBackend::new(160, 40)).unwrap();
+        terminal
+            .draw(|frame: &mut ratatui::Frame<'_>| -> () {
+                frame.render_widget(&mut app, frame.area());
+            })
+            .unwrap();
+        let cells: &[Cell] = &terminal.backend().buffer().content;
+        for (text, color) in [
+            (name, Color::Yellow),
+            ("Cost:", Color::Yellow),
+            (status, status_color),
+        ] {
+            assert!(
+                cells.windows(text.len()).any(|window: &[Cell]| -> bool {
+                    window
+                        .iter()
+                        .map(|cell: &Cell| -> &str { cell.symbol() })
+                        .collect::<String>()
+                        == text
+                        && window
+                            .iter()
+                            .all(|cell: &Cell| -> bool { cell.fg == color })
+                }),
+                "missing colored text: {text}"
+            );
+        }
+    }
 }

@@ -105,9 +105,9 @@ Możesz zaznaczyć pracującego górnika ponownie: rysowanie kolejnego zadania z
 
 Wood i Metal mają rzeczywisty stan w magazynie każdego gracza, inicjalizowany z `--starting-wood` i `--starting-metal`. Nagłówek pokazuje bieżące zasoby. Gracz otrzymuje 5 Wood co około 5 sekund symulacji; metal nie przyrasta bez kopalni. Złoża Ore są początkowo neutralne.
 
-Ustaw kursor na neutralnym Ore i otwórz widok budowania przez `Ctrl+Space`. Jeśli na jednej z czterech sąsiednich kratek stoi własny Miner z uprawnieniem budowania i masz 20 Wood oraz 10 Metal, Enter rozpoczyna budowę Mine. Koszt jest pobierany od razu, a budowa trwa około 10 sekund. Panel pozostaje otwarty i pokazuje postęp; procent widać też na kratce. Po odejściu budowniczego budowa zatrzymuje się do jego powrotu. Nie można budować zdalnie na rudzie bez sąsiedniego własnego budowniczego.
+Ustaw kursor na neutralnym Ore i otwórz widok budowania przez `b`. Jeśli na jednej z czterech sąsiednich kratek stoi własny Miner z uprawnieniem budowania i masz 20 Wood oraz 10 Metal, Enter rozpoczyna budowę Mine. Koszt jest pobierany od razu, a budowa trwa około 10 sekund. Panel pozostaje otwarty i pokazuje postęp; procent widać też na kratce. Po odejściu budowniczego budowa zatrzymuje się do jego powrotu. Nie można budować zdalnie na rudzie bez sąsiedniego własnego budowniczego.
 
-Delete w panelu budowy anuluje trwającą budowę, przywraca pierwotne neutralne Ore i zwraca cały koszt. Ctrl+Space lub Esc jedynie zamyka panel — budowa nadal postępuje, jeżeli budowniczy jest obecny. Niedokończona kopalnia nie produkuje metalu i nie przyjmuje jednostek. Na początkowej mapie złoże obok bazy spełnia warunek sąsiedztwa; kopalnie nie pojawiają się automatycznie.
+Delete w panelu budowy anuluje trwającą budowę, przywraca pierwotne neutralne Ore i zwraca cały koszt. b lub Esc jedynie zamyka panel — budowa nadal postępuje, jeżeli budowniczy jest obecny. Niedokończona kopalnia nie produkuje metalu i nie przyjmuje jednostek. Na początkowej mapie złoże obok bazy spełnia warunek sąsiedztwa; kopalnie nie pojawiają się automatycznie.
 
 Mine wydobywa 1 Metal co około sekundę, aż do wyczerpania złoża. Możesz wysłać do własnej kopalni górnika zwykłą trasą zatwierdzaną spacją. Wejście trwa około 3 sekund jako Moving; górnik pozostaje na kratce kopalni i zwiększa wydobycie do 2 Metal/s. Po jego wyjściu bonus znika. W kopalni mieści się jedna jednostka; obcy górnicy nie mogą do niej wejść. Panel Tab pokazuje aktualne tempo wydobycia.
 
@@ -117,7 +117,7 @@ Legenda klawiszy zależy od trybu: na mapie pokazuje nawigację i dostępne zazn
 
 ## Rekrutacja
 
-Ustaw kursor na własnym budynku Base i naciśnij `Alt+Space` lub `r`. Jeśli terminal albo menedżer okien przechwytuje Alt+Space, użyj `r`. Enter dodaje jednego Minera do kolejki za **10 Wood i 15 Metal**, pobierane od razu. Każda rekrutacja trwa około **10 sekund**. Panel pokazuje liczbę zamówionych górników (włącznie z aktualnie rekrutowanym), procent bieżącej rekrutacji i powód oczekiwania. Esc, Alt+Space lub `r` zamyka panel bez kasowania kolejki. Liczbę i postęp widać też pod Tab.
+Ustaw kursor na własnym budynku Base i naciśnij `r`. Enter dodaje jednego Minera do kolejki za **10 Wood i 15 Metal**, pobierane od razu. Każda rekrutacja trwa około **10 sekund**. Panel pokazuje liczbę zamówionych górników (włącznie z aktualnie rekrutowanym), procent bieżącej rekrutacji i powód oczekiwania. Esc lub `r` zamyka panel bez kasowania kolejki. Liczbę i postęp widać też pod Tab.
 
 Pierwszy górnik może zostać wyszkolony do 100%, nawet jeśli baza jest zajęta. Gotowy czeka, aż kratka będzie wolna, i pojawia się w bazie bez nadpisywania stojącej tam jednostki. Następna rekrutacja pozostaje na 0%, dopóki poprzedni zrekrutowany górnik nie opuści bazy. Wyprowadź go zwykłą trasą, aby wznowić kolejkę. Każda baza ma niezależną kolejkę; nowe jednostki otrzymują właściciela bazy i pełne uprawnienia Minera.
 
@@ -139,3 +139,5 @@ Polecenia lokalne i szczegóły środowiska opisano w [docs/TESTING.md](docs/TES
 
 Projekt jest udostępniany na licencji [MIT](LICENSE).
 Copyright (c) 2026 GarandPLG.
+
+Budowanie otwiera `b`, rekrutację `r`; zwiększanie głośności: `+`, zmniejszanie: `-`, wyciszenie: `m`.
