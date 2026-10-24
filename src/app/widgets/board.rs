@@ -9,11 +9,12 @@ use std::{collections::HashSet, rc::Rc};
 
 pub struct BoardWidget<'a> {
     state: &'a BoardState,
+    stress: bool,
 }
 
 impl<'a> BoardWidget<'a> {
-    pub fn new(state: &'a BoardState) -> Self {
-        Self { state }
+    pub fn new(state: &'a BoardState, stress: bool) -> Self {
+        Self { state, stress }
     }
 }
 
@@ -60,7 +61,11 @@ impl Widget for BoardWidget<'_> {
                         if queued_path.contains(&coords) {
                             cell.set_marked(true);
                         }
-                        cell.render(*cell_area, buf);
+                        if self.stress {
+                            cell.render_stress(*cell_area, buf);
+                        } else {
+                            cell.render(*cell_area, buf);
+                        }
                     });
             }
         }

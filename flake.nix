@@ -59,6 +59,9 @@
       buildInputs = with pkgs; [
         rustToolchain
         alsa-lib
+        bash
+        gitea-actions-runner
+        docker
       ];
       nativeBuildInputs = with pkgs; [pkg-config];
 
@@ -70,6 +73,12 @@
         echo "    nix run              - Run production version"
         echo "    nix build .#develop  - Build development version"
         echo "    nix run .#develop    - Run development version"
+        echo ""
+        echo "Gitea workflows:"
+        echo "    gitea-runner exec -W .gitea/workflows/rust.yml --event push -j check"
+        echo "    gitea-runner exec -W .gitea/workflows/nix.yml --event push -j build"
+        echo "    gitea-runner exec -W .gitea/workflows/packages.yml --event push -j linux"
+        echo "    gitea-runner exec -W .gitea/workflows/packages.yml --event push -j aur"
       '';
     };
   };

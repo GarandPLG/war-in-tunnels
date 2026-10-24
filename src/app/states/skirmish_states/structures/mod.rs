@@ -1,4 +1,5 @@
 mod base;
+mod collapsed_tunnel;
 mod mine;
 mod mine_construction;
 mod ore;
@@ -8,6 +9,7 @@ mod structures_enum;
 mod tunnel;
 
 pub use base::BaseBuilding;
+pub use collapsed_tunnel::CollapsedTunnel;
 pub use mine::Mine;
 pub use mine_construction::MineConstruction;
 pub use ore::Ore;

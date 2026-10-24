@@ -103,7 +103,7 @@ Możesz zaznaczyć pracującego górnika ponownie: rysowanie kolejnego zadania z
 
 ## Zasoby i budowanie
 
-Okna budowania (`b`) i rekrutacji (`r`) mają zakładki przełączane strzałkami ←/→. Zaznaczona pozycja jest wyróżniona jasną magentą. Obecnie dostępne są wyłącznie Mine i Miner, więc przełączanie pozostawia jedyną pozycję; strzałki w tych oknach nie przesuwają kursora mapy. Enter wykonuje dostępną akcję, a ponowne b/r zamyka odpowiednie okno.
+Okna budowania (`b`) i rekrutacji (`r`) mają zakładki przełączane strzałkami ←/→. Zaznaczona pozycja jest wyróżniona jasną magentą. Obecnie dostępne są Mine i Support w budowaniu oraz Miner w rekrutacji; strzałki w tych oknach nie przesuwają kursora mapy. Enter wykonuje dostępną akcję, a ponowne b/r zamyka odpowiednie okno.
 
 Wood i Metal mają rzeczywisty stan w magazynie każdego gracza, inicjalizowany z `--starting-wood` i `--starting-metal`. Nagłówek pokazuje bieżące zasoby. Gracz otrzymuje 5 Wood co około 5 sekund symulacji; metal nie przyrasta bez kopalni. Złoża Ore są początkowo neutralne.
 
@@ -116,6 +116,22 @@ Mine wydobywa 1 Metal co około sekundę, aż do wyczerpania złoża. Możesz wy
 Wspólna reguła zwykłych budynków wymaga pustego kamienia sąsiadującego z tunelem lub własną bazą oraz sąsiedniego własnego budowniczego. Mine jest wyjątkiem: wymaga rudy zamiast kamienia i nie potrzebuje połączenia z tunelem/bazą. Innych typów budynków nie można jeszcze stawiać.
 
 Legenda klawiszy zależy od trybu: na mapie pokazuje nawigację i dostępne zaznaczenie własnego górnika; podczas rysowania trasy — ruch, zatwierdzanie i anulowanie; w widoku budowania — rozpoczęcie lub anulowanie budowy; w rekrutacji — dodawanie górników do kolejki. Globalne skróty wyjścia i muzyki nadal działają. W zwykłym trybie Esc wraca do menu.
+
+## Stres tuneli i podpory
+
+Stres rośnie o 20 punktów procentowych na każdą kratkę najkrótszej połączonej trasy od bazy: 20%, 40%, 60%, 80%. Liczą się połączenia góra/dół/lewo/prawo, nie odległość w linii prostej. Podpora ustala stres swojego tunelu na 20% i stabilizuje sąsiednią sieć we wszystkich czterech kierunkach. Gotowe kopalnie przepuszczają połączenie; bazy są punktami odniesienia dla obu stron.
+
+- `b` → strzałkami wybierz **Support** → `Enter`: rozpoczyna około 3-sekundową budowę podpory w tunelu za **10 Wood + 2 Metal**. Własny Miner musi stać na tej kratce lub obok niej.
+- `Delete` w zakładce Support rozpoczyna około 3-sekundowe usuwanie podpory bez zwrotu zasobów. Do końca pracy podpora nadal stabilizuje tunel; dopiero potem są przeliczane stres i zawalenia.
+- Przy **100%** tunel zawala się, a odcięte, niestabilne odcinki również ulegają zawaleniu. Wszystkie zasypane jednostki giną wraz ze swoimi kolejkami.
+- Zawalony tunel (`#`) ma **750 durability**, jest nieprzechodni i można go ponownie wykopać. Zwykły kamień ma 1000, a tunel 500 durability.
+- `s` przełącza widok stresu: ukrywa inne oznaczenia kratek, pokazuje procenty i kolory od zielonego do czerwonego; kursor zachowuje dotychczasowe wyróżnienie. W najmniejszym zoomie gotowe 100% jest pokazane jako `100`.
+
+Najpierw zaznacz własnego Minera przez `Space`. Dopiero wtedy widoczny i dostępny jest `t`, który otwiera **boczny panel wyboru zadania**, obok planszy. Strzałkami ←/→ wybierz **Digging** albo **Moving**; `Enter` zatwierdza wybór i wraca do wytyczania trasy, `t` zamyka panel. Digging przechodzi po tunelach i kopie przeszkody; Moving pozwala wytyczać trasę tylko po polach przechodnich i czeka, jeśli droga później się zawali. `a` przełącza automatyczne podpory dla Digging (domyślnie włączone); działa też podczas wytyczania takiej trasy. Ustawienie jest zapisywane w nowych zadaniach, nie zmienia już zakolejkowanych. Spacja pozostaje skrótem do zwykłego wytyczania trasy z kopaniem.
+
+Automat stawia podporę na ostatniej bezpiecznej kratce 80% dopiero, gdy kolejny wykop wymaga zabezpieczenia. Na prostej trasie pierwsza podpora wypada cztery kratki od bazy, następne co trzy kratki; niepotrzebna podpora na końcu trasy nie powstaje. Każda kosztuje rzeczywiste zasoby właściciela. **Brak środków lub wyłączenie automatu może doprowadzić do śmierci górnika przy kolejnym wykopie.** Wykonane tunele i uszkodzenia pozostają po anulowaniu zadania.
+
+Budowniczy na czas pracy nad podporą wstrzymuje swój ruch i kopanie. Postęp jest widoczny na kratce i w panelach; bez dostępnego budowniczego praca pauzuje. Automat rozpoczyna budowę przed niebezpiecznym wykopem i czeka na ukończenie podpory. W mapie stresu zwykły kamień zachowuje normalny wygląd i nie pokazuje procentu stresu.
 
 ## Odwoływanie zadań jednostki
 

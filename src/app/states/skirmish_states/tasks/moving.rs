@@ -11,12 +11,16 @@ pub struct MovingTask {
     path: VecDeque<(usize, usize)>,
     ticks: u16,
     total_steps: usize,
+    auto_supports: bool,
+    pub dig_if_blocked: bool,
 }
 
 impl MovingTask {
     pub fn new(path: VecDeque<(usize, usize)>) -> Self {
         Self {
             total_steps: path.len(),
+            auto_supports: true,
+            dig_if_blocked: true,
             path,
             ticks: 0,
         }
@@ -25,6 +29,8 @@ impl MovingTask {
     pub fn from_digging(task: DiggingTask) -> Self {
         Self {
             total_steps: task.get_total_steps(),
+            auto_supports: task.auto_supports(),
+            dig_if_blocked: true,
             path: task.get_path().clone(),
             ticks: 0,
         }
@@ -41,6 +47,13 @@ impl MovingTask {
 }
 
 impl Task for MovingTask {
+    fn auto_supports(&self) -> bool {
+        self.auto_supports
+    }
+    fn set_auto_supports(&mut self, enabled: bool) -> () {
+        self.auto_supports = enabled;
+    }
+
     fn get_icon(&self) -> char {
         '→'
     }

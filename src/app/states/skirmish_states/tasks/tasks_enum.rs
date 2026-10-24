@@ -26,6 +26,14 @@ impl Tasks {
 }
 
 impl Task for Tasks {
+    fn auto_supports(&self) -> bool {
+        self.t().auto_supports()
+    }
+
+    fn set_auto_supports(&mut self, enabled: bool) -> () {
+        self.t_mut().set_auto_supports(enabled);
+    }
+
     fn get_icon(&self) -> char {
         self.t().get_icon()
     }

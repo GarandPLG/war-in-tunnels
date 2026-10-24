@@ -17,6 +17,13 @@ use crate::app::{
 use ratatui::layout::Rect;
 use std::collections::VecDeque;
 
+pub struct Excavation {
+    pub destination: (usize, usize),
+    pub origin: (usize, usize),
+    pub owner: Players,
+    pub auto_supports: bool,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct BoardState {
     cells_area: Rect,
@@ -32,6 +39,8 @@ pub struct BoardState {
     pub zoom_level: ZoomLevel,
     focused_cell: FocusedCell,
     pub marked_cells: MarkedCells,
+    pub auto_supports: bool,
+    pub movement_only: bool,
 }
 
 impl BoardState {
@@ -145,6 +154,7 @@ impl BoardState {
     }
 
     pub fn advance_construction(&mut self) -> () {
+        let mut opened: bool = false;
         for row in 0..self.cells.len() {
             for col in 0..self.cells[row].len() {
                 if let Structures::MineConstruction(mut site) = self.cells[row][col].get_structure()
@@ -152,6 +162,7 @@ impl BoardState {
                 {
                     site.advance();
                     let structure: Structures = if let Some(mine) = site.into_mine() {
+                        opened = true;
                         Structures::Mine(mine)
                     } else {
                         Structures::MineConstruction(site)
@@ -159,6 +170,9 @@ impl BoardState {
                     self.cells[row][col].set_structure(structure);
                 }
             }
+        }
+        if opened {
+            self.recalculate_stress();
         }
     }
 
@@ -256,6 +270,8 @@ impl BoardState {
             zoom_level,
             focused_cell,
             marked_cells,
+            auto_supports: true,
+            movement_only: false,
         }
     }
 
@@ -333,6 +349,29 @@ impl BoardState {
         self.focused_cell.set_focused_cell(new);
     }
 
+    pub fn configure_selected_task(&mut self, movement_only: bool) -> () {
+        if !self.marked_cells.marking_cells {
+            return;
+        }
+        if movement_only
+            && self
+                .marked_cells
+                .marked_cells
+                .iter()
+                .skip(1)
+                .any(|&coords: &(usize, usize)| -> bool { !self.is_walkable(coords) })
+        {
+            let origin: (usize, usize) = self.marked_cells.selected_unit.get_coords();
+            let focused: (usize, usize) = self.focused_cell.get_coords();
+            self.end_marking_cells(true);
+            self.get_mut_cell(focused.0, focused.1).set_selected(false);
+            self.focused_cell.set_focused_cell(origin);
+            self.marked_cells.marking_cells = true;
+            self.start_marking_cells();
+        }
+        self.movement_only = movement_only;
+    }
+
     pub fn start_marking_cells(&mut self) {
         let (row, col) = self.focused_cell.get_coords();
 
@@ -386,12 +425,17 @@ impl BoardState {
             let tasks: VecDeque<Tasks> = path
                 .chunk_by(|a, b| self.is_walkable(*a) == self.is_walkable(*b))
                 .map(|segment| {
-                    let path = segment.iter().copied().collect();
-                    if self.is_walkable(segment[0]) {
+                    let path: VecDeque<(usize, usize)> = segment.iter().copied().collect();
+                    let mut task: Tasks = if self.movement_only || self.is_walkable(segment[0]) {
                         Tasks::Moving(MovingTask::new(path))
                     } else {
                         Tasks::Digging(DiggingTask::new(path, tick_increase))
+                    };
+                    task.set_auto_supports(self.auto_supports);
+                    if let Tasks::Moving(moving) = &mut task {
+                        moving.dig_if_blocked = !self.movement_only;
                     }
+                    task
                 })
                 .collect();
             if let Some(unit) = self.get_mut_cell(row, col).get_mut_option_unit().as_mut() {
@@ -401,6 +445,7 @@ impl BoardState {
 
         self.marked_cells.selected_unit = None;
         self.marked_cells.marked_cells.clear();
+        self.movement_only = false;
     }
 
     fn max_offset(map_size: usize, size: usize) -> usize {
@@ -490,6 +535,10 @@ impl BoardState {
     pub fn change_focused_cell(&mut self, direction: MoveFocusedCell) {
         let old_cell: (usize, usize) = self.focused_cell.get_coords();
         let new_cell: (usize, usize) = self.focused_cell.move_focused_cell(direction);
+        if self.marked_cells.marking_cells && self.movement_only && !self.is_walkable(new_cell) {
+            self.focused_cell.set_focused_cell(old_cell);
+            return;
+        }
 
         self.get_mut_cell(old_cell.0, old_cell.1)
             .set_selected(false);
@@ -519,7 +568,12 @@ impl BoardState {
         true
     }
 
-    pub fn advance_turn(&mut self) {
+    pub fn advance_turn(&mut self) -> () {
+        let _: Vec<Excavation> = self.advance_turn_with_events();
+    }
+
+    pub fn advance_turn_with_events(&mut self) -> Vec<Excavation> {
+        let mut excavated: Vec<Excavation> = Vec::new();
         // Snapshot positions so moving to a later cell cannot grant another turn.
         let active: Vec<(usize, usize)> = self
             .cells
@@ -536,17 +590,18 @@ impl BoardState {
             .collect();
 
         for (row, col) in active {
+            if self.working_on_support((row, col)) {
+                continue;
+            }
             // Keep the route's origin stable while the player is drawing it.
             if self.marked_cells.marking_cells
                 && self.marked_cells.selected_unit.get_coords() == (row, col)
             {
                 continue;
             }
-            let mut unit: Units = self
-                .get_mut_cell(row, col)
-                .get_mut_option_unit()
-                .take()
-                .unwrap();
+            let Some(mut unit) = self.get_mut_cell(row, col).get_mut_option_unit().take() else {
+                continue;
+            };
             let mut task: Tasks = unit.get_mut_tasks().pop_front().unwrap();
             let mut destination = (row, col);
 
@@ -570,24 +625,38 @@ impl BoardState {
                         (Tasks::Digging(dig), _) if walkable => {
                             Tasks::Moving(MovingTask::from_digging(dig))
                         }
-                        (Tasks::Moving(moving), Structures::Stone(_)) => Tasks::Digging(
-                            DiggingTask::from_moving(moving, unit.get_digging_power()),
-                        ),
+                        (
+                            Tasks::Moving(moving),
+                            Structures::Stone(_) | Structures::CollapsedTunnel(_),
+                        ) if moving.dig_if_blocked => Tasks::Digging(DiggingTask::from_moving(
+                            moving,
+                            unit.get_digging_power(),
+                        )),
                         (task, _) => task,
                     };
                     match (&mut task, structure) {
-                        (Tasks::Digging(dig), Structures::Stone(mut stone)) => {
-                            let max: f32 = f32::from(stone.get_max_durability());
+                        (
+                            Tasks::Digging(dig),
+                            Structures::Stone(_) | Structures::CollapsedTunnel(_),
+                        ) => {
+                            let mut obstacle: Structures = structure;
+                            let max: f32 = f32::from(Stone::new().get_max_durability());
                             let before: u16 = (dig.get_progress() * max / 100.0) as u16;
                             dig.progress();
                             let after: u16 = (dig.get_progress() * max / 100.0) as u16;
-                            stone.take_damage(after.saturating_sub(before));
-                            if stone.get_durability() == 0 {
+                            obstacle.take_damage(after.saturating_sub(before));
+                            if obstacle.get_durability() == 0 {
                                 cell.set_structure(Structures::Tunnel(Tunnel::new()));
+                                excavated.push(Excavation {
+                                    destination: (target_row, target_col),
+                                    origin: (row, col),
+                                    owner: unit.get_owner(),
+                                    auto_supports: dig.auto_supports(),
+                                });
                                 destination = (target_row, target_col);
                                 dig.pop_front();
                             } else {
-                                cell.set_structure(Structures::Stone(stone));
+                                cell.set_structure(obstacle);
                             }
                         }
                         (Tasks::Moving(moving), _) if walkable => {
@@ -609,5 +678,6 @@ impl BoardState {
                 .get_mut_cell(destination.0, destination.1)
                 .get_mut_option_unit() = Some(unit);
         }
+        excavated
     }
 }

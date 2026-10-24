@@ -1,8 +1,9 @@
 use crate::app::states::skirmish_states::{
-    BoardState, Players, Resources,
+    BoardState, Excavation, Players, Resources,
     resources::{MINE_PRODUCTION_TICKS, WOOD_DELIVERY_AMOUNT, WOOD_DELIVERY_TICKS},
-    structures::{BuildingTerrain, Mine, Structure, Structures},
-    units::MinerUnit,
+    structures::{BuildingTerrain, Mine, Structure, Structures, Tunnel},
+    tasks::{Task, Tasks},
+    units::{MinerUnit, Unit},
 };
 use crate::app::widgets::CellWidget;
 
@@ -19,14 +20,163 @@ pub struct SkirmishState {
     pub recruitment_view: bool,
     pub selected_building: usize,
     pub selected_recruit: usize,
+    pub task_view: bool,
+    pub stress_view: bool,
+    pub selected_task: usize,
 }
 
 impl SkirmishState {
-    pub const BUILDING_OPTIONS: &'static [&'static str] = &["Mine"];
+    pub const BUILDING_OPTIONS: &'static [&'static str] = &["Mine", "Support"];
     pub const RECRUITMENT_OPTIONS: &'static [&'static str] = &["Miner"];
+    pub const TASK_OPTIONS: &'static [&'static str] = &["Digging", "Moving"];
+
+    pub fn can_manage_support(&self, coords: (usize, usize), owner: Players) -> bool {
+        owner != Players::Unclaimed
+            && self
+                .board
+                .cells
+                .get(coords.0)
+                .and_then(|row: &Vec<CellWidget>| -> Option<&CellWidget> { row.get(coords.1) })
+                .is_some_and(|cell: &CellWidget| -> bool {
+                    matches!(cell.get_structure(), Structures::Tunnel(_))
+                        && ((cell.get_ref_option_unit().get_owner() == owner
+                            && cell.get_ref_option_unit().get_can_build())
+                            || self.board.has_adjacent_builder(coords, owner))
+                })
+    }
+
+    pub fn can_build_support(&self, coords: (usize, usize), owner: Players) -> bool {
+        let resources: &Resources = match owner {
+            Players::Player => &self.player_resources,
+            Players::Enemy => &self.enemy_resources,
+            Players::Unclaimed => return false,
+        };
+        self.can_manage_support(coords, owner)
+            && resources.can_afford(Tunnel::SUPPORT_COST)
+            && matches!(self.board.cells[coords.0][coords.1].get_structure(), Structures::Tunnel(tunnel) if !tunnel.has_support() && tunnel.support_work().is_none())
+    }
+
+    pub fn build_support(&mut self, coords: (usize, usize), owner: Players) -> bool {
+        if !self.can_build_support(coords, owner) {
+            return false;
+        }
+        let Structures::Tunnel(mut tunnel) = self.board.cells[coords.0][coords.1].get_structure()
+        else {
+            return false;
+        };
+        let resources: &mut Resources = if owner == Players::Player {
+            &mut self.player_resources
+        } else {
+            &mut self.enemy_resources
+        };
+        if !resources.spend(Tunnel::SUPPORT_COST) {
+            return false;
+        }
+        tunnel.start_support_work(owner, false);
+        self.board.cells[coords.0][coords.1].set_structure(Structures::Tunnel(tunnel));
+        true
+    }
+
+    pub fn remove_support(&mut self, coords: (usize, usize), owner: Players) -> bool {
+        if !self.can_manage_support(coords, owner) {
+            return false;
+        }
+        let Structures::Tunnel(mut tunnel) = self.board.cells[coords.0][coords.1].get_structure()
+        else {
+            return false;
+        };
+        if !tunnel.has_support() || tunnel.support_work().is_some() {
+            return false;
+        }
+        tunnel.start_support_work(owner, true);
+        self.board.cells[coords.0][coords.1].set_structure(Structures::Tunnel(tunnel));
+        true
+    }
+
+    pub fn advance_support_work(&mut self) -> () {
+        let mut workers: std::collections::HashSet<(usize, usize)> =
+            std::collections::HashSet::new();
+        let mut finished: bool = false;
+        let mut removed: bool = false;
+        for row in 0..self.board.map_height {
+            for col in 0..self.board.map_width {
+                let Structures::Tunnel(mut tunnel) = self.board.cells[row][col].get_structure()
+                else {
+                    continue;
+                };
+                let Some(work) = tunnel.support_work() else {
+                    continue;
+                };
+                let Some(worker) = self.board.support_worker((row, col), work.owner) else {
+                    continue;
+                };
+                if !workers.insert(worker) {
+                    continue;
+                }
+                if let Some(removing) = tunnel.advance_support_work() {
+                    finished = true;
+                    removed |= removing;
+                }
+                self.board.cells[row][col].set_structure(Structures::Tunnel(tunnel));
+            }
+        }
+        if removed {
+            self.board.resolve_collapses();
+        } else if finished {
+            self.board.recalculate_stress();
+        }
+    }
+
+    fn prepare_automatic_supports(&mut self) -> () {
+        let mut candidates: Vec<((usize, usize), Players)> = Vec::new();
+        for (row, cells) in self.board.cells.iter().enumerate() {
+            for (col, cell) in cells.iter().enumerate() {
+                if !matches!(cell.get_structure(), Structures::Tunnel(tunnel) if !tunnel.has_support() && tunnel.get_stress() == 80)
+                {
+                    continue;
+                }
+                if self.board.working_on_support((row, col))
+                    || (self.board.marked_cells.marking_cells
+                        && self.board.marked_cells.selected_unit.get_coords() == (row, col))
+                {
+                    continue;
+                }
+                let Some(unit) = cell.get_ref_option_unit() else {
+                    continue;
+                };
+                let Some(task) = unit.get_ref_tasks().front() else {
+                    continue;
+                };
+                let Some(&(r, c)) = task.get_path().front() else {
+                    continue;
+                };
+                if task.auto_supports()
+                    && self.can_build_support((row, col), unit.get_owner())
+                    && (matches!(task, Tasks::Digging(_))
+                        || matches!(task, Tasks::Moving(moving) if moving.dig_if_blocked))
+                    && r < self.board.map_height
+                    && c < self.board.map_width
+                    && row.abs_diff(r) + col.abs_diff(c) == 1
+                    && self.board.cells[r][c].get_ref_option_unit().is_none()
+                    && matches!(
+                        self.board.cells[r][c].get_structure(),
+                        Structures::Stone(_) | Structures::CollapsedTunnel(_)
+                    )
+                    && self.board.prospective_tunnel_stress((r, c)) >= 100
+                {
+                    candidates.push(((row, col), unit.get_owner()));
+                }
+            }
+        }
+        for (coords, owner) in candidates {
+            self.build_support(coords, owner);
+        }
+    }
 
     pub fn cycle_popup_option(&mut self, next: bool) -> () {
-        let (selected, count): (&mut usize, usize) = if self.recruitment_view {
+        let (selected, count): (&mut usize, usize) = if self.task_view {
+            (&mut self.selected_task, Self::TASK_OPTIONS.len())
+        } else if self.recruitment_view {
             (&mut self.selected_recruit, Self::RECRUITMENT_OPTIONS.len())
         } else if self.building_view {
             (&mut self.selected_building, Self::BUILDING_OPTIONS.len())
@@ -114,7 +264,12 @@ impl SkirmishState {
     }
 
     pub fn tick_update(&mut self) -> () {
-        self.board.advance_turn();
+        self.advance_support_work();
+        self.prepare_automatic_supports();
+        let excavated: Vec<Excavation> = self.board.advance_turn_with_events();
+        if !excavated.is_empty() {
+            self.board.resolve_collapses();
+        }
         self.board.advance_recruitment();
         self.board.advance_construction();
 

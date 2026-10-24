@@ -6,7 +6,7 @@ use crate::app::{
     states::skirmish_states::{
         BoardState, Players,
         resources::{WOOD_DELIVERY_AMOUNT, WOOD_DELIVERY_INTERVAL_MS},
-        structures::{Mine, Structure, Structures},
+        structures::{Mine, Structure, Structures, Tunnel},
         units::MinerUnit,
     },
     widgets::{BoardWidget, CellWidget, KeybindingsWidget, SidePanelWidget},
@@ -23,7 +23,6 @@ pub fn skirmish_layout(area: Rect) -> [Rect; 3] {
     Layout::vertical([
         Constraint::Length(4),
         Constraint::Fill(1),
-        // Four movement rows plus borders keep the board geometry stable across modes.
         Constraint::Length(6),
     ])
     .areas(area)
@@ -100,8 +99,10 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         let main_inner_area: Rect = main_block.inner(main_area);
         main_block.render(main_area, buf);
 
-        let [board_area, side_panel_area] =
-            skirmish_main_area_layout(main_inner_area, states.skirmish.side_panel);
+        let [board_area, side_panel_area] = skirmish_main_area_layout(
+            main_inner_area,
+            states.skirmish.side_panel || states.skirmish.task_view,
+        );
 
         let cells_area: Rect = board_area.inner(Margin {
             horizontal: 1,
@@ -116,9 +117,43 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
         //     ),
         // );
 
-        BoardWidget::new(&board).render(cells_area, buf);
+        BoardWidget::new(&board, states.skirmish.stress_view).render(cells_area, buf);
 
-        if states.skirmish.side_panel {
+        if states.skirmish.task_view {
+            let mut lines: Vec<Line<'_>> = vec![
+                Line::from("Enter: draw route").green(),
+                Line::from(format!(
+                    "Auto supports: {}",
+                    if board.auto_supports { "ON" } else { "OFF" }
+                ))
+                .cyan(),
+                Line::from("a: toggle auto supports").yellow(),
+                Line::from("Support: 10 Wood + 2 Metal").yellow(),
+                Line::from("Placed at 80% stress").gray(),
+                Line::from("No funds: collapse risk!").red(),
+                Line::from("t: close task selection").gray(),
+            ];
+            if states.skirmish.selected_task == 1 {
+                lines = vec![
+                    Line::from("Enter: draw movement route").green(),
+                    Line::from("Walkable cells only; no digging").cyan(),
+                    Line::from("Collapsed route: wait, do not dig").gray(),
+                    Line::from("t: close task selection").gray(),
+                ];
+            }
+            let block: Block<'_> = Block::bordered()
+                .title("Unit tasks")
+                .padding(Padding::uniform(1));
+            let [tabs_area, details_area]: [Rect; 2] =
+                Layout::vertical([Constraint::Length(2), Constraint::Min(0)])
+                    .areas(block.inner(side_panel_area));
+            block.render(side_panel_area, buf);
+            Tabs::new(SkirmishState::TASK_OPTIONS.iter().copied())
+                .select(states.skirmish.selected_task)
+                .highlight_style(Style::default().fg(Color::LightMagenta).bold())
+                .render(tabs_area, buf);
+            Paragraph::new(lines).render(details_area, buf);
+        } else if states.skirmish.side_panel {
             let (row, col) = board.get_focused_cell().get_coords();
             let mut is_unit_marked: bool = false;
 
@@ -138,10 +173,37 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
 
     {
         let actions: Vec<Action> = available_skirmish_actions(&states.skirmish);
-        let descriptions: [(Action, &'static str); 14] = [
+        let descriptions: [(Action, &'static str); 17] = [
+            (
+                Action::Tasks,
+                if states.skirmish.task_view {
+                    "Close tasks"
+                } else {
+                    "Unit tasks"
+                },
+            ),
+            (
+                Action::AutoSupports,
+                if board.auto_supports {
+                    "Auto supports: ON"
+                } else {
+                    "Auto supports: OFF"
+                },
+            ),
+            (
+                Action::Stress,
+                if states.skirmish.stress_view {
+                    "Normal view"
+                } else {
+                    "Stress view"
+                },
+            ),
             (
                 Action::Left,
-                if states.skirmish.building_view || states.skirmish.recruitment_view {
+                if states.skirmish.building_view
+                    || states.skirmish.recruitment_view
+                    || states.skirmish.task_view
+                {
                     "Previous option"
                 } else {
                     "Left"
@@ -149,7 +211,10 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             ),
             (
                 Action::Right,
-                if states.skirmish.building_view || states.skirmish.recruitment_view {
+                if states.skirmish.building_view
+                    || states.skirmish.recruitment_view
+                    || states.skirmish.task_view
+                {
                     "Next option"
                 } else {
                     "Right"
@@ -165,10 +230,16 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             ),
             (
                 Action::Enter,
-                if states.skirmish.recruitment_view {
+                if states.skirmish.task_view {
+                    "Draw route"
+                } else if states.skirmish.recruitment_view {
                     "Queue Miner"
                 } else {
-                    "Build Mine"
+                    if states.skirmish.selected_building == 1 {
+                        "Build support"
+                    } else {
+                        "Build Mine"
+                    }
                 },
             ),
             (
@@ -182,7 +253,11 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             (
                 Action::Delete,
                 if states.skirmish.building_view {
-                    "Cancel construction"
+                    if states.skirmish.selected_building == 1 {
+                        "Remove support"
+                    } else {
+                        "Cancel construction"
+                    }
                 } else if !board.marked_cells.marking_cells {
                     "Cancel all tasks"
                 } else {
@@ -261,6 +336,50 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             Line::from("Produces: 1 Metal/s (2 with a Miner inside)").cyan(),
         ];
         lines.extend(status);
+        if states.skirmish.selected_building == 1 {
+            lines = vec![
+                Line::from(format!(
+                    "Cost: {} Wood + {} Metal | Work time: 3s",
+                    Tunnel::SUPPORT_COST.wood,
+                    Tunnel::SUPPORT_COST.metal
+                ))
+                .yellow(),
+                Line::from("Tunnel + nearby friendly builder required").gray(),
+                Line::from("Stress: 20% at support, +20% per tile").cyan(),
+                if matches!(structure, Structures::Tunnel(tunnel) if tunnel.support_work().is_some())
+                {
+                    Line::from("Builder occupied until completion").yellow()
+                } else if matches!(structure, Structures::Tunnel(tunnel) if tunnel.has_support())
+                    && states.skirmish.can_manage_support(coords, Players::Player)
+                {
+                    Line::from("Delete: remove support (no refund)").yellow()
+                } else if states.skirmish.can_build_support(coords, Players::Player) {
+                    Line::from("Enter: build support").green()
+                } else {
+                    Line::from("Support unavailable: site, builder or resources").red()
+                },
+                Line::from("WARNING: removal can cause fatal collapses").red(),
+            ];
+            if let Structures::Tunnel(tunnel) = structure
+                && let Some(work) = tunnel.support_work()
+            {
+                lines.push(
+                    Line::from(format!(
+                        "{}: {}%",
+                        if work.removing {
+                            "Removing support"
+                        } else {
+                            "Building support"
+                        },
+                        tunnel.support_progress().unwrap_or(0)
+                    ))
+                    .cyan(),
+                );
+                if board.support_worker(coords, work.owner).is_none() {
+                    lines.push(Line::from("Paused: friendly builder required").yellow());
+                }
+            }
+        }
         Clear.render(popup, buf);
         let block: Block<'_> = Block::bordered()
             .title(Line::from("Buildings").magenta().bold())

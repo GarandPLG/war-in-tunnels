@@ -1,6 +1,8 @@
 use crate::app::states::skirmish_states::{
     Players,
-    structures::{BaseBuilding, Mine, MineConstruction, Ore, Stone, Structure, Tunnel},
+    structures::{
+        BaseBuilding, CollapsedTunnel, Mine, MineConstruction, Ore, Stone, Structure, Tunnel,
+    },
     units::Units,
 };
 use ratatui::{
@@ -13,12 +15,20 @@ pub enum Structures {
     Base(BaseBuilding),
     Tunnel(Tunnel),
     Stone(Stone),
+    CollapsedTunnel(CollapsedTunnel),
     Ore(Ore),
     Mine(Mine),
     MineConstruction(MineConstruction),
 }
 
 impl Structures {
+    pub fn take_damage(&mut self, damage: u16) -> () {
+        match self {
+            Self::Stone(stone) => stone.take_damage(damage),
+            Self::CollapsedTunnel(rubble) => rubble.take_damage(damage),
+            _ => (),
+        }
+    }
     pub fn can_enter(&self, unit: &Units) -> bool {
         match self {
             Self::Base(_) | Self::Tunnel(_) => true,
@@ -42,6 +52,7 @@ impl Structures {
             Self::Base(b) => b,
             Self::Tunnel(t) => t,
             Self::Stone(s) => s,
+            Self::CollapsedTunnel(rubble) => rubble,
             Self::Ore(o) => o,
             Self::Mine(mine) => mine,
             Self::MineConstruction(site) => site,

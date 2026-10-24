@@ -362,6 +362,9 @@ fn confirmed_route_splits_into_moving_and_digging_segments() {
     for col in [3, 4, 7] {
         tunnel(&mut game.board, 5, col);
     }
+    let mut supported: Tunnel = Tunnel::new();
+    supported.set_support(true);
+    game.board.cells[5][7].set_structure(Structures::Tunnel(supported));
     game.board.change_focused_cell(MoveFocusedCell::Left);
     game.board.toggle_marking();
     for _ in 0..5 {

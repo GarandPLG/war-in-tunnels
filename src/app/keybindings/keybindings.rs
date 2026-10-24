@@ -35,6 +35,9 @@ pub enum Action {
     Building,
     /// Open or close the recruitment view.
     Recruitment,
+    Tasks,
+    AutoSupports,
+    Stress,
     /// Unmark last selected cell.
     Backspace,
     /// Cancel marking cell.
@@ -112,6 +115,33 @@ pub struct KeyBinding {
 /// The slice is ordered primarily for readability; the runtime lookup scans
 /// this slice linearly, which is acceptable given the modest size of the list.
 static KEYBINDINGS: &[KeyBinding] = &[
+    KeyBinding {
+        action: Action::Tasks,
+        code: KeyCode::Char('t'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Opener,
+        symbol: "t",
+        description: "Tasks",
+    },
+    KeyBinding {
+        action: Action::AutoSupports,
+        code: KeyCode::Char('a'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Opener,
+        symbol: "a",
+        description: "Auto supports",
+    },
+    KeyBinding {
+        action: Action::Stress,
+        code: KeyCode::Char('s'),
+        kind: KeyEventKind::Press,
+        modifiers: KeyModifiers::NONE,
+        group: Group::Opener,
+        symbol: "s",
+        description: "Stress view",
+    },
     KeyBinding {
         action: Action::Recruitment,
         code: KeyCode::Char('r'),

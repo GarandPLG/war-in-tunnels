@@ -7,12 +7,14 @@ pub struct DiggingTask {
     progress: f32,
     tick_increase: f32,
     total_steps: usize,
+    auto_supports: bool,
 }
 
 impl DiggingTask {
     pub fn new(path: VecDeque<(usize, usize)>, tick_increase: f32) -> Self {
         Self {
             total_steps: path.len(),
+            auto_supports: true,
             path,
             progress: 0.0,
             tick_increase,
@@ -30,6 +32,7 @@ impl DiggingTask {
             progress: 0.0,
             tick_increase,
             total_steps: task.get_total_steps(),
+            auto_supports: task.auto_supports(),
         }
     }
 
@@ -39,6 +42,13 @@ impl DiggingTask {
 }
 
 impl Task for DiggingTask {
+    fn auto_supports(&self) -> bool {
+        self.auto_supports
+    }
+    fn set_auto_supports(&mut self, enabled: bool) -> () {
+        self.auto_supports = enabled;
+    }
+
     fn get_icon(&self) -> char {
         '⛏'
     }

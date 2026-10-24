@@ -24,6 +24,41 @@ pub struct CellWidget {
 }
 
 impl CellWidget {
+    pub fn render_stress(&self, area: Rect, buf: &mut Buffer) -> () {
+        if matches!(self.structure, Structures::Stone(_)) {
+            self.clone()
+                .set_marked(self.selected && self.marked)
+                .clone()
+                .render(area, buf);
+            return;
+        }
+        let stress: u8 = self.structure.get_stress();
+        let red: u8 = (u16::from(stress) * 255 / 100) as u8;
+        let color: Color = if self.selected {
+            self.fg_color()
+        } else {
+            Color::Rgb(red, 255 - red, 30)
+        };
+        let block: Block<'_> = Block::bordered().border_type(BorderType::Rounded).fg(color);
+        let inner: Rect = block.inner(area);
+        block.render(area, buf);
+        if inner.height == 0 || inner.width == 0 {
+            return;
+        }
+        let text: String = if stress == 100 && inner.width < 4 {
+            "100".to_string()
+        } else {
+            format!("{stress}%")
+        };
+        Paragraph::new(text)
+            .fg(color)
+            .alignment(Alignment::Center)
+            .render(
+                Rect::new(inner.x, inner.y + inner.height / 2, inner.width, 1),
+                buf,
+            );
+    }
+
     pub fn new(
         row: usize,
         col: usize,
@@ -124,12 +159,14 @@ impl CellWidget {
                 .to_string()
                 .fg(self.unit.get_owner().get_color()),
         );
-        if let Structures::Stone(stone) = self.structure
-            && stone.get_durability() < stone.get_max_durability()
+        if matches!(
+            self.structure,
+            Structures::Stone(_) | Structures::CollapsedTunnel(_)
+        ) && self.structure.get_durability() < self.structure.get_max_durability()
         {
-            let percent: u32 =
-                u32::from(stone.get_durability()) * 100 / u32::from(stone.get_max_durability());
-            let middle = lines.len() / 2;
+            let percent: u32 = u32::from(self.structure.get_durability()) * 100
+                / u32::from(self.structure.get_max_durability());
+            let middle: usize = lines.len() / 2;
             lines[middle] = Line::from(format!("{percent}%")).cyan();
         }
         if let Structures::MineConstruction(site) = self.structure {
@@ -154,6 +191,12 @@ impl CellWidget {
                 format!("{percent}%")
             };
             lines[middle] = Line::from(label).cyan();
+        }
+        if let Structures::Tunnel(tunnel) = self.structure
+            && let Some(percent) = tunnel.support_progress()
+        {
+            let middle: usize = lines.len() / 2;
+            lines[middle] = Line::from(format!("{percent}%")).cyan();
         }
         lines
     }

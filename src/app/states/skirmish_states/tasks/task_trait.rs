@@ -1,6 +1,10 @@
 use std::collections::VecDeque;
 
 pub trait Task {
+    fn auto_supports(&self) -> bool;
+
+    fn set_auto_supports(&mut self, enabled: bool) -> ();
+
     fn get_icon(&self) -> char;
 
     fn get_path(&self) -> &VecDeque<(usize, usize)>;

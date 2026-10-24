@@ -10,6 +10,8 @@ Testy korzystają z wbudowanego mechanizmu Rust, Clap i `ratatui::backend::TestB
 
 ## Zakres
 
+`tests/tunnel_stress.rs` obejmuje 17 testów: odległość od bazy, propagacja podpór w czterech kierunkach, alternatywne podpory, śmiertelna kaskada i gruz, koszt oraz blokada zdalnego budowania, auto-podpory w ostatnich bezpiecznych miejscach, brak środków, zachowanie opcji przy konwersji zadań, szybsze ponowne kopanie, zakładka Support, widok stresu i boczny panel zadań, wybór Moving bez kopania oraz położenie panelu poza środkiem planszy. Regresje obejmują także pełny czas budowy i rozbiórki, zatrzymanie pracującego górnika, pauzę bez budowniczego, brak dwóch równoległych prac jednego górnika, zwykły kamień w widoku stresu oraz t dostępne dopiero po Space.
+
 | Plik | Liczba | Zachowania |
 |---|---:|---|
 | `tests/cli.rs` | 5 | Domyślne ustawienia, granice wszystkich opcji liczbowych, XP (także NaN i infinity), błędne enumy, flagi audio, uruchomienie binarki z help/version i błędnym argumentem |
@@ -23,7 +25,7 @@ Testy korzystają z wbudowanego mechanizmu Rust, Clap i `ratatui::backend::TestB
 | `tests/recruitment.rs` | 10 | Wyłącznie własna Base, atomowy koszt każdej pozycji i brak obciążenia przy błędzie, 10 sekund rekrutacji, oczekiwanie przy 100%, brak nadpisania jednostki, blokada kolejnych pozycji do wyjścia poprzedniego rekruta, wznowienie po ruchu, niezależne bazy i właściciele, r/Enter, ignorowanie Esc w obu panelach i kontekstowa legenda |
 | `tests/digging.rs` | 18 | Wykonywanie kopania i ruchu, kolejki, 3 sekundy na krok, wejście po wykopaniu, blokady i walidacja, kolory i procenty w TUI, podział trasy Moving/Digging, ochrona struktur, zmiana rodzaju zadania, panel Tab z postępem etapu i całego zadania |
 
-Łącznie: 89 testów. Wszystkie testy znajdują się w `tests/` i sprawdzają publiczne interfejsy biblioteki lub binarkę. Funkcja `load_audio` jest eksportowana przez `app::threads`, dzięki czemu test korzysta z tego samego dekodera co odtwarzanie.
+Łącznie: 106 testów. Wszystkie testy znajdują się w `tests/` i sprawdzają publiczne interfejsy biblioteki lub binarkę. Funkcja `load_audio` jest eksportowana przez `app::threads`, dzięki czemu test korzysta z tego samego dekodera co odtwarzanie.
 
 Wybrane zestawy i pojedynczy przypadek:
 
@@ -61,7 +63,7 @@ Workflow określa obraz zadania jawnie jako `node:22-bookworm`. Kontener działa
 
 Wersję Rust w CI określa `RUST_VERSION` w workflow, niezależnie od lokalnego `flake.lock`. Formatowanie, kompilacja, testy i Clippy są oddzielnymi krokami Cargo. Polecenia kompilujące projekt mają `--locked`; Clippy nie używa `-D warnings` z powodu istniejących ostrzeżeń. `actions/cache@v4` zachowuje osobno toolchain oraz rejestr Cargo, repozytoria git i `target`. Klucze uwzględniają wersję Rust, a dla Cargo także manifest, lockfile i kod; klucze częściowe pozwalają ponownie wykorzystać wcześniejsze kompilacje. Działanie cache wymaga dostępnego serwera cache runnera. Pierwszy przebieg wypełnia cache; błędy pobierania cache mogą spowodować ponowną instalację i kompilację.
 
-Release ma `overflow-checks = true`. Ten sam zestaw 89 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
+Release ma `overflow-checks = true`. Ten sam zestaw 106 testów można wykonać z kontrolą przepełnień w profilu produkcyjnym:
 
 ```sh
 nix develop -c cargo test --all-targets --release --locked

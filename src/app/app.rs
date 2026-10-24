@@ -56,10 +56,10 @@ impl App {
             if let Ok((_, _)) = resize_rx.try_recv() {
                 let window_area: Rect = self.window_area;
                 if let Some(state) = self.states_mut() {
-                    state
-                        .skirmish
-                        .board
-                        .change_resize(&window_area, state.skirmish.side_panel);
+                    state.skirmish.board.change_resize(
+                        &window_area,
+                        state.skirmish.side_panel || state.skirmish.task_view,
+                    );
                 }
             }
 

@@ -56,7 +56,7 @@ flowchart TD
     LOOP -->|exit lub błąd| RESTORE[ratatui::restore]
 ```
 
-Kanały to standardowe `std::sync::mpsc`. Stan gry mutuje główny wątek. Każdy obrót pętli najpierw rysuje, następnie próbuje odebrać po jednym zdarzeniu z każdego kanału. Aktualizacja potyczki odbywa się niezależnie od wybranego ekranu. `tick_update` wykonuje `board.advance_turn()` i zwiększa `turn_counter`.
+Kanały to standardowe `std::sync::mpsc`. Stan gry mutuje główny wątek. Każdy obrót pętli najpierw rysuje, następnie próbuje odebrać po jednym zdarzeniu z każdego kanału. Aktualizacja potyczki odbywa się niezależnie od wybranego ekranu. `tick_update` wykonuje kroki jednostek przez advance_turn_with_events, rozlicza podpory i zawalenia, rekrutację, budowę oraz zasoby, a następnie zwiększa licznik czasu.
 
 `GameStates::new` tworzy wszystkie stany jednocześnie. `SettingsState` przechowuje parametry z CLI; `SkirmishState` ma odrębne bieżące `player_resources` i `enemy_resources`, inicjalizowane z starting_wood/starting_metal. Nagłówek TUI odczytuje te magazyny zamiast ustawień. `--starting-iron` jest aliasem nowego `--starting-metal`; XP, supply i tryb gry nadal nie mają pełnej symulacji. `View` zawiera MainMenu, Skirmish, PerkDecks i SkillsConfig. Dwa ostatnie używają `default_view` z napisem „Work in progress”; ustawienia nie mają osobnego wariantu `View`.
 
@@ -79,7 +79,7 @@ flowchart LR
 
 `BoardState.cells: Vec<Vec<CellWidget>>` łączy model i prezentację: komórka zawiera strukturę, opcjonalną jednostkę, pozycję i flagi UI. `BoardWidget` wybiera widoczne komórki przez offsety i layout; `CellWidget` odpowiada za ich tekst i styl. Panel boczny prezentuje dane zaznaczenia. Zoom wpływa na wielkość komórek i liczbę widocznych wierszy/kolumn; resize i przełączanie panelu zmieniają granice offsetów.
 
-Mapa powstaje deterministycznie: kamień, baza gracza w `(map_height / 2, 2)`, baza przeciwnika w `(map_height / 2, map_width - 3)`, sąsiadujące neutralne złoża i po jednym górniku w bazie. Kopalnie nie są rozmieszczane na starcie. CLI domyślnie wybiera mapę 42 × 11; dopuszczalne zakresy to szerokość 36–108 i wysokość 11–39. Struktury to Base, Ore, Stone, Tunnel, MineConstruction i Mine; jedyna jednostka to Miner. Zadania to Digging i Moving, implementujące wspólny trait Task.
+Mapa powstaje deterministycznie: kamień, baza gracza w `(map_height / 2, 2)`, baza przeciwnika w `(map_height / 2, map_width - 3)`, sąsiadujące neutralne złoża i po jednym górniku w bazie. Kopalnie nie są rozmieszczane na starcie. CLI domyślnie wybiera mapę 42 × 11; dopuszczalne zakresy to szerokość 36–108 i wysokość 11–39. Struktury to Base, Ore, Stone, Tunnel, MineConstruction, Mine i CollapsedTunnel; jedyna jednostka to Miner. Zadania to Digging i Moving, implementujące wspólny trait Task.
 
 `Resources` przechowuje Wood i Metal jako u32; dodawanie saturuje zamiast przepełniać licznik. `tick_update` po zadaniach jednostek dodaje graczowi 5 Wood co 152 ticki (5016 ms). Co 31 ticków (1023 ms) kopalnie wydobywają po 1 Metal lub 2 Metal, jeśli na ich kratce stoi własny Miner. `Mine::accepts_unit` określa możliwość obsadzenia, a `production_per_cycle` ogranicza wydobycie pozostałą zawartością złoża. Rzeczywiście uzyskana ilość jest odejmowana z Ore i dopisywana właścicielowi. Wyczerpane złoże pozostaje z ilością zero. SidePanelWidget pokazuje tempo i aktywny bonus Miner. Wartości i okresy określają stałe w resources.rs oraz Mine::METAL_PER_CYCLE/STAFFED_METAL_PER_CYCLE.
 
@@ -97,7 +97,7 @@ r jest dostępne na własnej Base poza rysowaniem trasy i widokiem budowania. Sk
 
 ## Klawisze i zlecanie kopania
 
-Okna budowania i rekrutacji mają Tabs oraz osobne indeksy selected_building/selected_recruit w SkirmishState. Listy BUILDING_OPTIONS/RECRUITMENT_OPTIONS zawierają obecnie wyłącznie Mine/Miner. cycle_popup_option zawija wybór strzałkami Left/Right w obrębie aktywnego okna, bez ruchu planszy. Przy dodawaniu kolejnego typu trzeba uzupełnić listę oraz powiązać szczegóły, walidację i akcje Enter/Delete z jego indeksem; obecna implementacja akcji obsługuje tylko istniejące typy.
+Okna budowania i rekrutacji mają Tabs oraz osobne indeksy selected_building/selected_recruit w SkirmishState. Listy BUILDING_OPTIONS/RECRUITMENT_OPTIONS zawierają obecnie Mine i Support / Miner. cycle_popup_option zawija wybór strzałkami Left/Right w obrębie aktywnego okna, bez ruchu planszy. Przy dodawaniu kolejnego typu trzeba uzupełnić listę oraz powiązać szczegóły, walidację i akcje Enter/Delete z jego indeksem; obecna implementacja akcji obsługuje tylko istniejące typy.
 
 CellWidget pokazuje cyjanowy postęp BaseBuilding::recruitment_progress na środku kratki, gdy queued_miners > 0. Wskaźnik obejmuje 0% i oczekiwanie przy 100%; po opróżnieniu kolejki znika. W najmniejszym zoomie 100 nie ma sufiksu %, aby zmieścić trzy znaki. Rekrutacja ma pierwszeństwo przed procentem ruchu jednostki opuszczającej bazę; w zwykłym i dużym zoomie zachowany jest znacznik jednostki.
 
@@ -125,6 +125,18 @@ Gdy panel Tab jest otwarty, fokus wskazuje własną jednostkę z zadaniami i nie
 
 BoardWidget podczas renderowania zbiera pozostałe współrzędne zadań własnych jednostek do HashSet. W widocznych kopiach CellWidget ustawia marked dla tych pól, korzystając z istniejącej pary LightMagenta/Magenta i obsługi zoomu. Nie modyfikuje flag modelu ani rysowanej trasy. Zakończenie lub anulowanie zadania usuwa podświetlenie przy kolejnym renderowaniu; trasy przeciwnika nie są pokazywane.
 
+## Stres, podpory i zawalenia
+
+Panel zadań ma zakładki TASK_OPTIONS: Digging/Moving i indeks selected_task. Digging zachowuje dotychczasowy podział trasy na odcinki kopania i ruchu. Wybór Moving ustawia BoardState::movement_only na czas rysowania: kursor nie przekracza nieprzechodnich pól, a zadania MovingTask otrzymują dig_if_blocked=false, więc nie zamieniają się w kopanie po późniejszym zawaleniu drogi. Domyślne zadania ruchu w ramach trasy kopania zachowują konwersję. Zatwierdzenie/anulowanie czyści movement_only; spacja rozpoczynająca nową trasę wybiera domyślne kopanie. Zamknięcie panelu t i przejście Enter do rysowania odtwarzają rozmiar planszy zależny od Tab.
+
+`Tunnel` przechowuje roof_support i stres. Podpora daje `get_level() == 'T'`, kosztuje Tunnel::SUPPORT_COST (10 Wood, 2 Metal). `SkirmishState::can_build_support/build_support/remove_support` sprawdzają teren, własnego budowniczego na polu lub obok, zasoby i aktualny stan podpory. Budowa i usuwanie trwają po 91 ticków pracy (3003 ms). Tunnel przechowuje SupportWork (owner, removing, ticks); dopiero ukończenie zmienia roof_support. Usunięcie nie zwraca zasobów i wywołuje kaskadę po zakończeniu. Nie istnieje osobny budynek podpory.
+
+`board_stress.rs` rozszerza BoardState: recalculate_stress wykonuje wieloźródłowe przejście po siatce. Bazy startują z odległością 0, podpory z 20; każdy krok po tunelu lub gotowej Mine dodaje 20, z limitem 100. Odłączone tunele mają 100. resolve_collapses zamienia tunele o stresie >=100 w CollapsedTunnel, usuwa jednostki i ponawia przeliczenie do stabilizacji. Jeśli zginął zaznaczony budowniczy, czyści rysowanie jego trasy. CollapsedTunnel ma 750 HP, tag #, stres 100 i nie jest przechodni; można go wykopać ponownie. Obrażenia kopania odnoszą się do bazowych 1000 HP kamienia, więc gruz usuwa się szybciej.
+
+`advance_turn_with_events` wykonuje jeden krok jednostek i zwraca Excavation (origin, destination, owner, auto_supports). Tick SkirmishState najpierw advance_support_work (maksymalnie jedna praca na budowniczego, pauza bez budowniczego), następnie prepare_automatic_supports. Przed niebezpiecznym wykopem automat opłaca i rozpoczyna podporę na własnym polu 80%; prospective_tunnel_stress wylicza ryzyko przed uszkodzeniem przeszkody. working_on_support wstrzymuje ruch i kopanie pracującego górnika. Po wykopach tick rozstrzyga zawalenia przed rekrutacją i budową. Automat nie stawia podpory na końcu trasy, jeśli kolejny wykop jej nie potrzebuje. Low-level advance_turn pozostaje krokiem jednostek bez gospodarki i rozstrzygania stresu; pełną symulację uruchamia tick_update. Zakończenie budowy Mine również odświeża odległości sieci.
+
+`Task::auto_supports/set_auto_supports` delegują ustawienie przez Tasks, DiggingTask i MovingTask; konwersja rodzaju zadania je zachowuje. BoardState::auto_supports jest domyślnym wyborem kopiowanym do nowych segmentów podczas zatwierdzenia trasy. Panel `t` jest dostępny tylko w trybie zaznaczenia przez Space i korzysta z prawego obszaru istniejącego layoutu, bez okna na środku mapy; `a` zmienia opcję, Enter zmienia rodzaj aktualnej trasy przez configure_selected_task, bez zatwierdzania jej do kolejki. Jeśli wybrano Moving, a szkic zawiera kamień, resetuje szkic do początku. Resize uwzględnia task_view. Budowanie ma zakładki Mine/Support. `s` przełącza stress_view i BoardWidget rysuje komórki przez CellWidget::render_stress: procent, gradient zielony/czerwony i dotychczasowy kolor fokusu, bez znaczników jednostek, tras i innych postępów; zwykły Stone jest wyjątkiem i zachowuje normalny wygląd, bez stresu. Model komórek nie jest mutowany przez renderowanie.
+
 ## Audio i pakowanie
 
 Główny wątek wysyła `AudioCmd`; osobny wątek obsługuje głośność, mute, część i soundtrack. Cache wykorzystuje `Lazy`, `RwLock`, `Arc` i bajty OGG. Calm ładuje `calm.ogg`; Buildup, Assault i Outro korzystają obecnie z `test.ogg`. Błędy urządzenia, odczytu i dekodowania mogą zakończyć wątek przez `expect`.
@@ -141,7 +153,7 @@ To obserwacje statyczne, nie lista napraw wykonanych w tej sesji:
 - **Zaznaczenie:** wybrany górnik czeka podczas rysowania trasy; inne jednostki wykonują zadania normalnie.
 - **Audio:** usunięto aktywne odpytywanie; pomiar CPU na docelowym urządzeniu i odsłuch pozostają do wykonania. Test dekodera nie weryfikuje urządzenia audio.
 - **Granice UI:** małe terminale, resize i trzy poziomy zoomu wymagają interaktywnego sprawdzenia. Indeksowanie planszy zakłada poprawne współrzędne.
-- **Pokrycie:** 89 testów CLI, sterowania i kontekstowej legendy, renderowania, planszy, zasobów, budowania/obsadzania kopalni, rekrutacji i blokowania kolejki bazy, zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Workflow Gitea sprawdza też profil release; nie obejmuje pełnej rozgrywki. Clippy ma istniejące ostrzeżenia, unused_unit jest jawnie dozwolony. Nie uruchamiać automatycznych poprawek poza zakresem zadania.
+- **Pokrycie:** 106 testów CLI, sterowania i kontekstowej legendy, renderowania, planszy, zasobów, budowania/obsadzania kopalni, rekrutacji i blokowania kolejki bazy, zadań i dekodowania audio; szczegóły w [TESTING.md](TESTING.md). Workflow Gitea sprawdza też profil release; nie obejmuje pełnej rozgrywki. Clippy ma istniejące ostrzeżenia, unused_unit jest jawnie dozwolony. Nie uruchamiać automatycznych poprawek poza zakresem zadania.
 
 ## Gdzie zacząć konkretną zmianę
 

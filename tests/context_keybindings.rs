@@ -77,9 +77,16 @@ fn building_view_has_its_own_help_and_does_not_build_on_invalid_tile() -> () {
     assert!(app.states_ref().unwrap().skirmish.building_view);
     assert_eq!(
         available_skirmish_actions(&app.states_ref().unwrap().skirmish),
-        [Action::Building, Action::Left, Action::Right, Action::Quit2]
+        [
+            Action::Building,
+            Action::Left,
+            Action::Right,
+            Action::Stress,
+            Action::Quit2
+        ]
     );
     press(&mut app, KeyCode::Left, KeyModifiers::NONE);
+    press(&mut app, KeyCode::Right, KeyModifiers::NONE);
     press(&mut app, KeyCode::Enter, KeyModifiers::NONE);
     press(&mut app, KeyCode::Char(' '), KeyModifiers::NONE);
     assert_eq!(app.states_ref().unwrap().skirmish.board, before);
@@ -218,12 +225,17 @@ fn popup_tabs_cycle_without_moving_map_or_changing_queues() -> () {
         let before: war_in_tunnels::app::states::skirmish_states::BoardState =
             app.states_ref().unwrap().skirmish.board.clone();
         press(&mut app, KeyCode::Char(key), KeyModifiers::NONE);
-        for code in [KeyCode::Left, KeyCode::Right, KeyCode::Right, KeyCode::Left] {
+        for (code, index) in [
+            (KeyCode::Left, 1),
+            (KeyCode::Right, 0),
+            (KeyCode::Right, 1),
+            (KeyCode::Left, 0),
+        ] {
             press(&mut app, code, KeyModifiers::NONE);
             let state: &war_in_tunnels::app::states::SkirmishState =
                 &app.states_ref().unwrap().skirmish;
             assert_eq!(state.board, before);
-            assert_eq!(state.selected_building, 0);
+            assert_eq!(state.selected_building, if key == 'b' { index } else { 0 });
             assert_eq!(state.selected_recruit, 0);
             assert!(available_skirmish_actions(state).contains(&Action::Left));
             assert!(available_skirmish_actions(state).contains(&Action::Right));

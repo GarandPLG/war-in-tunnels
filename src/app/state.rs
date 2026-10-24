@@ -42,6 +42,9 @@ impl GameStates {
                 recruitment_view: false,
                 selected_building: 0,
                 selected_recruit: 0,
+                task_view: false,
+                stress_view: false,
+                selected_task: 0,
             },
             perk_decks: PerkDecksState {
                 id: 2,
