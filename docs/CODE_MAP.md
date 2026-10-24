@@ -24,9 +24,9 @@ Wszystkie ścieżki poniżej są względem katalogu głównego repozytorium.
 | Wątki | `src/app/threads/{events,tick,audio}.rs` | Crossterm, zegar 33 ms, Rodio i komendy audio |
 | Środowisko | `Cargo.toml`, `flake.nix`, `default.nix`, `flake.lock` | Zależności, toolchain Fenix, ALSA, pakowanie przez Naersk lub buildRustPackage |
 | Formatowanie | `rustfmt.toml` | Rustfmt, styl 2024, wcięcia po 2 spacje, docelowo 100 znaków i zakończenia LF |
-| Kontrole CI | `.gitea/workflows/rust.yml` | Gitea Actions w `node:22-bookworm`: Rust 1.99.1 przez rustup, cache toolchaina i Cargo, formatowanie, kompilacja, testy debug/release i Clippy |
-| Budowa paczki Nix | `.gitea/workflows/nix.yml` | Oddzielny workflow buduje `.#default`, czyli `default.nix` przez nixpkgs przypięte w `flake.lock`, z testami i kontrolą instalacji pakietu |
-| Paczki Linux | `.gitea/workflows/packages.yml`, `packaging/` | Testowe deb, rpm, AppImage, Flatpak oraz makepkg dla AUR; bez wydań i tagów; szczegóły w `docs/PACKAGING.md` |
+| Kontrole CI | `.gitea/workflows/tests.yml` | Workflow `Project tests` po pushu i dla pull requestów; kolejność przez `needs`: `check → nix → linux → aur`. Job `check` w `node:22-bookworm`: Rust 1.99.1 przez rustup, cache toolchaina i Cargo, formatowanie, kompilacja, testy debug/release i Clippy |
+| Budowa paczki Nix | `.gitea/workflows/tests.yml` (job `nix`) | Po sukcesie `check` buduje `.#default`, czyli `default.nix` przez nixpkgs przypięte w `flake.lock`, z testami i kontrolą instalacji pakietu |
+| Paczki Linux | `.gitea/workflows/tests.yml` (joby `linux`, `aur`), `packaging/` | Po sukcesie `nix`: testowe deb, rpm, AppImage i Flatpak w `linux`, następnie makepkg dla AUR w `aur`; bez wydań i tagów; szczegóły w `docs/PACKAGING.md` |
 | Licencja | `LICENSE`, `Cargo.toml`, `default.nix` | MIT, Copyright (c) 2026 GarandPLG |
 | Zasoby | `soundtracks/default/`, `ui_draft/` | Dwa pliki OGG i tekstowe szkice ekranów |
 

@@ -1,11 +1,84 @@
-name: Linux package builds (test)
+name: Project tests
 
 on:
   push:
   pull_request:
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    container: node:22-bookworm
+    env:
+      RUST_VERSION: 1.99.1
+      CARGO_HOME: /root/.cargo
+      RUSTUP_HOME: /root/.rustup
+    steps:
+      - name: Checkout
+        uses: https://github.com/actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl build-essential pkg-config libasound2-dev zstd
+      - name: Rust toolchain cache
+        uses: https://github.com/actions/cache@v4
+        with:
+          path: |
+            /root/.rustup
+            /root/.cargo/bin
+          key: rust-toolchain-v1-linux-x64-${{ env.RUST_VERSION }}
+      - name: Install Rust
+        run: |
+          if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh
+            sh /tmp/rustup-init.sh -y --profile minimal --default-toolchain none --no-modify-path
+          fi
+          "$CARGO_HOME/bin/rustup" toolchain install "$RUST_VERSION" --profile minimal --component rustfmt --component clippy
+          "$CARGO_HOME/bin/rustup" default "$RUST_VERSION"
+          echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+      - name: Cargo cache
+        uses: https://github.com/actions/cache@v4
+        with:
+          path: |
+            /root/.cargo/registry
+            /root/.cargo/git
+            target
+          key: cargo-v1-linux-x64-${{ env.RUST_VERSION }}-${{ hashFiles('Cargo.lock') }}-${{ hashFiles('Cargo.toml', 'src/**', 'tests/**') }}
+          restore-keys: |
+            cargo-v1-linux-x64-${{ env.RUST_VERSION }}-${{ hashFiles('Cargo.lock') }}-
+            cargo-v1-linux-x64-${{ env.RUST_VERSION }}-
+      - name: Formatting
+        run: cargo fmt --all -- --check
+      - name: Compilation
+        run: cargo check --all-targets --locked
+      - name: Tests
+        run: cargo test --all-targets --locked
+      - name: Release tests
+        run: cargo test --all-targets --release --locked
+      - name: Clippy
+        run: cargo clippy --all-targets --locked
+
+
+  nix:
+    needs: check
+    runs-on: ubuntu-latest
+    container: node:22-bookworm
+    steps:
+      - name: Checkout
+        uses: https://github.com/actions/checkout@v4
+      - name: Install runner prerequisites
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends sudo
+      - name: Install Nix
+        uses: https://github.com/cachix/install-nix-action@v31
+        with:
+          enable_kvm: false
+      - name: Build default.nix package
+        run: nix build .#default --no-update-lock-file --no-link --print-out-paths --print-build-logs
+
+
   linux:
+    needs: nix
     runs-on: ubuntu-latest
     container: node:22-bookworm
     env:
@@ -69,7 +142,9 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+
   aur:
+    needs: linux
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     steps:

@@ -1,5 +1,11 @@
 # Dziennik prac
 
+## 2026-10-24 — wspólny workflow Gitea i kolejność jobów
+
+Odnotowano zmianę użytkownika: `.gitea/workflows/tests.yml` (`Project tests`) zastępuje osobne workflowy `rust.yml`, `nix.yml` i `packages.yml`. Po pushu i dla pull requestów wykonuje joby w kolejności `check → nix → linux → aur`, wymuszonej przez `needs`. Błąd wcześniejszego joba pomija zależne joby. `check` wykonuje kontrole Rust, `nix` buduje `.#default`, `linux` pakuje deb/rpm/AppImage/Flatpak, a `aur` buduje i instaluje paczkę Arch. Artefakty pozostają testowe, bez publikowania wydań i tagów, z retencją 7 dni.
+
+Zaktualizowano CODE_MAP, TESTING, PACKAGING i AGENTS, w tym opis współdzielonego cache toolchaina oraz osobnych cache Cargo. Nie zmieniano workflowu ani flake.nix. Dokumentację porównano z aktualnym yml; `git diff --check` i `nix develop -c cargo check --all-targets --locked` przeszły. Nie uruchamiano jobów Gitea.
+
 ## 2026-10-24 — czas podpór, kamień bez stresu i wybór zadania po Space
 
 Budowa i usuwanie podpór trwają po 91 ticków pracy (3003 ms). Tunnel przechowuje SupportWork z właścicielem, rodzajem pracy i postępem; roof_support zmienia się dopiero przy ukończeniu. Budowa pobiera koszt raz przy rozpoczęciu, a podpora w trakcie rozbiórki nadal stabilizuje sieć. Kaskada następuje dopiero po zakończeniu usuwania. Postęp jest na kratce, w zakładce Support i pod Tab. Bez budowniczego timer pauzuje; jeden górnik nie wykonuje dwóch podpór naraz, a jego ruch i kopanie są wstrzymane na czas pracy.
