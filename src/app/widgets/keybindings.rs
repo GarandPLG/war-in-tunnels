@@ -83,7 +83,11 @@ impl KeybindingsWidget {
                                     description
                                 },
                             );
-                        Line::from_iter([kb.symbol.red().bold(), " - ".into(), description.into()])
+                        Line::from_iter([
+                            kb.symbol.fg(Color::Rgb(128, 0, 0)).bold(),
+                            " - ".into(),
+                            description.into(),
+                        ])
                     })
                 })
                 .collect();
@@ -140,7 +144,7 @@ impl Widget for KeybindingsWidget {
                 .borders(Borders::ALL)
                 .title(block_single_title_helper(
                     "Keybindings".to_string(),
-                    Color::Magenta,
+                    Color::Rgb(128, 0, 128),
                 ));
 
         let inner: Rect = block.inner(area);

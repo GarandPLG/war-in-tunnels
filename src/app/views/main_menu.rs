@@ -8,7 +8,7 @@ use clap::ValueEnum;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
-    style::Stylize,
+    style::{Color, Stylize},
     text::Line,
     widgets::{Block, Borders, Paragraph, Widget},
 };
@@ -62,8 +62,12 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
 
         Paragraph::new(title_text)
             .alignment(Alignment::Center)
-            .yellow()
-            .block(Block::new().gray().borders(Borders::LEFT | Borders::RIGHT))
+            .fg(Color::Rgb(128, 128, 0))
+            .block(
+                Block::new()
+                    .fg(Color::Rgb(192, 192, 192))
+                    .borders(Borders::LEFT | Borders::RIGHT),
+            )
             .render(title_area, buf);
     }
 
@@ -78,9 +82,13 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
                 let view_string: String = main_menu_option_helper(format!("{:?}", view));
 
                 let styled: Line<'_> = if states.main_menu.selected_view == i {
-                    Line::from_iter(["> ".cyan(), view_string.yellow()]).yellow()
+                    Line::from_iter([
+                        "> ".fg(Color::Rgb(0, 128, 128)),
+                        view_string.fg(Color::Rgb(128, 128, 0)),
+                    ])
+                    .fg(Color::Rgb(128, 128, 0))
                 } else {
-                    Line::from(format!("  {view_string}")).white()
+                    Line::from(format!("  {view_string}")).fg(Color::Rgb(255, 255, 255))
                 };
 
                 styled
@@ -89,8 +97,12 @@ pub fn main_menu_view(app: &App, area: Rect, buf: &mut Buffer) {
 
         Paragraph::new(lines)
             .alignment(Alignment::Center)
-            .green()
-            .block(Block::new().gray().borders(Borders::LEFT | Borders::RIGHT))
+            .fg(Color::Rgb(0, 128, 0))
+            .block(
+                Block::new()
+                    .fg(Color::Rgb(192, 192, 192))
+                    .borders(Borders::LEFT | Borders::RIGHT),
+            )
             .render(options_area, buf);
     }
 

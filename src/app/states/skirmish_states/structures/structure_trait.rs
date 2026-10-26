@@ -30,21 +30,25 @@ pub trait Structure {
 
         let mut lines: Vec<Line<'_>> = vec![
             Line::from_iter([
-                "Durability: ".gray(),
-                durability.to_string().cyan(),
-                "/".gray(),
-                max_durability.to_string().cyan(),
-                " ( ".gray(),
-                durability_percent.to_string().cyan(),
-                "% )".gray(),
+                "Durability: ".fg(Color::Rgb(192, 192, 192)),
+                durability.to_string().fg(Color::Rgb(0, 128, 128)),
+                "/".fg(Color::Rgb(192, 192, 192)),
+                max_durability.to_string().fg(Color::Rgb(0, 128, 128)),
+                " ( ".fg(Color::Rgb(192, 192, 192)),
+                durability_percent.to_string().fg(Color::Rgb(0, 128, 128)),
+                "% )".fg(Color::Rgb(192, 192, 192)),
             ]),
-            Line::from_iter(["Stress: ".gray(), stress.to_string().cyan(), "%".gray()]),
+            Line::from_iter([
+                "Stress: ".fg(Color::Rgb(192, 192, 192)),
+                stress.to_string().fg(Color::Rgb(0, 128, 128)),
+                "%".fg(Color::Rgb(192, 192, 192)),
+            ]),
         ];
 
         if level != ' ' {
             lines.push(Line::from_iter([
-                "Level: ".gray(),
-                level.to_string().cyan(),
+                "Level: ".fg(Color::Rgb(192, 192, 192)),
+                level.to_string().fg(Color::Rgb(0, 128, 128)),
             ]));
         }
 

@@ -39,7 +39,10 @@ impl CellWidget {
         } else {
             Color::Rgb(red, 255 - red, 30)
         };
-        let block: Block<'_> = Block::bordered().border_type(BorderType::Rounded).fg(color);
+        let block: Block<'_> = Block::bordered()
+            .border_type(BorderType::Rounded)
+            .fg(color)
+            .title(format!("{}{}", self.col_to_letters(), self.row));
         let inner: Rect = block.inner(area);
         block.render(area, buf);
         if inner.height == 0 || inner.width == 0 {
@@ -132,7 +135,7 @@ impl CellWidget {
 
     fn display_coords(&self) -> Span<'_> {
         if self.selected || self.structure != Structures::Stone(Stone::new()) || self.marked {
-            format!("{}{}", self.col_to_letters(), self.row).green()
+            format!("{}{}", self.col_to_letters(), self.row).fg(Color::Rgb(0, 128, 0))
         } else {
             "".to_span()
         }
@@ -140,13 +143,18 @@ impl CellWidget {
 
     fn fg_color(&self) -> Color {
         if self.marked && self.selected {
-            Color::Magenta
+            Color::Rgb(128, 0, 128)
         } else if self.marked && !self.selected {
-            Color::LightMagenta
+            Color::Rgb(255, 0, 255)
         } else if !self.marked && self.selected {
-            Color::LightYellow
+            Color::Rgb(255, 255, 0)
         } else {
-            self.structure.get_color()
+            match self.structure.get_color() {
+                Color::Rgb(red, green, blue) => {
+                    Color::Rgb(red - red / 4, green - green / 4, blue - blue / 4)
+                }
+                color => color,
+            }
         }
     }
 
@@ -167,11 +175,12 @@ impl CellWidget {
             let percent: u32 = u32::from(self.structure.get_durability()) * 100
                 / u32::from(self.structure.get_max_durability());
             let middle: usize = lines.len() / 2;
-            lines[middle] = Line::from(format!("{percent}%")).cyan();
+            lines[middle] = Line::from(format!("{percent}%")).fg(Color::Rgb(0, 128, 128));
         }
         if let Structures::MineConstruction(site) = self.structure {
             let middle: usize = lines.len() / 2;
-            lines[middle] = Line::from(format!("{}%", site.progress_percent())).cyan();
+            lines[middle] =
+                Line::from(format!("{}%", site.progress_percent())).fg(Color::Rgb(0, 128, 128));
         }
         if let Some(unit) = &self.unit
             && let Some(Tasks::Moving(task)) = unit.get_ref_tasks().front()
@@ -190,13 +199,13 @@ impl CellWidget {
             } else {
                 format!("{percent}%")
             };
-            lines[middle] = Line::from(label).cyan();
+            lines[middle] = Line::from(label).fg(Color::Rgb(0, 128, 128));
         }
         if let Structures::Tunnel(tunnel) = self.structure
             && let Some(percent) = tunnel.support_progress()
         {
             let middle: usize = lines.len() / 2;
-            lines[middle] = Line::from(format!("{percent}%")).cyan();
+            lines[middle] = Line::from(format!("{percent}%")).fg(Color::Rgb(0, 128, 128));
         }
         lines
     }

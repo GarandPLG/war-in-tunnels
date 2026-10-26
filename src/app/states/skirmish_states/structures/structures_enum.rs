@@ -100,7 +100,7 @@ impl Structure for Structures {
                 let mut lines: Vec<Line<'_>> = self.s().text();
 
                 lines.push(Line::from_iter([
-                    "Owner: ".gray(),
+                    "Owner: ".fg(Color::Rgb(192, 192, 192)),
                     self.s().get_owner().get_span(),
                 ]));
 

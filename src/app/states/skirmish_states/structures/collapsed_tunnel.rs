@@ -26,7 +26,7 @@ impl Structure for CollapsedTunnel {
         '#'
     }
     fn get_color(&self) -> Color {
-        Color::DarkGray
+        Color::Rgb(128, 128, 128)
     }
     fn get_level(&self) -> char {
         ' '

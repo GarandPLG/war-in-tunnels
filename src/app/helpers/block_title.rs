@@ -14,7 +14,8 @@ pub fn block_title_helper(
 ) -> Line<'static> {
     let mut line: Line<'static> = Line::default();
 
-    line.spans.push(Span::from("[ ").gray());
+    line.spans
+        .push(Span::from("[ ").fg(Color::Rgb(192, 192, 192)));
 
     for (i, (text, color)) in texts.iter().enumerate() {
         let span: Span<'_> = Span::styled(text.clone(), Style::new().fg(*color));
@@ -22,12 +23,14 @@ pub fn block_title_helper(
 
         if let Some(sep) = separator {
             if i + 1 < texts.len() {
-                line.spans.push(Span::from(sep).gray());
+                line.spans
+                    .push(Span::from(sep).fg(Color::Rgb(192, 192, 192)));
             }
         }
     }
 
-    line.spans.push(Span::from(" ]").gray());
+    line.spans
+        .push(Span::from(" ]").fg(Color::Rgb(192, 192, 192)));
 
     line
 }

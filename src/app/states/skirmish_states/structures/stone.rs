@@ -26,7 +26,7 @@ impl Structure for Stone {
     }
 
     fn get_color(&self) -> Color {
-        Color::White
+        Color::Rgb(255, 255, 255)
     }
 
     fn get_level(&self) -> char {

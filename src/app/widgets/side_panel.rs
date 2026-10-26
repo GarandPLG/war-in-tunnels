@@ -54,7 +54,7 @@ impl<'a> SidePanelWidget<'a> {
             .border_type(BorderType::Double)
             .title(block_single_title_helper(
                 format!("{}{}", self.col_to_letters(), self.coords.0),
-                Color::Yellow,
+                Color::Rgb(128, 128, 0),
             ))
             .title_alignment(Alignment::Center)
     }
@@ -108,7 +108,10 @@ impl Widget for SidePanelWidget<'_> {
         }
         Paragraph::new(structure_text)
             .alignment(Alignment::Left)
-            .block(self.get_inner_block(self.structure.get_name().to_string(), Color::Cyan))
+            .block(self.get_inner_block(
+                self.structure.get_name().to_string(),
+                Color::Rgb(0, 128, 128),
+            ))
             .render(structure_area, buf);
 
         if self.unit.is_unit() {
@@ -120,7 +123,7 @@ impl Widget for SidePanelWidget<'_> {
 
             Paragraph::new(self.unit.text())
                 .alignment(Alignment::Left)
-                .block(self.get_inner_block(unit_name, Color::Green))
+                .block(self.get_inner_block(unit_name, Color::Rgb(0, 128, 0)))
                 .render(unit_area, buf);
         }
     }

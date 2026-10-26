@@ -100,7 +100,7 @@ impl Structure for Tunnel {
                     },
                     self.support_progress().unwrap_or(0)
                 ))
-                .cyan(),
+                .fg(Color::Rgb(0, 128, 128)),
             );
         }
         lines
@@ -111,7 +111,7 @@ impl Structure for Tunnel {
     }
 
     fn get_color(&self) -> Color {
-        Color::Gray
+        Color::Rgb(192, 192, 192)
     }
 
     fn get_level(&self) -> char {

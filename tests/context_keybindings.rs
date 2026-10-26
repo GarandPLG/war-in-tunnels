@@ -178,8 +178,13 @@ fn contextual_help_fits_normal_terminal_and_changes_when_route_is_selected() -> 
 #[test]
 fn construction_and_recruitment_popups_render_semantic_text_colors() -> () {
     for (key, name, status, status_color) in [
-        ('b', "Mine", "Construction unavailable", Color::Red),
-        ('r', "Miner", "Enter: queue Miner", Color::Green),
+        (
+            'b',
+            "Mine",
+            "Construction unavailable",
+            Color::Rgb(128, 0, 0),
+        ),
+        ('r', "Miner", "Enter: queue Miner", Color::Rgb(0, 128, 0)),
     ] {
         let mut app: App = app();
         if key == 'r' {
@@ -194,8 +199,8 @@ fn construction_and_recruitment_popups_render_semantic_text_colors() -> () {
             .unwrap();
         let cells: &[Cell] = &terminal.backend().buffer().content;
         for (text, color) in [
-            (name, Color::LightMagenta),
-            ("Cost:", Color::Yellow),
+            (name, Color::Rgb(255, 0, 255)),
+            ("Cost:", Color::Rgb(128, 128, 0)),
             (status, status_color),
         ] {
             assert!(

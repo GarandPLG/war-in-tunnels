@@ -1,5 +1,21 @@
 # Dziennik prac
 
+## 2026-10-26 — koordynaty w mapie stresu i fokus gotowej trasy
+
+CellWidget::render_stress wyświetla koordynaty na obramowaniu, w kolorze mapy stresu lub aktywnego fokusu. Kamień zachowuje zwykły wygląd. BoardWidget nie nadaje flagi marked skupionemu polu gotowej kolejki poza trybem wytyczania zadania: obramowanie jest wtedy żółte, a podczas rysowania pozostaje magenta. Podświetlenie pozostałej trasy i flagi modelu pozostają zachowane.
+
+Regresje sprawdzają koordynaty przy wszystkich zoomach oraz fokus gotowej trasy przed zaznaczeniem jednostki i po Space, zarówno w zwykłym widoku, jak i mapie stresu. cargo fmt, cargo check --all-targets --locked i wszystkie 107 testów przez nix develop przeszły. Nie wykonywano ręcznej kontroli wyglądu w terminalu.
+
+## 2026-10-26 — spokojniejsze kolory kratek
+
+CellWidget obniża kanały RGB zwykłych, niezaznaczonych kratek o około 25%, wyłącznie podczas renderowania. Kolory jednostek, postępu, fokusu, tras, paneli i mapy stresu pozostają czytelne w dotychczasowej palecie; model struktur nie zmienia kolorów. Zastosowano cargo fmt; cargo check --all-targets --locked i wszystkie 106 testów przez nix develop przeszły. Nie oceniano wyglądu ręcznie w terminalu.
+
+## 2026-10-26 — jawne kolory RGB zamiast palety terminala
+
+Zastąpiono wszystkie nazwane kolory Ratatui w src/ i tests/ przez Color::Rgb, również skróty Stylize takie jak .gray(), .cyan() i .yellow(). Przyjęto standardowe wartości ANSI/xterm: podstawowe kanały 128, jasne 255, Gray (192, 192, 192), DarkGray (128, 128, 128). Kolor rudy Indexed(217) zastąpiono jego odpowiednikiem xterm (255, 175, 175). Istniejący gradient RGB stresu pozostaje bez zmian. Jawne RGB uniezależnia te kolory od palety motywu terminala, więc wygląd może różnić się od wcześniejszych kolorów nazwanych. Zmieniono wyłącznie zapis kolorów i potrzebne importy, bez dodawania warstwy motywów.
+
+Zastosowano cargo fmt; cargo check --all-targets --locked i cargo test --all-targets --locked przez nix develop przeszły. git diff --check przeszedł; wyszukiwanie potwierdziło brak Color:: innych niż Rgb i nazwanych skrótów kolorowania w źródłach oraz testach. Nie sprawdzano wyglądu w interaktywnym terminalu. Zachowano zastaną zmianę użytkownika w flake.lock.
+
 ## 2026-10-24 — wspólny workflow Gitea i kolejność jobów
 
 Odnotowano zmianę użytkownika: `.gitea/workflows/tests.yml` (`Project tests`) zastępuje osobne workflowy `rust.yml`, `nix.yml` i `packages.yml`. Po pushu i dla pull requestów wykonuje joby w kolejności `check → nix → linux → aur`, wymuszonej przez `needs`. Błąd wcześniejszego joba pomija zależne joby. `check` wykonuje kontrole Rust, `nix` buduje `.#default`, `linux` pakuje deb/rpm/AppImage/Flatpak, a `aur` buduje i instaluje paczkę Arch. Artefakty pozostają testowe, bez publikowania wydań i tagów, z retencją 7 dni.

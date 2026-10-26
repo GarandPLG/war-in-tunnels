@@ -1,4 +1,7 @@
-use ratatui::{style::Stylize, text::Line};
+use ratatui::{
+    style::{Color, Stylize},
+    text::Line,
+};
 
 use crate::app::states::skirmish_states::{
     Players, Resources,
@@ -107,19 +110,21 @@ impl Unit for MinerUnit {
                 .flat_map(|(i, task): (usize, &Tasks)| -> [Line<'_>; 2] {
                     [
                         Line::from_iter([
-                            format!("{}. ", i + 1).gray(),
-                            task.get_icon().gray(),
-                            "  ".gray(),
-                            self.display_coords(task.get_path_front_coords()).green(),
-                            " -> ".gray(),
-                            self.display_coords(task.get_path_back_coords()).yellow(),
+                            format!("{}. ", i + 1).fg(Color::Rgb(192, 192, 192)),
+                            task.get_icon().fg(Color::Rgb(192, 192, 192)),
+                            "  ".fg(Color::Rgb(192, 192, 192)),
+                            self.display_coords(task.get_path_front_coords())
+                                .fg(Color::Rgb(0, 128, 0)),
+                            " -> ".fg(Color::Rgb(192, 192, 192)),
+                            self.display_coords(task.get_path_back_coords())
+                                .fg(Color::Rgb(128, 128, 0)),
                         ]),
                         Line::from(format!(
                             "   Step: {}% | Total: {}%",
                             task.get_progress() as u16,
                             task.get_total_progress() as u16,
                         ))
-                        .cyan(),
+                        .fg(Color::Rgb(0, 128, 128)),
                     ]
                 })
                 .collect::<Vec<Line<'_>>>(),

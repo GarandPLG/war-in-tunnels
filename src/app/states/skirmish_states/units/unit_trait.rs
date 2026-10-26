@@ -1,6 +1,6 @@
 use crate::app::states::skirmish_states::{Players, tasks::Tasks};
 use ratatui::{
-    style::Stylize,
+    style::{Color, Stylize},
     text::{Line, Span},
 };
 use std::collections::VecDeque;
@@ -51,31 +51,31 @@ pub trait Unit {
         let tasks: Vec<Line<'_>> = self.get_tasks_formatted();
 
         let mut lines: Vec<Line<'_>> = Vec::from([
-            Line::from_iter(["Owner: ".gray(), owner]),
+            Line::from_iter(["Owner: ".fg(Color::Rgb(192, 192, 192)), owner]),
             Line::from_iter([
-                "HP: ".gray(),
-                hp.green(),
-                "/".gray(),
-                max_hp.green(),
-                " ( ".gray(),
-                hp_percent.green(),
-                "% )".gray(),
+                "HP: ".fg(Color::Rgb(192, 192, 192)),
+                hp.fg(Color::Rgb(0, 128, 0)),
+                "/".fg(Color::Rgb(192, 192, 192)),
+                max_hp.fg(Color::Rgb(0, 128, 0)),
+                " ( ".fg(Color::Rgb(192, 192, 192)),
+                hp_percent.fg(Color::Rgb(0, 128, 0)),
+                "% )".fg(Color::Rgb(192, 192, 192)),
             ]),
         ]);
 
         if can_dig {
             lines.push(Line::from_iter([
-                "Digging power: ".gray(),
-                digging_power.green(),
+                "Digging power: ".fg(Color::Rgb(192, 192, 192)),
+                digging_power.fg(Color::Rgb(0, 128, 0)),
             ]));
         }
 
         if self.get_can_build() {
-            lines.push(Line::from("Can build: Yes").green());
+            lines.push(Line::from("Can build: Yes").fg(Color::Rgb(0, 128, 0)));
         }
 
         if !have_any_tasks {
-            lines.push(Line::from("Tasks Queue: ".gray()));
+            lines.push(Line::from("Tasks Queue: ".fg(Color::Rgb(192, 192, 192))));
             for task in tasks {
                 lines.push(task);
             }

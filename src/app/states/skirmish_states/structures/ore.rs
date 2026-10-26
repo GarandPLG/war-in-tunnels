@@ -53,7 +53,7 @@ impl Structure for Ore {
         match self.owner {
             Players::Player => self.owner.get_color(),
             Players::Enemy => self.owner.get_color(),
-            Players::Unclaimed => Color::Indexed(217),
+            Players::Unclaimed => Color::Rgb(255, 175, 175),
         }
     }
 
@@ -89,10 +89,14 @@ impl Structure for Ore {
         let mut lines: Vec<Line<'_>> = Structure::base_text(self);
 
         lines.push(Line::from_iter([
-            "Ore: ".gray(),
-            self.get_ore_amount().to_string().cyan(),
-            "/".gray(),
-            self.get_max_ore_amount().to_string().cyan(),
+            "Ore: ".fg(Color::Rgb(192, 192, 192)),
+            self.get_ore_amount()
+                .to_string()
+                .fg(Color::Rgb(0, 128, 128)),
+            "/".fg(Color::Rgb(192, 192, 192)),
+            self.get_max_ore_amount()
+                .to_string()
+                .fg(Color::Rgb(0, 128, 128)),
         ]));
 
         lines

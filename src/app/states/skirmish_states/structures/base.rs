@@ -91,9 +91,9 @@ impl Structure for BaseBuilding {
 
     fn get_color(&self) -> Color {
         match self.owner {
-            Players::Player => Color::LightBlue,
-            Players::Enemy => Color::LightRed,
-            Players::Unclaimed => Color::LightGreen,
+            Players::Player => Color::Rgb(0, 0, 255),
+            Players::Enemy => Color::Rgb(255, 0, 0),
+            Players::Unclaimed => Color::Rgb(0, 255, 0),
         }
     }
 

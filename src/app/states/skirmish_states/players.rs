@@ -21,9 +21,9 @@ impl Players {
 
     pub fn get_color(&self) -> Color {
         match self {
-            Self::Player => Color::LightBlue,
-            Self::Enemy => Color::LightRed,
-            Self::Unclaimed => Color::White,
+            Self::Player => Color::Rgb(0, 0, 255),
+            Self::Enemy => Color::Rgb(255, 0, 0),
+            Self::Unclaimed => Color::Rgb(255, 255, 255),
         }
     }
 

@@ -87,9 +87,11 @@ impl Structure for Mine {
     fn text(&self) -> Vec<Line<'_>> {
         let mut lines: Vec<Line<'_>> = self.base_text();
         lines.push(Line::from_iter([
-            "Ore: ".gray(),
-            self.get_ore_amount().to_string().cyan(),
-            format!("/{}", self.ore.get_max_ore_amount()).gray(),
+            "Ore: ".fg(Color::Rgb(192, 192, 192)),
+            self.get_ore_amount()
+                .to_string()
+                .fg(Color::Rgb(0, 128, 128)),
+            format!("/{}", self.ore.get_max_ore_amount()).fg(Color::Rgb(192, 192, 192)),
         ]));
         lines
     }

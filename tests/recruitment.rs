@@ -92,7 +92,7 @@ fn base_cell_shows_recruitment_progress_until_spawn_at_every_zoom() -> () {
                 .find(|cell: &&Cell| -> bool { cell.symbol() == "%" })
                 .unwrap()
                 .fg,
-            Color::Cyan
+            Color::Rgb(0, 128, 128)
         );
         if zoom != ZoomLevel::ZoomedOut {
             assert!(text(&buffer).contains('M'));

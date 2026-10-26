@@ -49,7 +49,7 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
 
     {
         let lines: Vec<Line<'_>> = Vec::from_iter([
-            Line::raw("War in Tunnels").yellow(),
+            Line::raw("War in Tunnels").fg(Color::Rgb(128, 128, 0)),
             Line::from_iter([
                 format!(
                     "Wood: {} (+{}/{}s) | ",
@@ -72,7 +72,7 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             .alignment(Alignment::Left)
             .block(
                 Block::new()
-                    .gray()
+                    .fg(Color::Rgb(192, 192, 192))
                     .padding(Padding {
                         left: 1,
                         right: 1,
@@ -86,11 +86,11 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
 
     {
         let main_block: Block = Block::new()
-            .gray()
+            .fg(Color::Rgb(192, 192, 192))
             .title(block_title_helper(
                 &[
-                    ("Skirmish".to_string(), Color::Magenta),
-                    ("Map".to_string(), Color::Green),
+                    ("Skirmish".to_string(), Color::Rgb(128, 0, 128)),
+                    ("Map".to_string(), Color::Rgb(0, 128, 0)),
                 ],
                 Some(" - "),
             ))
@@ -121,24 +121,24 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
 
         if states.skirmish.task_view {
             let mut lines: Vec<Line<'_>> = vec![
-                Line::from("Enter: draw route").green(),
+                Line::from("Enter: draw route").fg(Color::Rgb(0, 128, 0)),
                 Line::from(format!(
                     "Auto supports: {}",
                     if board.auto_supports { "ON" } else { "OFF" }
                 ))
-                .cyan(),
-                Line::from("a: toggle auto supports").yellow(),
-                Line::from("Support: 10 Wood + 2 Metal").yellow(),
-                Line::from("Placed at 80% stress").gray(),
-                Line::from("No funds: collapse risk!").red(),
-                Line::from("t: close task selection").gray(),
+                .fg(Color::Rgb(0, 128, 128)),
+                Line::from("a: toggle auto supports").fg(Color::Rgb(128, 128, 0)),
+                Line::from("Support: 10 Wood + 2 Metal").fg(Color::Rgb(128, 128, 0)),
+                Line::from("Placed at 80% stress").fg(Color::Rgb(192, 192, 192)),
+                Line::from("No funds: collapse risk!").fg(Color::Rgb(128, 0, 0)),
+                Line::from("t: close task selection").fg(Color::Rgb(192, 192, 192)),
             ];
             if states.skirmish.selected_task == 1 {
                 lines = vec![
-                    Line::from("Enter: draw movement route").green(),
-                    Line::from("Walkable cells only; no digging").cyan(),
-                    Line::from("Collapsed route: wait, do not dig").gray(),
-                    Line::from("t: close task selection").gray(),
+                    Line::from("Enter: draw movement route").fg(Color::Rgb(0, 128, 0)),
+                    Line::from("Walkable cells only; no digging").fg(Color::Rgb(0, 128, 128)),
+                    Line::from("Collapsed route: wait, do not dig").fg(Color::Rgb(192, 192, 192)),
+                    Line::from("t: close task selection").fg(Color::Rgb(192, 192, 192)),
                 ];
             }
             let block: Block<'_> = Block::bordered()
@@ -150,7 +150,7 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             block.render(side_panel_area, buf);
             Tabs::new(SkirmishState::TASK_OPTIONS.iter().copied())
                 .select(states.skirmish.selected_task)
-                .highlight_style(Style::default().fg(Color::LightMagenta).bold())
+                .highlight_style(Style::default().fg(Color::Rgb(255, 0, 255)).bold())
                 .render(tabs_area, buf);
             Paragraph::new(lines).render(details_area, buf);
         } else if states.skirmish.side_panel {
@@ -305,25 +305,30 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             && site.get_owner() == Players::Player
         {
             vec![
-                Line::from(format!("Construction: {}%", site.progress_percent())).cyan(),
+                Line::from(format!("Construction: {}%", site.progress_percent()))
+                    .fg(Color::Rgb(0, 128, 128)),
                 if board.has_adjacent_builder(coords, Players::Player) {
-                    Line::from("Builder working").green()
+                    Line::from("Builder working").fg(Color::Rgb(0, 128, 0))
                 } else {
-                    Line::from("Paused: adjacent friendly builder required").yellow()
+                    Line::from("Paused: adjacent friendly builder required")
+                        .fg(Color::Rgb(128, 128, 0))
                 },
-                Line::from("Delete: cancel and refund full cost").yellow(),
+                Line::from("Delete: cancel and refund full cost").fg(Color::Rgb(128, 128, 0)),
             ]
         } else if matches!(structure, Structures::Mine(_))
             && structure.get_owner() == Players::Player
         {
-            vec![Line::from("Mine completed").green()]
+            vec![Line::from("Mine completed").fg(Color::Rgb(0, 128, 0))]
         } else if states
             .skirmish
             .can_start_mine_construction(coords, Players::Player)
         {
-            vec![Line::from("Ready to build: Enter").green()]
+            vec![Line::from("Ready to build: Enter").fg(Color::Rgb(0, 128, 0))]
         } else {
-            vec![Line::from("Construction unavailable: check site, builder and resources").red()]
+            vec![
+                Line::from("Construction unavailable: check site, builder and resources")
+                    .fg(Color::Rgb(128, 0, 0)),
+            ]
         };
         let mut lines: Vec<Line<'_>> = vec![
             Line::from(format!(
@@ -331,9 +336,10 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
                 Mine::COST.wood,
                 Mine::COST.metal
             ))
-            .yellow(),
-            Line::from("Requires: neutral Ore + adjacent friendly builder").gray(),
-            Line::from("Produces: 1 Metal/s (2 with a Miner inside)").cyan(),
+            .fg(Color::Rgb(128, 128, 0)),
+            Line::from("Requires: neutral Ore + adjacent friendly builder")
+                .fg(Color::Rgb(192, 192, 192)),
+            Line::from("Produces: 1 Metal/s (2 with a Miner inside)").fg(Color::Rgb(0, 128, 128)),
         ];
         lines.extend(status);
         if states.skirmish.selected_building == 1 {
@@ -343,22 +349,24 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
                     Tunnel::SUPPORT_COST.wood,
                     Tunnel::SUPPORT_COST.metal
                 ))
-                .yellow(),
-                Line::from("Tunnel + nearby friendly builder required").gray(),
-                Line::from("Stress: 20% at support, +20% per tile").cyan(),
+                .fg(Color::Rgb(128, 128, 0)),
+                Line::from("Tunnel + nearby friendly builder required")
+                    .fg(Color::Rgb(192, 192, 192)),
+                Line::from("Stress: 20% at support, +20% per tile").fg(Color::Rgb(0, 128, 128)),
                 if matches!(structure, Structures::Tunnel(tunnel) if tunnel.support_work().is_some())
                 {
-                    Line::from("Builder occupied until completion").yellow()
+                    Line::from("Builder occupied until completion").fg(Color::Rgb(128, 128, 0))
                 } else if matches!(structure, Structures::Tunnel(tunnel) if tunnel.has_support())
                     && states.skirmish.can_manage_support(coords, Players::Player)
                 {
-                    Line::from("Delete: remove support (no refund)").yellow()
+                    Line::from("Delete: remove support (no refund)").fg(Color::Rgb(128, 128, 0))
                 } else if states.skirmish.can_build_support(coords, Players::Player) {
-                    Line::from("Enter: build support").green()
+                    Line::from("Enter: build support").fg(Color::Rgb(0, 128, 0))
                 } else {
-                    Line::from("Support unavailable: site, builder or resources").red()
+                    Line::from("Support unavailable: site, builder or resources")
+                        .fg(Color::Rgb(128, 0, 0))
                 },
-                Line::from("WARNING: removal can cause fatal collapses").red(),
+                Line::from("WARNING: removal can cause fatal collapses").fg(Color::Rgb(128, 0, 0)),
             ];
             if let Structures::Tunnel(tunnel) = structure
                 && let Some(work) = tunnel.support_work()
@@ -373,23 +381,25 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
                         },
                         tunnel.support_progress().unwrap_or(0)
                     ))
-                    .cyan(),
+                    .fg(Color::Rgb(0, 128, 128)),
                 );
                 if board.support_worker(coords, work.owner).is_none() {
-                    lines.push(Line::from("Paused: friendly builder required").yellow());
+                    lines.push(
+                        Line::from("Paused: friendly builder required").fg(Color::Rgb(128, 128, 0)),
+                    );
                 }
             }
         }
         Clear.render(popup, buf);
         let block: Block<'_> = Block::bordered()
-            .title(Line::from("Buildings").magenta().bold())
+            .title(Line::from("Buildings").fg(Color::Rgb(128, 0, 128)).bold())
             .padding(Padding::uniform(1));
         let [tabs_area, details_area]: [Rect; 2] =
             Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(block.inner(popup));
         block.render(popup, buf);
         Tabs::new(SkirmishState::BUILDING_OPTIONS.iter().copied())
             .select(states.skirmish.selected_building)
-            .highlight_style(Style::default().fg(Color::LightMagenta).bold())
+            .highlight_style(Style::default().fg(Color::Rgb(255, 0, 255)).bold())
             .render(tabs_area, buf);
         Paragraph::new(lines).render(details_area, buf);
     }
@@ -403,9 +413,9 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
             let status: &'static str =
                 base.recruitment_status(cell.get_ref_option_unit().is_some());
             let action: Line<'_> = if states.skirmish.can_recruit_miner(coords, Players::Player) {
-                Line::from("Enter: queue Miner").green()
+                Line::from("Enter: queue Miner").fg(Color::Rgb(0, 128, 0))
             } else {
-                Line::from("Insufficient resources or queue full").red()
+                Line::from("Insufficient resources or queue full").fg(Color::Rgb(128, 0, 0))
             };
             vec![
                 Line::from(format!(
@@ -413,33 +423,33 @@ pub fn skirmish_view(app: &App, area: Rect, buf: &mut Buffer) {
                     MinerUnit::RECRUIT_COST.wood,
                     MinerUnit::RECRUIT_COST.metal
                 ))
-                .yellow(),
+                .fg(Color::Rgb(128, 128, 0)),
                 Line::from(format!(
                     "Queued Miners: {} (includes active)",
                     base.queued_miners()
                 ))
-                .cyan(),
+                .fg(Color::Rgb(0, 128, 128)),
                 Line::from(format!(
                     "Current progress: {}%",
                     base.recruitment_progress()
                 ))
-                .cyan(),
-                Line::from(status).yellow(),
+                .fg(Color::Rgb(0, 128, 128)),
+                Line::from(status).fg(Color::Rgb(128, 128, 0)),
                 action,
             ]
         } else {
-            vec![Line::from("Select your Base to recruit Miners").red()]
+            vec![Line::from("Select your Base to recruit Miners").fg(Color::Rgb(128, 0, 0))]
         };
         Clear.render(popup, buf);
         let block: Block<'_> = Block::bordered()
-            .title(Line::from("Recruitment").magenta().bold())
+            .title(Line::from("Recruitment").fg(Color::Rgb(128, 0, 128)).bold())
             .padding(Padding::uniform(1));
         let [tabs_area, details_area]: [Rect; 2] =
             Layout::vertical([Constraint::Length(2), Constraint::Min(0)]).areas(block.inner(popup));
         block.render(popup, buf);
         Tabs::new(SkirmishState::RECRUITMENT_OPTIONS.iter().copied())
             .select(states.skirmish.selected_recruit)
-            .highlight_style(Style::default().fg(Color::LightMagenta).bold())
+            .highlight_style(Style::default().fg(Color::Rgb(255, 0, 255)).bold())
             .render(tabs_area, buf);
         Paragraph::new(lines).render(details_area, buf);
     }

@@ -58,7 +58,10 @@ impl Widget for BoardWidget<'_> {
                             row_idx + self.state.vertical_offset.get_value(),
                             col_idx + self.state.horizontal_offset.get_value(),
                         );
-                        if queued_path.contains(&coords) {
+                        if queued_path.contains(&coords)
+                            && (coords != self.state.get_focused_cell().get_coords()
+                                || self.state.marked_cells.marking_cells)
+                        {
                             cell.set_marked(true);
                         }
                         if self.stress {

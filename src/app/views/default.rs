@@ -5,7 +5,7 @@ use crate::app::{
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
-    style::Stylize,
+    style::{Color, Stylize},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
@@ -25,10 +25,10 @@ pub fn default_view(area: Rect, buf: &mut Buffer) {
     {
         Paragraph::new("Work in progress")
             .alignment(Alignment::Center)
-            .yellow()
+            .fg(Color::Rgb(128, 128, 0))
             .block(
                 Block::new()
-                    .gray()
+                    .fg(Color::Rgb(192, 192, 192))
                     .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT),
             )
             .render(main_area, buf);

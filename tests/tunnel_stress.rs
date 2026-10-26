@@ -447,7 +447,7 @@ fn rubble_can_be_dug_again_and_auto_setting_survives_task_conversion() -> () {
 }
 
 #[test]
-fn stress_view_hides_all_other_text_and_colors_but_keeps_focused_color() -> () {
+fn stress_view_shows_coordinates_and_stress_but_keeps_focused_color() -> () {
     let mut app: App = app();
     let game: &mut SkirmishState = &mut app.states_mut().unwrap().skirmish;
     put_tunnel(&mut game.board, (5, 3), true);
@@ -477,21 +477,25 @@ fn stress_view_hides_all_other_text_and_colors_but_keeps_focused_color() -> () {
             .map(|cell: &Cell| -> &str { cell.symbol() })
             .collect();
         assert!(text.contains("20%"));
+        assert!(text.contains("D5"));
         assert!(!text.contains('M') && !text.contains('T'));
         assert!(!buffer.content.iter().any(|cell: &Cell| -> bool {
-            matches!(cell.fg, Color::Magenta | Color::LightMagenta | Color::Blue)
+            matches!(
+                cell.fg,
+                Color::Rgb(128, 0, 128) | Color::Rgb(255, 0, 255) | Color::Rgb(0, 0, 128)
+            )
         }));
         game.board.cells[5][3]
             .clone()
             .set_selected(true)
             .render_stress(area, &mut buffer);
-        assert_eq!(buffer[(0, 0)].fg, Color::LightYellow);
+        assert_eq!(buffer[(0, 0)].fg, Color::Rgb(255, 255, 0));
         game.board.cells[5][3]
             .clone()
             .set_selected(true)
             .set_marked(true)
             .render_stress(area, &mut buffer);
-        assert_eq!(buffer[(0, 0)].fg, Color::Magenta);
+        assert_eq!(buffer[(0, 0)].fg, Color::Rgb(128, 0, 128));
     }
 }
 

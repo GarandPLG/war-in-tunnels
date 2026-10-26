@@ -53,8 +53,54 @@ fn route_color_count(app: &mut App) -> usize {
         .buffer()
         .content
         .iter()
-        .filter(|cell: &&Cell| -> bool { matches!(cell.fg, Color::Magenta | Color::LightMagenta) })
+        .filter(|cell: &&Cell| -> bool {
+            matches!(cell.fg, Color::Rgb(128, 0, 128) | Color::Rgb(255, 0, 255))
+        })
         .count()
+}
+
+#[test]
+fn focused_queued_route_is_yellow_until_drawing_a_task() -> () {
+    let mut app: App = app();
+    let board: &mut BoardState = &mut app.states_mut().unwrap().skirmish.board;
+    board.cells[5][3].set_structure(Structures::Tunnel(Tunnel::new()));
+    board.cells[5][2]
+        .get_mut_option_unit()
+        .set_task(Tasks::Moving(MovingTask::new([(5, 3)].into())));
+    board.change_focused_cell(MoveFocusedCell::Right);
+    for drawing in [false, true] {
+        if drawing {
+            press(&mut app, KeyCode::Left);
+            press(&mut app, KeyCode::Char(' '));
+        }
+        let board: &BoardState = &app.states_ref().unwrap().skirmish.board;
+        assert_eq!(board.get_focused_cell().get_coords(), (5, 3));
+        for stress in [false, true] {
+            app.states_mut().unwrap().skirmish.stress_view = stress;
+            let mut terminal: Terminal<TestBackend> =
+                Terminal::new(TestBackend::new(160, 50)).unwrap();
+            terminal
+                .draw(|frame: &mut ratatui::Frame<'_>| -> () {
+                    frame.render_widget(&mut app, frame.area());
+                })
+                .unwrap();
+            let corner: &Cell = &terminal
+                .backend()
+                .buffer()
+                .content
+                .windows(3)
+                .find(|cells: &&[Cell]| -> bool {
+                    cells[0].symbol() == "╭" && cells[1].symbol() == "D" && cells[2].symbol() == "5"
+                })
+                .unwrap()[0];
+            let expected: Color = if drawing {
+                Color::Rgb(128, 0, 128)
+            } else {
+                Color::Rgb(255, 255, 0)
+            };
+            assert_eq!(corner.fg, expected);
+        }
+    }
 }
 
 #[test]
